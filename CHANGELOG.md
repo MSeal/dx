@@ -2,7 +2,11 @@ All notable changes will be documented here.
 
 ---
 
-## [1.0.0]() - 2022-04-25
+## `1.0.2`
+_2022-04-25_
+### **Fixed**
+* Updated minimum `python` version to `3.8` (down from `3.9.6` in 1.0.0)
+
 ### **Added**
 * Custom `IPython` formatter for [Noteable](https://app.noteable.io/) environments
 * Additional data type support for `display()` / `dx()`: 

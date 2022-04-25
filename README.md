@@ -1,47 +1,37 @@
 # dx
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/nteract/dx/main?urlpath=nteract/tree/examples)
-
 A Pythonic Data Explorer.
 
 ## Install
 
 For Python 3.8+:
-
 ```
-pip install dx
+pip install dx>=1.0.0
 ```
 
 ## Usage
 
-The `dx` library contains a simple helper function also called `dx`.
+The `dx` library allows for enabling/disabling DEX media type visualization with `dx.enable()` and `dx.display(data)` by setting a custom `IPython` formatter.
 
 ```python
-from dx import dx
+import dx
+
+dx.enable()
 ```
-
-`dx()` takes one positional argument, a `dataframe`.
-
-```python
-dx.display(dataframe)
-```
-
-The `dx(dataframe)` function will display the dataframe in
-[data explorer](https://github.com/nteract/data-explorer) mode:
-
-In the future, other data sources may be supported.
 
 ### Example
 
 ```python
-import dx
 import pandas as pd
 
-# Get happiness data and create a pandas dataframe
+# load randomized number/bool/string data
 df = pd.read_csv('examples/sample_data.csv')
-
-# Open data explorer with the happiness dataframe
 dx.display(df)
+```
+
+Pass `index=True` to visualize the `.index` values of a dataframe as well as the column/row values:
+```python
+dx.display(df, index=True)
 ```
 
 If you only wish to display a certain number of rows from the dataframe, use

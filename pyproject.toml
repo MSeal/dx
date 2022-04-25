@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dx"
-version = "1.0.1"
+version = "1.0.2"
 description = "Python wrapper for Data Explorer"
 authors = ["Dave Shoup <dave.shoup@gmail.com>", "Kyle Kelley <rgbkrk@gmail.com>"]
 readme = "README.md"
