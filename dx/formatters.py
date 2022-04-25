@@ -19,7 +19,7 @@ class TableSchemaFormatter(BaseFormatter):
 def deregister_dx_formatting(media_type: str = DX_MEDIA_TYPE) -> None:
     """Reverts IPython.display_formatter.formatters to original states"""
     pd.options.display.html.table_schema = False
-    pd.options.display.max_rows = 50_001
+    pd.options.display.max_rows = 60
 
     formatters = get_ipython().display_formatter.formatters
     if media_type in formatters:
