@@ -5,5 +5,5 @@ description = "Python wrapper for Data Explorer"
 authors = ["Dave Shoup <dave.shoup@gmail.com>", "Kyle Kelley <rgbkrk@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9.7"
+python = "^3.9.6"
 pandas = "^1.3.5"
