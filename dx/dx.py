@@ -18,7 +18,7 @@ class DXDataFrame(pd.DataFrame):
     media_type = DX_MEDIA_TYPE
 
     def display(self, media_type: Optional[str] = None, index: bool = False) -> None:
-        """Render DEXDataFrame based on provided media type."""
+        """Render DXDataFrame based on provided media type."""
 
         if not in_noteable_env():
             # TODO: should this be treated differently?
