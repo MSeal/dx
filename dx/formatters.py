@@ -5,7 +5,7 @@ from IPython.core.formatters import BaseFormatter
 from .dx import DATARESOURCE_MEDIA_TYPE, DX_MEDIA_TYPE
 
 
-class DEXSchemaFormatter(BaseFormatter):
+class DXSchemaFormatter(BaseFormatter):
     # FOLLOWUP: does anything need to change here?
     print_method = "_repr_data_resource_"
     _return_type = (dict,)
@@ -38,7 +38,7 @@ def register_dx_formatter(media_type: str = DX_MEDIA_TYPE) -> None:
     pd.options.display.max_rows = 100_000
 
     formatters = get_ipython().display_formatter.formatters
-    formatters[media_type] = DEXSchemaFormatter()
+    formatters[media_type] = DXSchemaFormatter()
     # the default pandas `Dataframe._repl_html_` will not work correctly
     # if enabled=True here
     formatters[media_type].enabled = False
