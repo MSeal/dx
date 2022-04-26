@@ -11,8 +11,7 @@ def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
 ) -> None:
     """
-    Convenience function to allow calling `dx.display(df)` on a pandas Dataframe, tabular data structure, or filepath.
-    To render the same format
+    Display a single object (pd.DataFrame, .csv/.json filepath, or tabular dataset) with the DX display format.
     """
 
     if isinstance(data, str):
