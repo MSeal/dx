@@ -36,6 +36,7 @@ def format_dx(df) -> tuple:
 
 
 def deregister() -> None:
+    """Reverts IPython.display_formatter to its original state"""
     if not IN_IPYTHON_ENV:
         return
     pd.options.display.max_rows = 60
