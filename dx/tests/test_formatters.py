@@ -1,4 +1,12 @@
-from dx.formatters import DX_MEDIA_TYPE, format_dx
+from dx.formatters import (
+    DX_MEDIA_TYPE,
+    DXBaseFormatter,
+    deregister,
+    format_dx,
+    register,
+)
+from IPython.core.formatters import DisplayFormatter
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 
 def test_media_type(sample_dataframe):
@@ -43,21 +51,18 @@ def test_fields_match_data_length(sample_dataframe):
     assert len(data) == len(fields)
 
 
-# # TODO: mock IPython environment's display formatter
+def test_register_ipython_display_formatter(get_ipython: TerminalInteractiveShell):
+    display_formatter = get_ipython.display_formatter
 
-# @pytest.mark.parametrize("in_ipython_env", [True, False])
-# def test_register_display_formatter(in_ipython_env: bool):
-#     """
-#     Test that the IPython display formatter is overridden
-#     when in an IPython environment if `dx.register()` is called.
-#     """
-#     pass
+    display_formatter = register(display_formatter=display_formatter)
+    assert DX_MEDIA_TYPE in display_formatter.formatters
 
 
-# @pytest.mark.parametrize("in_ipython_env", [True, False])
-# def test_deregister_display_formatter(in_ipython_env: bool):
-#     """
-#     Test that the IPython display formatter is reset to the defaults
-#     when in an IPython environment if `dx.deregister()` is called.
-#     """
-#     pass
+def test_deregister_ipython_display_formatter(get_ipython: TerminalInteractiveShell):
+    display_formatter = get_ipython.display_formatter
+
+    display_formatter = register(display_formatter=display_formatter)
+    assert DX_MEDIA_TYPE in display_formatter.formatters
+
+    display_formatter = deregister(display_formatter=display_formatter)
+    assert DX_MEDIA_TYPE not in display_formatter.formatters

@@ -4,7 +4,30 @@ import string
 import pandas as pd
 import pytest
 from IPython.core import formatters
-from IPython.core.formatters import BaseFormatter
+from IPython.core.formatters import BaseFormatter, DisplayFormatter
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.testing import tools
+
+
+@pytest.fixture
+def get_ipython() -> TerminalInteractiveShell:
+    if TerminalInteractiveShell._instance:
+        return TerminalInteractiveShell.instance()
+
+    config = tools.default_config()
+    config.TerminalInteractiveShell.simple_prompt = True
+    shell = TerminalInteractiveShell.instance(config=config)
+    return shell
+
+
+@pytest.fixture
+def tmp_display_formatter(
+    get_ipython: TerminalInteractiveShell,
+    ipython_display_formatters: dict,
+) -> DisplayFormatter:
+    display_formatter = get_ipython.display_formatter
+    display_formatter.formatters = ipython_display_formatters
+    return display_formatter
 
 
 @pytest.fixture
@@ -23,17 +46,9 @@ def ipython_display_formatters(pandas_formatter: BaseFormatter) -> dict:
     and the pandas data resource media type.
     """
     return {
-        "application/pdf": formatters.PDFFormatter(),
-        "application/javascript": formatters.JavascriptFormatter(),
-        "application/json": formatters.JSONFormatter(),
         "application/vnd.dataresource+json": pandas_formatter,
         "text/html": formatters.HTMLFormatter(),
-        "text/latex": formatters.LatexFormatter(),
-        "text/markdown": formatters.MarkdownFormatter(),
         "text/plain": formatters.PlainTextFormatter(),
-        "image/jpeg": formatters.JPEGFormatter(),
-        "image/png": formatters.PNGFormatter(),
-        "image/svg+xml": formatters.SVGFormatter(),
     }
 
 
