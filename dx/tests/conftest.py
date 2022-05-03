@@ -21,38 +21,6 @@ def get_ipython() -> TerminalInteractiveShell:
 
 
 @pytest.fixture
-def tmp_display_formatter(
-    get_ipython: TerminalInteractiveShell,
-    ipython_display_formatters: dict,
-) -> DisplayFormatter:
-    display_formatter = get_ipython.display_formatter
-    display_formatter.formatters = ipython_display_formatters
-    return display_formatter
-
-
-@pytest.fixture
-def pandas_formatter() -> BaseFormatter:
-    class PandasTableSchemaFormatter(BaseFormatter):
-        print_method = "_repr_data_resource_"
-        _return_type = (dict,)
-
-    return PandasTableSchemaFormatter()
-
-
-@pytest.fixture
-def ipython_display_formatters(pandas_formatter: BaseFormatter) -> dict:
-    """
-    Creates mock ipython display formatters for standard media types
-    and the pandas data resource media type.
-    """
-    return {
-        "application/vnd.dataresource+json": pandas_formatter,
-        "text/html": formatters.HTMLFormatter(),
-        "text/plain": formatters.PlainTextFormatter(),
-    }
-
-
-@pytest.fixture
 def sample_dataframe() -> pd.DataFrame:
     df = pd.DataFrame(
         {
