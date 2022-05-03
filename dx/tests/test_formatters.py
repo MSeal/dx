@@ -1,6 +1,6 @@
 from dx.formatters import (
     DX_MEDIA_TYPE,
-    DXBaseFormatter,
+    DXDisplayFormatter,
     deregister,
     format_dx,
     register,
@@ -52,17 +52,21 @@ def test_fields_match_data_length(sample_dataframe):
 
 
 def test_register_ipython_display_formatter(get_ipython: TerminalInteractiveShell):
-    display_formatter = get_ipython.display_formatter
-
-    display_formatter = register(display_formatter=display_formatter)
-    assert DX_MEDIA_TYPE in display_formatter.formatters
+    """
+    Test that the display formatter for an IPython shell is
+    successfully registered as a DXDisplayFormatter.
+    """
+    register(ipython_shell=get_ipython)
+    assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
 
 
 def test_deregister_ipython_display_formatter(get_ipython: TerminalInteractiveShell):
-    display_formatter = get_ipython.display_formatter
+    """
+    Test that the display formatter reverts to the default
+    `IPython.core.formatters.DisplayFormatter` after deregistering.
+    """
+    register(ipython_shell=get_ipython)
+    assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
 
-    display_formatter = register(display_formatter=display_formatter)
-    assert DX_MEDIA_TYPE in display_formatter.formatters
-
-    display_formatter = deregister(display_formatter=display_formatter)
-    assert DX_MEDIA_TYPE not in display_formatter.formatters
+    deregister(ipython_shell=get_ipython)
+    assert isinstance(get_ipython.display_formatter, DisplayFormatter)
