@@ -1,6 +1,7 @@
 import pandas as pd
 from IPython import get_ipython
-from IPython.core.formatters import BaseFormatter, DisplayFormatter
+from IPython.core.interactiveshell import InteractiveShell
+from IPython.core.formatters import DisplayFormatter
 from pandas.io.json import build_table_schema
 from typing import Optional
 
@@ -22,11 +23,6 @@ class DXDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-class DXBaseFormatter(BaseFormatter):
-    print_method = "_repr_data_resource_"
-    _return_type = (dict,)
-
-
 def format_dx(df) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the table schema
@@ -43,27 +39,27 @@ def format_dx(df) -> tuple:
     return (payload, metadata)
 
 
-def deregister(
-    display_formatter: Optional[DisplayFormatter] = None,
-) -> DisplayFormatter:
+def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     """Reverts IPython.display_formatter to its original state"""
-    if not IN_IPYTHON_ENV and display_formatter is None:
+    if not IN_IPYTHON_ENV and ipython_shell is None:
         return
     pd.options.display.max_rows = 60
-    display_formatter.formatters.pop(DX_MEDIA_TYPE, None)
-    return display_formatter
+    ipython = ipython_shell or get_ipython()
+    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
 
 
-def register(display_formatter: Optional[DisplayFormatter] = None) -> DisplayFormatter:
+def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     """Overrides the default IPython display formatter to use DXDisplayFormatter"""
-    if not IN_IPYTHON_ENV and display_formatter is None:
+    if not IN_IPYTHON_ENV and ipython_shell is None:
         return
     pd.options.display.max_rows = 100_000
 
-    display_formatter = display_formatter or get_ipython().display_formatter
-    display_formatter.formatters[DX_MEDIA_TYPE] = DXBaseFormatter()
-    display_formatter.formatters[DX_MEDIA_TYPE].for_type(pd.DataFrame, format_dx)
-    return display_formatter
+    if ipython_shell is not None:
+        global DEFAULT_IPYTHON_DISPLAY_FORMATTER
+        DEFAULT_IPYTHON_DISPLAY_FORMATTER = ipython_shell.display_formatter
+
+    ipython = ipython_shell or get_ipython()
+    ipython.display_formatter = DXDisplayFormatter()
 
 
 disable = deregister
