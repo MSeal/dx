@@ -1,7 +1,11 @@
 All notable changes will be documented here.
 
 ---
-
+## `1.0.4`
+_2022-05-06_
+### **Fixed**
+* Lowered the minimum required `ipython` version from `8.2.0` to `7.31.1`
+  
 ## `1.0.3`
 _2022-04-26_
 ### **Fixed**
