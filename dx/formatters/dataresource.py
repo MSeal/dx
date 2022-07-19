@@ -63,6 +63,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     if not IN_IPYTHON_ENV and ipython_shell is None:
         return
     pd.set_option("html.table_schema", DATARESOURCE_HTML_TABLE_SCHEMA)
-    pd.options.display.max_rows = DATARESOURCE_DISPLAY_MAX_ROWS
+    pd.set_option("display.max_rows", DATARESOURCE_DISPLAY_MAX_ROWS)
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()
