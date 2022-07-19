@@ -3,8 +3,6 @@ import string
 
 import pandas as pd
 import pytest
-from IPython.core import formatters
-from IPython.core.formatters import BaseFormatter, DisplayFormatter
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
 
