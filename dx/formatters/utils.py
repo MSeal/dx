@@ -16,7 +16,7 @@ def truncate_if_too_big(
     to help reduce size of data being sent to the frontend
     for non-default media types.
     """
-    max_size_bytes = settings.DEFAULT_MAX_SIZE_BYTES
+    max_size_bytes = settings.MAX_RENDER_SIZE_BYTES
     if sys.getsizeof(df) > max_size_bytes:
         num_current_rows = len(df)
         num_rows_to_remove = int(num_current_rows * settings.TRUNCATION_FACTOR)
@@ -37,7 +37,7 @@ def truncate_if_too_big(
         warning_html = f"""
         <div class="bp3-callout bp3-intent-warning bp3-icon-warning-sign">
         <h4 class="bp3-heading">Warning</h4>
-        Dataframe is bigger than <code>{settings.DEFAULT_MAX_SIZE_BYTES=}</code>
+        Dataframe is bigger than <code>{settings.MAX_RENDER_SIZE_BYTES=}</code>
          ({max_size_mb:.2}MB), so a truncated version is being displayed for DEX
          (shortened from <code>{orig_num_rows:,}</code> to <code>{len(df):,}</code> row(s)).
         </div>"""

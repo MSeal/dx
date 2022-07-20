@@ -10,11 +10,13 @@ MB = 1024 * 1024
 class Settings(BaseSettings):
     # "enhanced" (GRID) display mode
     DX_DISPLAY_MAX_ROWS: int = 100_000
+    DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
 
     # "simple" (classic simpleTable/DEX) display mode
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
+    DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DATARESOURCE_MEDIA_TYPE: str = Field(
         "application/vnd.dataresource+json", allow_mutation=False
@@ -25,10 +27,10 @@ class Settings(BaseSettings):
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
     PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
 
-    DEFAULT_MAX_SIZE_BYTES: int = 1 * MB
+    MAX_RENDER_SIZE_BYTES: int = 1 * MB
 
     # what percentage of the dataset to remove during each truncation
-    # in order to get large datasets under DEFAULT_MAX_SIZE_BYTES
+    # in order to get large datasets under MAX_RENDER_SIZE_BYTES
     TRUNCATION_FACTOR: float = 0.1
 
     DISPLAY_MODE: DXDisplayMode = DXDisplayMode.simple
@@ -69,12 +71,12 @@ def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
         reset()
 
 
-def set_max_size_bytes(size: int) -> None:
+def set_max_render_size_bytes(size: int) -> None:
     """
     Set the maximum size of dataframes that will be sent to the frontend.
     """
     global settings
-    settings.DEFAULT_MAX_SIZE_BYTES = size
+    settings.MAX_RENDER_SIZE_BYTES = size
 
 
 def set_sampling_mode(mode: DXSamplingMode = DXSamplingMode.random):
