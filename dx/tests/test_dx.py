@@ -1,13 +1,15 @@
 import uuid
 
 from dx.formatters.dx import format_dx
-from dx.formatters.types import DX_MEDIA_TYPE
+from dx.settings import get_settings
+
+settings = get_settings()
 
 
 def test_media_type(sample_dataframe):
     display_id = str(uuid.uuid4())
     payload, _ = format_dx(sample_dataframe, display_id)
-    assert DX_MEDIA_TYPE in payload
+    assert settings.DX_MEDIA_TYPE in payload
 
 
 def test_data_structure(sample_dataframe):
@@ -18,7 +20,7 @@ def test_data_structure(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dx(sample_dataframe, display_id)
-    data = payload[DX_MEDIA_TYPE]["data"]
+    data = payload[settings.DX_MEDIA_TYPE]["data"]
     assert isinstance(data, list)
     assert len(data) == 4
     assert isinstance(data[0], list)
@@ -31,7 +33,7 @@ def test_data_list_order(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dx(sample_dataframe, display_id)
-    data = payload[DX_MEDIA_TYPE]["data"]
+    data = payload[settings.DX_MEDIA_TYPE]["data"]
     assert data[0] == [0, 1, 2]  # index values
     assert data[1] == list("aaa")  # "col_1" values
     assert data[2] == list("bbb")  # "col_2" values
@@ -45,6 +47,6 @@ def test_fields_match_data_length(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dx(sample_dataframe, display_id)
-    data = payload[DX_MEDIA_TYPE]["data"]
-    fields = payload[DX_MEDIA_TYPE]["schema"]["fields"]
+    data = payload[settings.DX_MEDIA_TYPE]["data"]
+    fields = payload[settings.DX_MEDIA_TYPE]["schema"]["fields"]
     assert len(data) == len(fields)

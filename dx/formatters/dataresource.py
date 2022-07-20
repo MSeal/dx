@@ -9,11 +9,8 @@ from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.types import DATARESOURCE_MEDIA_TYPE
 from dx.formatters.utils import truncate_if_too_big
-
-DATARESOURCE_DISPLAY_MAX_ROWS = 100_000
-DATARESOURCE_HTML_TABLE_SCHEMA = True
+from dx.settings import settings
 
 
 class DXDataResourceDisplayFormatter(DisplayFormatter):
@@ -41,8 +38,8 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     }
     if display_id is not None:
         body["datalink"]["display_id"] = display_id
-    payload = {DATARESOURCE_MEDIA_TYPE: body}
-    metadata = {DATARESOURCE_MEDIA_TYPE: {"display_id": display_id}}
+    payload = {settings.DATARESOURCE_MEDIA_TYPE: body}
+    metadata = {settings.DATARESOURCE_MEDIA_TYPE: {"display_id": display_id}}
     return (payload, metadata)
 
 
@@ -62,7 +59,12 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     """
     if not IN_IPYTHON_ENV and ipython_shell is None:
         return
-    pd.set_option("html.table_schema", DATARESOURCE_HTML_TABLE_SCHEMA)
-    pd.set_option("display.max_rows", DATARESOURCE_DISPLAY_MAX_ROWS)
+
+    global settings
+    settings.DISPLAY_MODE = "simple"
+
+    pd.set_option("html.table_schema", settings.DATARESOURCE_HTML_TABLE_SCHEMA)
+    pd.set_option("display.max_rows", settings.DATARESOURCE_DISPLAY_MAX_ROWS)
+
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()

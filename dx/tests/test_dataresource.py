@@ -1,13 +1,15 @@
 import uuid
 
 from dx.formatters.dataresource import format_dataresource
-from dx.formatters.types import DATARESOURCE_MEDIA_TYPE
+from dx.settings import get_settings
+
+settings = get_settings()
 
 
 def test_media_type(sample_dataframe):
     display_id = str(uuid.uuid4())
     payload, _ = format_dataresource(sample_dataframe, display_id)
-    assert DATARESOURCE_MEDIA_TYPE in payload
+    assert settings.DATARESOURCE_MEDIA_TYPE in payload
 
 
 def test_data_structure(sample_dataframe):
@@ -18,7 +20,7 @@ def test_data_structure(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dataresource(sample_dataframe, display_id)
-    data = payload[DATARESOURCE_MEDIA_TYPE]["data"]
+    data = payload[settings.DATARESOURCE_MEDIA_TYPE]["data"]
     assert isinstance(data, list)
     assert len(data) == 3
     assert isinstance(data[0], dict)
@@ -31,7 +33,7 @@ def test_data_list_order(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dataresource(sample_dataframe, display_id)
-    data = payload[DATARESOURCE_MEDIA_TYPE]["data"]
+    data = payload[settings.DATARESOURCE_MEDIA_TYPE]["data"]
     assert data[0] == {"col_1": "a", "col_2": "b", "col_3": "c", "index": 0}
     assert data[1] == {"col_1": "a", "col_2": "b", "col_3": "c", "index": 1}
     assert data[2] == {"col_1": "a", "col_2": "b", "col_3": "c", "index": 2}
@@ -44,6 +46,6 @@ def test_fields_match_data_width(sample_dataframe):
     """
     display_id = str(uuid.uuid4())
     payload, _ = format_dataresource(sample_dataframe, display_id)
-    data = payload[DATARESOURCE_MEDIA_TYPE]["data"]
-    fields = payload[DATARESOURCE_MEDIA_TYPE]["schema"]["fields"]
+    data = payload[settings.DATARESOURCE_MEDIA_TYPE]["data"]
+    fields = payload[settings.DATARESOURCE_MEDIA_TYPE]["schema"]["fields"]
     assert len(data[0]) == len(fields)

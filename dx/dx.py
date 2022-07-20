@@ -4,8 +4,8 @@ from typing import List, Union
 import pandas as pd
 from IPython.display import display as ipydisplay
 
-from dx.formatters.main import DISPLAY_MODE, set_display_mode
-from dx.formatters.types import DXDisplayMode
+from dx.settings import set_display_mode, settings
+from dx.types import DXDisplayMode
 
 
 def display(
@@ -28,7 +28,7 @@ def display(
 
     df = pd.DataFrame(data)
 
-    orig_mode = DISPLAY_MODE
+    orig_mode = settings.DISPLAY_MODE
     set_display_mode(mode)
     ipydisplay(df)
     set_display_mode(orig_mode)
