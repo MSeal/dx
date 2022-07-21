@@ -75,6 +75,13 @@ def set_option(key, value) -> None:
     global settings
     if getattr(settings, key, None):
         setattr(settings, key, value)
+
+        # this may be the most straightforward way to handle
+        # IPython display formatter changes being done through
+        # settings updates for now, but I don't like it being here
+        if key == "DISPLAY_MODE":
+            set_display_mode(value)
+
         return
     raise ValueError(f"{key} is not a valid setting")
 
