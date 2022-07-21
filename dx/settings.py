@@ -71,6 +71,14 @@ def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
         reset()
 
 
+def set_option(key, value) -> None:
+    global settings
+    if getattr(settings, key, None):
+        setattr(settings, key, value)
+        return
+    raise ValueError(f"{key} is not a valid setting")
+
+
 def set_max_render_size_bytes(size: int) -> None:
     """
     Set the maximum size of dataframes that will be sent to the frontend.
