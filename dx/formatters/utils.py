@@ -1,8 +1,8 @@
 import sys
 
 import pandas as pd
-from IPython.display import HTML, display
 
+from dx.formatters.callouts import display_callout
 from dx.settings import MB, settings
 from dx.types import DXSamplingMode
 
@@ -34,15 +34,12 @@ def truncate_if_too_big(
 
     if orig_num_rows:
         max_size_mb = max_size_bytes / MB
-        warning_html = f"""
-        <div class="bp3-callout bp3-intent-warning bp3-icon-warning-sign">
-        <h4 class="bp3-heading">Warning</h4>
-        Dataframe is bigger than <code>{settings.MAX_RENDER_SIZE_BYTES=}</code>
-         ({max_size_mb:.2}MB), so a truncated version is being displayed for DEX
-         (shortened from <code>{orig_num_rows:,}</code> to <code>{len(df):,}</code> row(s)).
-        </div>"""
-        warning = HTML(warning_html)
-        display(warning)
+        warning_html = f"""Dataframe is bigger than
+         <code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_mb:.2}MB),
+         so a truncated version is being displayed for DEX (shortened from
+         <code>{orig_num_rows:,}</code> to <code>{len(df):,}</code> row(s)).
+        """
+        display_callout(warning_html, level="warning")
 
     return df
 
