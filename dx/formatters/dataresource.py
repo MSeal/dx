@@ -1,4 +1,5 @@
 import uuid
+from functools import lru_cache
 from typing import Optional
 
 import pandas as pd
@@ -7,10 +8,32 @@ from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
+from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.utils import truncate_if_too_big
 from dx.settings import settings
+
+
+class DataResourceSettings(BaseSettings):
+    # "simple" (classic simpleTable/DEX) display mode
+    DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
+    DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
+    DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
+    DATARESOURCE_MEDIA_TYPE: str = Field(
+        "application/vnd.dataresource+json", allow_mutation=False
+    )
+
+    class Config:
+        validate_assignment = True  # we need this to enforce `allow_mutation`
+
+
+@lru_cache
+def get_dataresource_settings():
+    return DataResourceSettings()
+
+
+dataresource_settings = get_dataresource_settings()
 
 
 class DXDataResourceDisplayFormatter(DisplayFormatter):
@@ -38,8 +61,10 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     }
     if display_id is not None:
         body["datalink"]["display_id"] = display_id
-    payload = {settings.DATARESOURCE_MEDIA_TYPE: body}
-    metadata = {settings.DATARESOURCE_MEDIA_TYPE: {"display_id": display_id}}
+    payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: body}
+    metadata = {
+        dataresource_settings.DATARESOURCE_MEDIA_TYPE: {"display_id": display_id}
+    }
     return (payload, metadata)
 
 
@@ -54,8 +79,9 @@ def _render_dataresource(df, display_id) -> tuple:
 
 def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     """
-    Disables the DEX display formatting configuration with
-    the table schema supported DataResource media type.
+    Sets the current IPython display formatter as the dataresource
+    display formatter, used for simpleTable / "classic DEX" outputs
+    and updates global dx & pandas settings with dataresource settings.
     """
     if not IN_IPYTHON_ENV and ipython_shell is None:
         return
@@ -63,8 +89,22 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     global settings
     settings.DISPLAY_MODE = "simple"
 
-    pd.set_option("html.table_schema", settings.DATARESOURCE_HTML_TABLE_SCHEMA)
-    pd.set_option("display.max_rows", settings.DATARESOURCE_DISPLAY_MAX_ROWS)
+    settings.DISPLAY_MAX_COLUMNS = (
+        dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
+    )
+    settings.DISPLAY_MAX_ROWS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
+    settings.HTML_TABLE_SCHEMA = dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    settings.MEDIA_TYPE = dataresource_settings.DATARESOURCE_MEDIA_TYPE
+
+    pd.set_option(
+        "display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
+    )
+    pd.set_option(
+        "display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
+    )
+    pd.set_option(
+        "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    )
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()
