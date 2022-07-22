@@ -1,6 +1,29 @@
 All notable changes will be documented here.
 
 ---
+## `1.1.1`
+_2022-07-22_
+### Added
+- Additional metadata sent to frontends to triage issues with output sizes and `dx` settings
+### Fixed
+- `simple`/`enhanced` display modes no longer raise JSON errors trying to serialize `pd.NA` values
+- `SAMPLE_METHOD` returning incorrect value (`True` instead of `DXSampleMethod`) when compared with `COLUMN_SAMPLE_METHOD` and `ROW_SAMPLE_METHOD`
+  
+## `1.1.0`
+_2022-07-22_
+### **Added**
+- Direct support for `application/vnd.dataresource+json` media type display formatting
+- reverting all settings to `pandas` defaults with `dx.reset()` or switching to the `DISPAY_MODE` setting to `default`
+- `pydantic` dependency for BaseSettings use
+    - `pandas`-inspired `dx.set_option(setting_name, setting_value)` 
+    - `dx.set_display_mode()` convenience function for globally switching between `simple` (simpleTable/DEX), `enhanced` (GRID), and `default` (vanilla pandas)
+- Auto-truncating rows and columns of `pd.DataFrame` objects based on `DISPLAY_MAX_ROWS`, `DISPLAY_MAX_COLUMNS`, and `MAX_RENDER_SIZE_BYTES` (1MB default) size limits before rendering (for `simple` & `enhanced` display modes), with blueprintjs flavored warnings
+    - `SAMPLING_MODE` setting to better control how truncating happens ("first", "last", "outer", "inner", and "random" options)
+    - `RANDOM_SEED` setting for random sampling
+
+### **Fixed**
+- Support for non-string column and index values (possibly temporary) to allow `build_table_schema` to work with `pd.MultiIndex` values
+
 ## `1.0.4`
 _2022-05-06_
 ### **Fixed**
