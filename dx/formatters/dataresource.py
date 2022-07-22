@@ -85,7 +85,7 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     metadata_body = {
         "dataframe_size_bytes": sys.getsizeof(df),
         "datalink": {
-            "dx_settings": settings.json(),
+            "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
         },
     }
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}

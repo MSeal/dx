@@ -30,6 +30,7 @@ class DXSettings(BaseSettings):
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
+        json_encoders = {type: lambda t: str(t)}
 
 
 @lru_cache
@@ -83,7 +84,7 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     metadata_body = {
         "dataframe_size_bytes": sys.getsizeof(df),
         "datalink": {
-            "dx_settings": settings.json(),
+            "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
         },
     }
     metadata = {dx_settings.DX_MEDIA_TYPE: metadata_body}
