@@ -99,10 +99,11 @@ def reduce_df(df: pd.DataFrame, orig_num_rows: int = 0) -> pd.DataFrame:
 def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
-    based on Settings.SAMPLING_METHOD.
+    based on Settings.SAMPLING_METHOD, or
+    Settings.COLUMN_SAMPLING_METHOD if specified.
     """
     sampling = settings.SAMPLING_METHOD
-    if col_sampling := settings.COLUMN_SAMPLING_METHOD != sampling:
+    if (col_sampling := settings.COLUMN_SAMPLING_METHOD) != sampling:
         sampling = col_sampling
 
     # transposing here to treat columns like rows to take advantage of
@@ -125,10 +126,11 @@ def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
 def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
-    based on Settings.SAMPLING_METHOD.
+    based on Settings.SAMPLING_METHOD, or
+    Settings.ROW_SAMPLING_METHOD if specified.
     """
     sampling = settings.SAMPLING_METHOD
-    if row_sampling := settings.ROW_SAMPLING_METHOD != sampling:
+    if (row_sampling := settings.ROW_SAMPLING_METHOD) != sampling:
         sampling = row_sampling
 
     if sampling == DXSamplingMethod.random:
