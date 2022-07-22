@@ -1,6 +1,9 @@
 from functools import lru_cache
 from typing import List
-from pydantic import BaseSettings
+
+import numpy as np
+import pandas as pd
+from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
 
@@ -15,7 +18,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 1 * MB
-    RENDERABLE_OBJECTS: List[str] = ["pd.DataFrame"]
+    RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     # what percentage of the dataset to remove during each truncation
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -29,6 +32,31 @@ class Settings(BaseSettings):
     # TODO: support more than just int type here
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sample.html
     RANDOM_STATE: int = 12_648_430
+
+    @validator("RENDERABLE_OBJECTS", pre=True, always=True)
+    def validate_renderables(cls, vals):
+        """Allow passing comma-separated strings or actual types."""
+        if isinstance(vals, str):
+            vals = vals.replace(",", "").split()
+        if not isinstance(vals, list):
+            vals = [vals]
+
+        valid_vals = []
+        for val in vals:
+            if isinstance(val, type):
+                valid_vals.append(val)
+                continue
+            try:
+                val_type = eval(str(val))
+                valid_vals.append(val_type)
+            except Exception as e:
+                # TODO: add some logging here
+                pass
+
+        return valid_vals
+
+    class Config:
+        validate_assignment = True
 
 
 @lru_cache
@@ -63,6 +91,8 @@ def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
 
 
 def set_option(key, value) -> None:
+    key = str(key).upper()
+
     global settings
     if getattr(settings, key, None):
         setattr(settings, key, value)

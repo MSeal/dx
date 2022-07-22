@@ -2,6 +2,7 @@ import uuid
 from functools import lru_cache
 from typing import List, Optional
 
+import numpy as np
 import pandas as pd
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
@@ -20,7 +21,7 @@ class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
-    DX_RENDERABLE_OBJECTS: List[str] = ["pd.DataFrame"]
+    DX_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -37,10 +38,7 @@ dx_settings = get_dx_settings()
 class DXDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
-        renderable_types = tuple(
-            eval(type_str) for type_str in settings.RENDERABLE_OBJECTS
-        )
-        if isinstance(obj, renderable_types):
+        if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
             payload, metadata = _render_dx(df_obj, display_id)
@@ -56,6 +54,7 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    df.columns = df.columns.astype(str)
     # this will include the `df.index` by default (e.g. slicing/sampling)
     body = {
         "schema": build_table_schema(df),

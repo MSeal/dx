@@ -2,6 +2,7 @@ import uuid
 from functools import lru_cache
 from typing import List, Optional
 
+import numpy as np
 import pandas as pd
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
@@ -23,7 +24,7 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_MEDIA_TYPE: str = Field(
         "application/vnd.dataresource+json", allow_mutation=False
     )
-    DATARESOURCE_RENDERABLE_OBJECTS: List[str] = ["pd.DataFrame"]
+    DATARESOURCE_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -40,10 +41,7 @@ dataresource_settings = get_dataresource_settings()
 class DXDataResourceDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
-        renderable_types = tuple(
-            eval(type_str) for type_str in settings.RENDERABLE_OBJECTS
-        )
-        if isinstance(obj, renderable_types):
+        if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
             payload, metadata = _render_dataresource(df_obj, display_id)
@@ -59,6 +57,7 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    df.columns = df.columns.astype(str)
     body = {
         "schema": build_table_schema(df),
         "data": df.reset_index().to_dict("records"),
