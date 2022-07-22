@@ -1,5 +1,12 @@
 import os
 
+from IPython import get_ipython
+
+IN_IPYTHON_ENV = get_ipython() is not None
+DEFAULT_IPYTHON_DISPLAY_FORMATTER = None
+if IN_IPYTHON_ENV:
+    DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
+
 
 def in_noteable_env() -> bool:
     """

@@ -1,12 +1,14 @@
 import random
 import string
 
+import numpy as np
 import pandas as pd
 import pytest
-from IPython.core import formatters
-from IPython.core.formatters import BaseFormatter, DisplayFormatter
+from dx.settings import get_settings
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
+
+settings = get_settings()
 
 
 @pytest.fixture
@@ -52,3 +54,22 @@ def sample_large_dataframe() -> pd.DataFrame:
         ],
     }
     return pd.DataFrame(data)
+
+
+@pytest.fixture
+def sample_long_dataframe() -> pd.DataFrame:
+    num_rows = settings.DISPLAY_MAX_ROWS + 10
+    return pd.DataFrame(np.random.rand(num_rows, 1))
+
+
+@pytest.fixture
+def sample_wide_dataframe() -> pd.DataFrame:
+    num_cols = settings.DISPLAY_MAX_COLUMNS + 10
+    return pd.DataFrame(np.random.rand(1, num_cols))
+
+
+@pytest.fixture
+def sample_long_wide_dataframe() -> pd.DataFrame:
+    num_rows = settings.DISPLAY_MAX_ROWS + 10
+    num_cols = settings.DISPLAY_MAX_COLUMNS + 10
+    return pd.DataFrame(np.random.rand(num_rows, num_cols))

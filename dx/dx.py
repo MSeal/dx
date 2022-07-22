@@ -4,14 +4,17 @@ from typing import List, Union
 import pandas as pd
 from IPython.display import display as ipydisplay
 
-from .formatters import format_dx
+from dx.settings import set_display_mode, settings
+from dx.types import DXDisplayMode
 
 
 def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
+    mode: DXDisplayMode = DXDisplayMode.simple,
 ) -> None:
     """
-    Display a single object (pd.DataFrame, .csv/.json filepath, or tabular dataset) with the DX display format.
+    Display a single object with the DX display format.
+    (e.g. pd.DataFrame, .csv/.json filepath, or tabular dataset)
     """
 
     if isinstance(data, str):
@@ -24,8 +27,11 @@ def display(
             raise ValueError(f"Unsupported file type: `{path.suffix}`")
 
     df = pd.DataFrame(data)
-    payload, _ = format_dx(df)
-    ipydisplay(payload, raw=True)
+
+    orig_mode = settings.DISPLAY_MODE
+    set_display_mode(mode)
+    ipydisplay(df)
+    set_display_mode(orig_mode)
     return
 
 
