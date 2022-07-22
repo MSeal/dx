@@ -1,6 +1,6 @@
 import uuid
 from functools import lru_cache
-from typing import Optional
+from typing import List, Optional
 
 import pandas as pd
 from IPython import get_ipython
@@ -20,6 +20,7 @@ class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
+    DX_RENDERABLE_OBJECTS: List[str] = ["pd.DataFrame"]
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -36,9 +37,13 @@ dx_settings = get_dx_settings()
 class DXDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
-        if isinstance(obj, pd.DataFrame):
+        renderable_types = tuple(
+            eval(type_str) for type_str in settings.RENDERABLE_OBJECTS
+        )
+        if isinstance(obj, renderable_types):
             display_id = str(uuid.uuid4())
-            payload, metadata = _render_dx(obj, display_id)
+            df_obj = pd.DataFrame(obj)
+            payload, metadata = _render_dx(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
@@ -87,6 +92,7 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     settings.DISPLAY_MAX_COLUMNS = dx_settings.DX_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = dx_settings.DX_DISPLAY_MAX_ROWS
     settings.MEDIA_TYPE = dx_settings.DX_MEDIA_TYPE
+    settings.RENDERABLE_OBJECTS = dx_settings.DX_RENDERABLE_OBJECTS
 
     pd.set_option("display.max_columns", dx_settings.DX_DISPLAY_MAX_COLUMNS)
     pd.set_option("display.max_rows", dx_settings.DX_DISPLAY_MAX_ROWS)

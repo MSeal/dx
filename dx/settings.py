@@ -1,5 +1,5 @@
 from functools import lru_cache
-
+from typing import List
 from pydantic import BaseSettings
 
 from dx.types import DXDisplayMode, DXSamplingMethod
@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 1 * MB
+    RENDERABLE_OBJECTS: List[str] = ["pd.DataFrame"]
 
     # what percentage of the dataset to remove during each truncation
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
