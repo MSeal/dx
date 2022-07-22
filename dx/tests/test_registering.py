@@ -1,10 +1,17 @@
 import pandas as pd
-from dx.formatters.dataresource import DXDataResourceDisplayFormatter, deregister
-from dx.formatters.dx import DXDisplayFormatter, register
-from dx.formatters.main import reset
+from dx.formatters.dataresource import (
+    DXDataResourceDisplayFormatter,
+    deregister,
+    get_dataresource_settings,
+)
+from dx.formatters.dx import DXDisplayFormatter, get_dx_settings, register
+from dx.formatters.main import get_pandas_settings, reset
 from dx.settings import get_settings
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
+dataresource_settings = get_dataresource_settings()
+dx_settings = get_dx_settings()
+pandas_settings = get_pandas_settings()
 settings = get_settings()
 
 
@@ -13,13 +20,19 @@ def test_register_ipython_display_formatter(
 ):  # noqa: E501
     """
     Test that the display formatter for an IPython shell is
-    successfully registered as a DXDisplayFormatter.
+    successfully registered as a DXDisplayFormatter and that
+    global settings have been properly updated.
     """
     register(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
 
-    assert pd.get_option("html.table_schema") == settings.DX_HTML_TABLE_SCHEMA
-    assert pd.get_option("display.max_rows") == settings.DX_DISPLAY_MAX_ROWS
+    assert settings.DISPLAY_MAX_COLUMNS == dx_settings.DX_DISPLAY_MAX_COLUMNS
+    assert settings.DISPLAY_MAX_ROWS == dx_settings.DX_DISPLAY_MAX_ROWS
+    assert settings.HTML_TABLE_SCHEMA == dx_settings.DX_HTML_TABLE_SCHEMA
+
+    assert pd.get_option("display.max_columns") == settings.DISPLAY_MAX_COLUMNS
+    assert pd.get_option("display.max_rows") == settings.DISPLAY_MAX_ROWS
+    assert pd.get_option("html.table_schema") == settings.HTML_TABLE_SCHEMA
 
 
 def test_deregister_ipython_display_formatter(
@@ -27,7 +40,8 @@ def test_deregister_ipython_display_formatter(
 ):  # noqa: E501
     """
     Test that the display formatter for an IPython shell is
-    successfully registered as a DXDataResourceDisplayFormatter.
+    successfully registered as a DXDataResourceDisplayFormatter
+    and that global settings have been properly updated.
     """
     register(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
@@ -35,8 +49,21 @@ def test_deregister_ipython_display_formatter(
     deregister(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDataResourceDisplayFormatter)
 
-    assert pd.get_option("html.table_schema") == settings.DATARESOURCE_HTML_TABLE_SCHEMA
-    assert pd.get_option("display.max_rows") == settings.DATARESOURCE_DISPLAY_MAX_ROWS
+    assert (
+        settings.DISPLAY_MAX_COLUMNS
+        == dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
+    )
+    assert (
+        settings.DISPLAY_MAX_ROWS == dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
+    )
+    assert (
+        settings.HTML_TABLE_SCHEMA
+        == dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    )
+
+    assert pd.get_option("display.max_columns") == settings.DISPLAY_MAX_COLUMNS
+    assert pd.get_option("display.max_rows") == settings.DISPLAY_MAX_ROWS
+    assert pd.get_option("html.table_schema") == settings.HTML_TABLE_SCHEMA
 
 
 def test_reset_ipython_display_formatter(
@@ -44,7 +71,8 @@ def test_reset_ipython_display_formatter(
 ):  # noqa: E501
     """
     Test that the display formatter reverts to the default
-    `IPython.core.formatters.DisplayFormatter` after resetting.
+    `IPython.core.formatters.DisplayFormatter` after resetting
+    and that global settings have been properly updated.
     """
     deregister(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDataResourceDisplayFormatter)
@@ -53,5 +81,10 @@ def test_reset_ipython_display_formatter(
     # TODO: write new test that checks for basic `IPython.core.formatters.DisplayFormatter`?
     assert get_ipython.display_formatter is None
 
-    assert pd.get_option("html.table_schema") == settings.PANDAS_HTML_TABLE_SCHEMA
-    assert pd.get_option("display.max_rows") == settings.PANDAS_DISPLAY_MAX_ROWS
+    assert settings.DISPLAY_MAX_COLUMNS == pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
+    assert settings.DISPLAY_MAX_ROWS == pandas_settings.PANDAS_DISPLAY_MAX_ROWS
+    assert settings.HTML_TABLE_SCHEMA == pandas_settings.PANDAS_HTML_TABLE_SCHEMA
+
+    assert pd.get_option("display.max_columns") == settings.DISPLAY_MAX_COLUMNS
+    assert pd.get_option("display.max_rows") == settings.DISPLAY_MAX_ROWS
+    assert pd.get_option("html.table_schema") == settings.HTML_TABLE_SCHEMA
