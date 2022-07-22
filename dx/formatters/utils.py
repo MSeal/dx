@@ -184,9 +184,7 @@ def sample_inner(df: pd.DataFrame, num: int) -> pd.DataFrame:
     Example: sampling inner 8 of 20 rows:
     [......XXXXXXXX......]
     """
-    # rounding down since we'll be adding one filler row
-    # as well as using the index
-    middle_index = int(len(df) / 2) - 1
+    middle_index = int(len(df) / 2)
     inner_buffer = int(num / 2)
     middle_start = middle_index - inner_buffer
     middle_end = middle_index + inner_buffer
