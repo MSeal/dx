@@ -57,7 +57,10 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    # temporary workaround for numeric column rendering errors
+    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
     df.columns = df.columns.astype(str)
+
     body = {
         "schema": build_table_schema(df),
         "data": df.reset_index().to_dict("records"),

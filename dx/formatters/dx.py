@@ -54,7 +54,10 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    # temporary workaround for numeric column rendering errors
+    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
     df.columns = df.columns.astype(str)
+
     # this will include the `df.index` by default (e.g. slicing/sampling)
     body = {
         "schema": build_table_schema(df),
