@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     HTML_TABLE_SCHEMA: bool = False
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
-    MAX_RENDER_SIZE_BYTES: int = 1 * MB
+    MAX_RENDER_SIZE_BYTES: int = 100 * MB
     RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     # what percentage of the dataset to remove during each truncation
