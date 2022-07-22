@@ -1,3 +1,4 @@
+import sys
 import uuid
 from functools import lru_cache
 from typing import List, Optional
@@ -68,16 +69,29 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     if isinstance(display_df.index, pd.MultiIndex):
         display_df = stringify_indices(display_df)
 
+    # build_table_schema() also doesn't like pd.NAs
+    display_df.fillna(np.nan, inplace=True)
+
     # this will include the `df.index` by default (e.g. slicing/sampling)
-    body = {
+    payload_body = {
         "schema": build_table_schema(display_df),
         "data": display_df.reset_index().transpose().values.tolist(),
         "datalink": {},
     }
+    payload = {dx_settings.DX_MEDIA_TYPE: payload_body}
+
+    metadata_body = {
+        "dataframe_size_bytes": sys.getsizeof(df),
+        "datalink": {
+            "dx_settings": settings.json(),
+        },
+    }
+    metadata = {dx_settings.DX_MEDIA_TYPE: metadata_body}
+
     if display_id is not None:
-        body["datalink"]["display_id"] = display_id
-    payload = {dx_settings.DX_MEDIA_TYPE: body}
-    metadata = {dx_settings.DX_MEDIA_TYPE: {"display_id": display_id}}
+        payload_body["datalink"]["display_id"] = display_id
+        metadata_body["datalink"]["display_id"] = display_id
+
     return (payload, metadata)
 
 
