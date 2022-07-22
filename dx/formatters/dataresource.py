@@ -15,7 +15,7 @@ from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.utils import (
     stringify_columns,
     stringify_indices,
-    truncate_if_too_big,
+    truncate_and_describe,
 )
 from dx.settings import settings
 
@@ -71,28 +71,44 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     if isinstance(display_df.index, pd.MultiIndex):
         display_df = stringify_indices(display_df)
 
-    body = {
+    # build_table_schema() also doesn't like pd.NAs
+    display_df.fillna(np.nan, inplace=True)
+
+    payload_body = {
         "schema": build_table_schema(display_df),
         "data": display_df.reset_index().to_dict("records"),
         "datalink": {},
     }
-    if display_id is not None:
-        body["datalink"]["display_id"] = display_id
-    payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: body}
-    metadata = {
-        dataresource_settings.DATARESOURCE_MEDIA_TYPE: {"display_id": display_id}
+    payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}
+
+    metadata_body = {
+        "datalink": {
+            "dataframe_info": {},
+            "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
+        },
     }
+    metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
+
+    if display_id is not None:
+        payload_body["datalink"]["display_id"] = display_id
+        metadata_body["datalink"]["display_id"] = display_id
+
     return (payload, metadata)
 
 
 def _render_dataresource(df, display_id) -> tuple:
-    df = truncate_if_too_big(df)
+    df, dataframe_info = truncate_and_describe(df)
     payload, metadata = format_dataresource(df, display_id)
+    metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
+        "dataframe_info"
+    ] = dataframe_info
+
     # don't pass a dataframe in here, otherwise you'll get recursion errors
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
         ipydisplay(payload, raw=True, display_id=display_id)
+
     return (payload, metadata)
 
 

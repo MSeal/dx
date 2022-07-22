@@ -1,4 +1,5 @@
 import sys
+from typing import Tuple
 
 import pandas as pd
 
@@ -99,10 +100,11 @@ def reduce_df(df: pd.DataFrame, orig_num_rows: int = 0) -> pd.DataFrame:
 def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
-    based on Settings.SAMPLING_METHOD.
+    based on Settings.SAMPLING_METHOD, or
+    Settings.COLUMN_SAMPLING_METHOD if specified.
     """
     sampling = settings.SAMPLING_METHOD
-    if col_sampling := settings.COLUMN_SAMPLING_METHOD != sampling:
+    if (col_sampling := settings.COLUMN_SAMPLING_METHOD) != sampling:
         sampling = col_sampling
 
     # transposing here to treat columns like rows to take advantage of
@@ -125,10 +127,11 @@ def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
 def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
-    based on Settings.SAMPLING_METHOD.
+    based on Settings.SAMPLING_METHOD, or
+    Settings.ROW_SAMPLING_METHOD if specified.
     """
     sampling = settings.SAMPLING_METHOD
-    if row_sampling := settings.ROW_SAMPLING_METHOD != sampling:
+    if (row_sampling := settings.ROW_SAMPLING_METHOD) != sampling:
         sampling = row_sampling
 
     if sampling == DXSamplingMethod.random:
@@ -182,9 +185,7 @@ def sample_inner(df: pd.DataFrame, num: int) -> pd.DataFrame:
     Example: sampling inner 8 of 20 rows:
     [......XXXXXXXX......]
     """
-    # rounding down since we'll be adding one filler row
-    # as well as using the index
-    middle_index = int(len(df) / 2) - 1
+    middle_index = int(len(df) / 2)
     inner_buffer = int(num / 2)
     middle_start = middle_index - inner_buffer
     middle_end = middle_index + inner_buffer
@@ -231,3 +232,28 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 def stringify_indices(df: pd.DataFrame) -> pd.DataFrame:
     return stringify_columns(df.transpose()).transpose()
+
+
+def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
+    """
+    Reduces the size of the dataframe, if necessary,
+    and generates a dictionary of shape/size information
+    about the dataframe before/after truncation.
+    """
+    num_orig_rows, num_orig_cols = df.shape
+    orig_size_bytes = sys.getsizeof(df)
+
+    df = truncate_if_too_big(df)
+
+    num_truncated_rows, num_truncated_cols = df.shape
+    truncated_size_bytes = sys.getsizeof(df)
+
+    dataframe_info = {
+        "orig_size_bytes": orig_size_bytes,
+        "orig_num_rows": num_orig_rows,
+        "orig_num_cols": num_orig_cols,
+        "truncated_size_bytes": truncated_size_bytes,
+        "truncated_num_rows": num_truncated_rows,
+        "truncated_num_cols": num_truncated_cols,
+    }
+    return df, dataframe_info
