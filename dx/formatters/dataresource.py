@@ -1,4 +1,3 @@
-import sys
 import uuid
 from functools import lru_cache
 from typing import List, Optional
@@ -16,7 +15,7 @@ from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.utils import (
     stringify_columns,
     stringify_indices,
-    truncate_if_too_big,
+    truncate_and_describe,
 )
 from dx.settings import settings
 
@@ -83,8 +82,8 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}
 
     metadata_body = {
-        "dataframe_size_bytes": sys.getsizeof(df),
         "datalink": {
+            "dataframe_info": {},
             "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
         },
     }
@@ -98,13 +97,18 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
 
 
 def _render_dataresource(df, display_id) -> tuple:
-    df = truncate_if_too_big(df)
+    df, dataframe_info = truncate_and_describe(df)
     payload, metadata = format_dataresource(df, display_id)
+    metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
+        "dataframe_info"
+    ] = dataframe_info
+
     # don't pass a dataframe in here, otherwise you'll get recursion errors
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
         ipydisplay(payload, raw=True, display_id=display_id)
+
     return (payload, metadata)
 
 

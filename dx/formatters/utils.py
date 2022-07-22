@@ -1,4 +1,5 @@
 import sys
+from typing import Tuple
 
 import pandas as pd
 
@@ -231,3 +232,28 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 def stringify_indices(df: pd.DataFrame) -> pd.DataFrame:
     return stringify_columns(df.transpose()).transpose()
+
+
+def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
+    """
+    Reduces the size of the dataframe, if necessary,
+    and generates a dictionary of shape/size information
+    about the dataframe before/after truncation.
+    """
+    num_orig_rows, num_orig_cols = df.shape
+    orig_size_bytes = sys.getsizeof(df)
+
+    df = truncate_if_too_big(df)
+
+    num_truncated_rows, num_truncated_cols = df.shape
+    truncated_size_bytes = sys.getsizeof(df)
+
+    dataframe_info = {
+        "orig_size_bytes": orig_size_bytes,
+        "orig_num_rows": num_orig_rows,
+        "orig_num_cols": num_orig_cols,
+        "truncated_size_bytes": truncated_size_bytes,
+        "truncated_num_rows": num_truncated_rows,
+        "truncated_num_cols": num_truncated_cols,
+    }
+    return df, dataframe_info
