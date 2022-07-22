@@ -7,7 +7,9 @@ class DXDisplayMode(enum.Enum):
     default = "default"  # basic/vanilla python/pandas display
 
 
-class DXSamplingMode(enum.Enum):
+class DXSamplingMethod(enum.Enum):
     first = "first"  # df.head(num_rows)
+    outer = "outer"  # df.head(num_rows/2) & df.tail(num_rows/2)
+    inner = "inner"  # middle rows
     random = "random"  # df.sample(num_rows)
     last = "last"  # df.tail(num_rows)
