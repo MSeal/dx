@@ -12,7 +12,11 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import truncate_if_too_big
+from dx.formatters.utils import (
+    stringify_columns,
+    stringify_indices,
+    truncate_if_too_big,
+)
 from dx.settings import settings
 
 
@@ -56,12 +60,18 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     """
     # temporary workaround for numeric column rendering errors
     # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    df.columns = df.columns.astype(str)
+    display_df = df.copy()
+    display_df = stringify_columns(display_df)
+
+    # temporary workaround for numeric MultiIndices
+    # because of pandas build_table_schema() errors
+    if isinstance(display_df.index, pd.MultiIndex):
+        display_df = stringify_indices(display_df)
 
     # this will include the `df.index` by default (e.g. slicing/sampling)
     body = {
-        "schema": build_table_schema(df),
-        "data": df.reset_index().transpose().values.tolist(),
+        "schema": build_table_schema(display_df),
+        "data": display_df.reset_index().transpose().values.tolist(),
         "datalink": {},
     }
     if display_id is not None:

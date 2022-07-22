@@ -212,3 +212,22 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
 
     end_rows = df.tail(outer_buffer)
     return pd.concat([start_rows, buffer_row, end_rows])
+
+
+def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
+    cols = df.columns
+
+    def stringify_multiindex(vals):
+        return ", ".join(map(str, vals))
+
+    if isinstance(cols, pd.MultiIndex):
+        cols = cols.map(stringify_multiindex)
+    else:
+        cols = cols.map(str)
+
+    df.columns = cols
+    return df
+
+
+def stringify_indices(df: pd.DataFrame) -> pd.DataFrame:
+    return stringify_columns(df.transpose()).transpose()
