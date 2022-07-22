@@ -18,12 +18,11 @@ class Callout(BaseModel):
 
     @property
     def html(self):
-        heading_html = f"<h4 class='bp3-heading'>{self.level.value.title()}</h4>"
+        heading_html = f"<h6 class='bp3-heading'>{self.level.value.title()}</h6>"
         callout_classes = " ".join(
             [
                 "bp3-callout",
                 f"bp3-intent-{self.level.value}",
-                f"bp3-icon-{self.level.value}-sign",
             ]
         )
         return f"<div class='{callout_classes}'>{heading_html}{self.message}</div>"
