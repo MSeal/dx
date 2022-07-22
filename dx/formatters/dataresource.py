@@ -72,7 +72,9 @@ def _render_dataresource(df, display_id) -> tuple:
     df = truncate_if_too_big(df)
     payload, metadata = format_dataresource(df, display_id)
     # don't pass a dataframe in here, otherwise you'll get recursion errors
-    with pd.option_context("html.table_schema", True):
+    with pd.option_context(
+        "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    ):
         ipydisplay(payload, raw=True, display_id=display_id)
     return (payload, metadata)
 
@@ -93,7 +95,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
         dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
     )
     settings.DISPLAY_MAX_ROWS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
-    settings.HTML_TABLE_SCHEMA = dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     settings.MEDIA_TYPE = dataresource_settings.DATARESOURCE_MEDIA_TYPE
 
     pd.set_option(
@@ -101,9 +102,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     )
     pd.set_option(
         "display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
-    )
-    pd.set_option(
-        "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     )
 
     ipython = ipython_shell or get_ipython()

@@ -50,12 +50,10 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
     settings.DISPLAY_MAX_COLUMNS = pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = pandas_settings.PANDAS_DISPLAY_MAX_ROWS
-    settings.HTML_TABLE_SCHEMA = pandas_settings.PANDAS_HTML_TABLE_SCHEMA
     settings.MEDIA_TYPE = pandas_settings.PANDAS_MEDIA_TYPE
 
     pd.set_option("display.max_columns", pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS)
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
-    pd.set_option("html.table_schema", pandas_settings.PANDAS_HTML_TABLE_SCHEMA)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER

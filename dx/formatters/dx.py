@@ -68,7 +68,7 @@ def _render_dx(df, display_id) -> tuple:
     df = truncate_if_too_big(df)
     payload, metadata = format_dx(df, display_id)
     # don't pass a dataframe in here, otherwise you'll get recursion errors
-    with pd.option_context("html.table_schema", True):
+    with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
         ipydisplay(payload, raw=True, display_id=display_id)
     return (payload, metadata)
 
@@ -86,12 +86,10 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
     settings.DISPLAY_MAX_COLUMNS = dx_settings.DX_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = dx_settings.DX_DISPLAY_MAX_ROWS
-    settings.HTML_TABLE_SCHEMA = dx_settings.DX_HTML_TABLE_SCHEMA
     settings.MEDIA_TYPE = dx_settings.DX_MEDIA_TYPE
 
     pd.set_option("display.max_columns", dx_settings.DX_DISPLAY_MAX_COLUMNS)
     pd.set_option("display.max_rows", dx_settings.DX_DISPLAY_MAX_ROWS)
-    pd.set_option("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDisplayFormatter()
