@@ -29,6 +29,15 @@ def test_large_dataframe_is_truncated(sample_large_dataframe):
     assert truncated_size_bytes <= settings.MAX_RENDER_SIZE_BYTES
 
 
+def test_truncated_dataframe_keeps_dtypes(sample_large_dataframe):
+    """
+    Test that a truncated dataframe doesn't alter column datatypes.
+    """
+    orig_dtypes = sample_large_dataframe.dtypes
+    truncated_df = truncate_if_too_big(sample_large_dataframe)
+    assert truncated_df.dtypes == orig_dtypes
+
+
 def test_wide_dataframe_is_narrowed(sample_wide_dataframe):
     """
     Test that a wide dataframe is narrowed to below the size of
