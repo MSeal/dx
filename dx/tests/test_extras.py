@@ -35,7 +35,7 @@ def test_truncated_dataframe_keeps_dtypes(sample_large_dataframe):
     """
     orig_dtypes = sample_large_dataframe.dtypes
     truncated_df = truncate_if_too_big(sample_large_dataframe)
-    assert truncated_df.dtypes == orig_dtypes
+    assert (truncated_df.dtypes == orig_dtypes).all()
 
 
 def test_wide_dataframe_is_narrowed(sample_wide_dataframe):
