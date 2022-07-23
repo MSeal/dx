@@ -1,4 +1,4 @@
-name: DX Unit Tests
+name: DX Tests
 # Can be developed using: `act --workflows .github/workflows/integration-tests.yaml`
 
 # Trigger the workflow on all pull requests and only pushes to the main branch
@@ -28,4 +28,4 @@ jobs:
           poetry install
       - name: Pytest - Unit tests
         run: |
-          poetry run pytest -n auto --timeout=60 --maxfail=4
+          poetry run pytest --timeout=60 -x
