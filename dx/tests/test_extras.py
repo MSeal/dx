@@ -47,7 +47,7 @@ def test_wide_dataframe_is_narrowed(sample_wide_dataframe):
     narrow_df = truncate_if_too_big(sample_wide_dataframe)
     narrow_width = len(narrow_df.columns)
     assert narrow_width < orig_width
-    assert narrow_width < settings.DISPLAY_MAX_COLUMNS
+    assert narrow_width <= settings.DISPLAY_MAX_COLUMNS
 
 
 def test_long_dataframe_is_shortened(sample_long_dataframe):
@@ -75,6 +75,6 @@ def test_long_wide_dataframe_is_reduced_from_both_dimensions(
     reduced_width = len(reduced_df.columns)
     reduced_length = len(reduced_df)
     assert reduced_width < orig_width
-    assert reduced_width < settings.DISPLAY_MAX_COLUMNS
+    assert reduced_width <= settings.DISPLAY_MAX_COLUMNS
     assert reduced_length < orig_length
     assert reduced_length <= settings.DISPLAY_MAX_ROWS
