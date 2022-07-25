@@ -1,13 +1,14 @@
 All notable changes will be documented here.
 
 ---
-## `1.1.1`
+## `1.1.1`-`1.1.2`
 _2022-07-22_
 ### Added
 - Additional metadata sent to frontends to triage issues with output sizes and `dx` settings
 ### Fixed
 - `simple`/`enhanced` display modes no longer raise JSON errors trying to serialize `pd.NA` values
 - `SAMPLE_METHOD` returning incorrect value (`True` instead of `DXSampleMethod`) when compared with `COLUMN_SAMPLE_METHOD` and `ROW_SAMPLE_METHOD`
+- Truncating rows no longer alters dtypes by adding `...` values
   
 ## `1.1.0`
 _2022-07-22_

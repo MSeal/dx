@@ -199,20 +199,10 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
     Example: sampling outer 8 of 20 rows:
     [XXXX............XXXX]
     """
-    # rounding down since we'll be adding one filler row
-    # as well as using the index
-    outer_buffer = int(num / 2) - 1
+    outer_buffer = int(num / 2)
     start_rows = df.head(outer_buffer)
-
-    # hack to make a column/row filled with ellipsis values
-    # to show hidden data between outer rows
-    buffer_col = df.head(1).transpose()
-    buffer_col.columns = ["..."]
-    buffer_col["..."] = "..."
-    buffer_row = buffer_col.transpose()
-
     end_rows = df.tail(outer_buffer)
-    return pd.concat([start_rows, buffer_row, end_rows])
+    return pd.concat([start_rows, end_rows])
 
 
 def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
