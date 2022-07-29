@@ -12,11 +12,9 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import (
-    stringify_columns,
-    stringify_indices,
-    truncate_and_describe,
-)
+from dx.formatters.callouts import display_callout
+from dx.formatters.main import _get_df_variable_name, _register_display_id
+from dx.formatters.utils import stringify_columns, stringify_indices, truncate_and_describe
 from dx.settings import settings
 
 
@@ -46,6 +44,7 @@ class DXDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
+            _register_display_id(df_obj, display_id)
             payload, metadata = _render_dx(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly

@@ -12,11 +12,8 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import (
-    stringify_columns,
-    stringify_indices,
-    truncate_and_describe,
-)
+from dx.formatters.main import _register_display_id
+from dx.formatters.utils import stringify_columns, stringify_indices, truncate_and_describe
 from dx.settings import settings
 
 
@@ -25,9 +22,7 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    DATARESOURCE_MEDIA_TYPE: str = Field(
-        "application/vnd.dataresource+json", allow_mutation=False
-    )
+    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
     DATARESOURCE_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     class Config:
@@ -48,6 +43,7 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
+            _register_display_id(df_obj, display_id)
             payload, metadata = _render_dataresource(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
@@ -124,19 +120,13 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     global settings
     settings.DISPLAY_MODE = "simple"
 
-    settings.DISPLAY_MAX_COLUMNS = (
-        dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
+    settings.DISPLAY_MAX_COLUMNS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
     settings.MEDIA_TYPE = dataresource_settings.DATARESOURCE_MEDIA_TYPE
     settings.RENDERABLE_OBJECTS = dataresource_settings.DATARESOURCE_RENDERABLE_OBJECTS
 
-    pd.set_option(
-        "display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
-    pd.set_option(
-        "display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
-    )
+    pd.set_option("display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS)
+    pd.set_option("display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()
