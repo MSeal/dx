@@ -55,12 +55,8 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
         df = reduce_df(df)
         size_str = human_readable_size(orig_size)
         max_size_str = human_readable_size(max_size_bytes)
-        settings_size_str = (
-            f"<code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_str})"
-        )
-        size_warning = (
-            f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
-        )
+        settings_size_str = f"<code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_str})"
+        size_warning = f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
         warnings.append(size_warning)
 
     if warnings:
