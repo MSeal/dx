@@ -1,3 +1,5 @@
+import logging
+import sys
 from functools import lru_cache
 from typing import List
 
@@ -6,6 +8,9 @@ import pandas as pd
 from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
+
+logging.basicConfig(level=logging.INFO, force=True, stream=sys.stdout)
+logger = logging.getLogger(__name__)
 
 MB = 1024 * 1024
 
@@ -50,8 +55,7 @@ class Settings(BaseSettings):
                 val_type = eval(str(val))
                 valid_vals.append(val_type)
             except Exception as e:
-                # TODO: add some logging here
-                pass
+                logger.exception(f"can't evaluate {val} type as renderable object: {e}")
 
         return valid_vals
 
