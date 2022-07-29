@@ -12,11 +12,13 @@ class CalloutLevel(enum.Enum):
     info = "info"
     warning = "warning"
     danger = "danger"
+    success = "success"
 
 
 class CalloutIcon(enum.Enum):
     info = "info"
     warning = "warning"
+    success = "success"
 
 
 class Callout(BaseModel):
