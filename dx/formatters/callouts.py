@@ -41,7 +41,7 @@ class Callout(BaseModel):
             heading_html = f"<h6 class='bp3-heading'>{self.level.value.title()}</h6>"
             return f"<div class='{callout_class_str}'>{heading_html}{self.message}</div>"
 
-        return f"<div class='{callout_classes}'>{self.message}</div>"
+        return f"<div class='{callout_class_str}'>{self.message}</div>"
 
 
 def display_callout(
