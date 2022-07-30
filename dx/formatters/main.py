@@ -18,7 +18,7 @@ from dx.formatters.callouts import display_callout
 from dx.settings import settings
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     force=True,
     stream=sys.stdout,
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
@@ -108,9 +108,7 @@ def _filter_and_update_display(
     filter_code = f"""{output_variable_name} = {df_name}.query({filter}, engine="python")"""
     logger.debug(f"updating callout display for {callout_display_id=} ->\n{filter_code=}")
     filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
-    <pre style="background-color:white; padding:0.5rem;">
-    {filter_code}
-    </pre>
+    <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{filter_code}</pre>
     """
     display_callout(
         filter_msg,
@@ -179,7 +177,7 @@ def _get_df_variable_name(
     """
     ipython = ipython_shell or get_ipython()
     df_vars = {k: v for k, v in ipython.user_ns.items() if isinstance(v, pd.DataFrame)}
-    logger.debug(f"{df_vars.keys()=}")
+    logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
     for name, obj in df_vars.items():
         if str(name).startswith("_"):
             # ignore _, __, ___, etc.
