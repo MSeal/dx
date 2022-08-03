@@ -13,7 +13,12 @@ from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.main import _register_display_id
-from dx.formatters.utils import stringify_columns, stringify_indices, truncate_and_describe
+from dx.formatters.utils import (
+    is_default_index,
+    stringify_columns,
+    stringify_indices,
+    truncate_and_describe,
+)
 from dx.settings import settings
 
 
@@ -64,8 +69,8 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
 
     # temporary workaround for numeric MultiIndices
     # because of pandas build_table_schema() errors
-    if isinstance(display_df.index, pd.MultiIndex):
-        display_df = stringify_indices(display_df)
+    if not is_default_index(display_df.index):
+        display_df.reset_index(inplace=True)
 
     # build_table_schema() also doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
@@ -103,7 +108,7 @@ def _render_dataresource(df, display_id) -> tuple:
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
-        ipydisplay(payload, raw=True, display_id=display_id)
+        ipydisplay(payload, raw=True, metadata=metadata, display_id=display_id)
 
     return (payload, metadata)
 
