@@ -18,7 +18,7 @@ from dx.formatters.callouts import display_callout
 from dx.settings import settings
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=settings.LOG_LEVEL,
     force=True,
     stream=sys.stdout,
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
@@ -218,4 +218,4 @@ def _register_display_id(
 def _string_flatten_columns(columns: pd.Series) -> pd.Series:
     if isinstance(columns, pd.MultiIndex):
         columns = columns.to_flat_index()
-    return columns.astype(str)
+    return [str(c) for c in columns]

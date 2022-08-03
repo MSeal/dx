@@ -9,13 +9,12 @@ from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
 
-logging.basicConfig(level=logging.INFO, force=True, stream=sys.stdout)
-logger = logging.getLogger(__name__)
-
 MB = 1024 * 1024
 
 
 class Settings(BaseSettings):
+    LOG_LEVEL = logging.DEBUG
+
     # "enhanced" (GRID) display mode
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -69,6 +68,15 @@ def get_settings():
 
 
 settings = get_settings()
+
+
+logging.basicConfig(
+    level=settings.LOG_LEVEL,
+    force=True,
+    stream=sys.stdout,
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
