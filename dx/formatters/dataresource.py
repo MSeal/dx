@@ -12,11 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import (
-    stringify_columns,
-    stringify_indices,
-    truncate_and_describe,
-)
+from dx.formatters.utils import is_default_index, stringify_columns, truncate_and_describe
 from dx.settings import settings
 
 
@@ -25,9 +21,7 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    DATARESOURCE_MEDIA_TYPE: str = Field(
-        "application/vnd.dataresource+json", allow_mutation=False
-    )
+    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
     DATARESOURCE_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     class Config:
@@ -68,8 +62,8 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
 
     # temporary workaround for numeric MultiIndices
     # because of pandas build_table_schema() errors
-    if isinstance(display_df.index, pd.MultiIndex):
-        display_df = stringify_indices(display_df)
+    if not is_default_index(display_df.index):
+        display_df.reset_index(inplace=True)
 
     # build_table_schema() also doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
@@ -107,7 +101,7 @@ def _render_dataresource(df, display_id) -> tuple:
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
-        ipydisplay(payload, raw=True, display_id=display_id)
+        ipydisplay(payload, raw=True, metadata=metadata, display_id=display_id)
 
     return (payload, metadata)
 
@@ -124,19 +118,13 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     global settings
     settings.DISPLAY_MODE = "simple"
 
-    settings.DISPLAY_MAX_COLUMNS = (
-        dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
+    settings.DISPLAY_MAX_COLUMNS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
     settings.MEDIA_TYPE = dataresource_settings.DATARESOURCE_MEDIA_TYPE
     settings.RENDERABLE_OBJECTS = dataresource_settings.DATARESOURCE_RENDERABLE_OBJECTS
 
-    pd.set_option(
-        "display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
-    pd.set_option(
-        "display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
-    )
+    pd.set_option("display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS)
+    pd.set_option("display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()
