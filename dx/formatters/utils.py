@@ -64,6 +64,23 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
         new_size_html = f"""A truncated version with <strong>{len(df):,}</code> row(s) and
          {len(df.reset_index().columns):,} column(s)</strong> will be viewable in DEX."""
         warning_html = f"{warning_html}<br/>{new_size_html}"
+
+        # give users more information on how to change settings
+        override_snippet = (
+            """<mark><code>dx.set_option({setting name}, {new value})</code></mark>"""
+        )
+        sample_override = """<code>dx.set_option("DISPLAY_MAX_ROWS", 250_000)</code>"""
+        override_warning = "<small><i><sup>*</sup>Be careful, as increasing these limits may negatively impact performance.</i></small>"
+        user_feedback = f"""<div style="padding:0.25rem 1rem;">
+            <p>To adjust the settings<sup>*</sup>, execute {override_snippet} in a new cell.
+            <br/>For example, to change the maximum number of rows to display to 250,000,
+             you could execute the following: {sample_override}</p>
+            {override_warning}</div>"""
+        user_feedback_collapsed_section = (
+            f"""<details><summary>More Information</summary>{user_feedback}</details>"""
+        )
+
+        warning_html = f"{warning_html} {user_feedback_collapsed_section}"
         display_callout(warning_html, level="warning")
 
     return df

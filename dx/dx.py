@@ -28,7 +28,7 @@ def display(
 
     df = pd.DataFrame(data)
 
-    orig_mode = settings.DISPLAY_MODE
+    orig_mode = settings.DISPLAY_MODE.value
     set_display_mode(mode)
     ipydisplay(df)
     set_display_mode(orig_mode)
