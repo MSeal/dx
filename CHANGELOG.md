@@ -2,11 +2,18 @@ All notable changes will be documented here.
 
 ---
 ## `1.1.3`
+_2022-08-??_
+### Added
+- Helper text for adjusting settings after a dataset has been truncated
+- Pre-render `.reset_index()` when a custom/MultiIndex is used to preserve `0-n` row numbers at the `index` level
+
 ### Changed
 - `default` display mode (vanilla pandas) renamed to `plain`
 
-### Added
-- Helper text for adjusting settings after a dataset has been truncated
+### Fixed
+- Properly pass `metadata` through during the `IPython.display` calls to render dataresource/dx formatted data
+
+<img width="568" alt="image" src="https://user-images.githubusercontent.com/7707189/182971951-52b440ae-f894-4eb0-8941-3cadd78aef0a.png">
 
 
 ## `1.1.1`-`1.1.2`
