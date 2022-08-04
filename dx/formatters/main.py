@@ -17,7 +17,7 @@ DISPLAY_ID_TO_DATAFRAME = {}
 
 
 class PandasSettings(BaseSettings):
-    # "default" (pandas) display mode
+    # "plain" (pandas) display mode
     PANDAS_DISPLAY_MAX_ROWS: int = 60
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
     PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
@@ -46,7 +46,7 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
         return
 
     global settings
-    settings.DISPLAY_MODE = "default"
+    settings.DISPLAY_MODE = "plain"
 
     settings.DISPLAY_MAX_COLUMNS = pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = pandas_settings.PANDAS_DISPLAY_MAX_ROWS

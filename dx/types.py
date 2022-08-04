@@ -4,7 +4,7 @@ import enum
 class DXDisplayMode(enum.Enum):
     enhanced = "enhanced"  # GRID display
     simple = "simple"  # classic simpleTable/DEX display
-    default = "default"  # basic/vanilla python/pandas display
+    plain = "plain"  # basic/vanilla python/pandas display
 
 
 class DXSamplingMethod(enum.Enum):

@@ -70,7 +70,7 @@ settings = get_settings()
 def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
     """
     Sets the display mode for the IPython formatter in the current session.
-    - "default" (vanilla python/pandas display)
+    - "plain" (vanilla python/pandas display)
     - "simple" (classic simpleTable/DEX display)
     - "enhanced" (GRID display)
     """
@@ -82,11 +82,11 @@ def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
     global settings
     settings.DISPLAY_MODE = mode
 
-    if mode == "enhanced":
+    if str(mode) == DXDisplayMode.enhanced.value:
         register()
-    elif mode == "simple":
+    elif str(mode) == DXDisplayMode.simple.value:
         deregister()
-    elif mode == "default":
+    elif str(mode) == DXDisplayMode.plain.value:
         reset()
 
 
