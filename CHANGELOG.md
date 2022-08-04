@@ -1,6 +1,14 @@
 All notable changes will be documented here.
 
 ---
+## `1.1.3`
+### Changed
+- `default` display mode (vanilla pandas) renamed to `plain`
+
+### Added
+- Helper text for adjusting settings after a dataset has been truncated
+
+
 ## `1.1.1`-`1.1.2`
 _2022-07-22_
 ### Added
