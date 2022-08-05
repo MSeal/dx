@@ -12,12 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import (
-    clean_before_schema_build,
-    is_default_index,
-    stringify_columns,
-    truncate_and_describe,
-)
+from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.settings import settings
 
 
@@ -47,7 +42,7 @@ class DXDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
-            payload, metadata = _render_dx(df_obj, display_id)
+            payload, metadata = format_dx(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
@@ -55,17 +50,15 @@ class DXDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def format_dx(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
+def generate_dx_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
-    display_df = clean_before_schema_build(df)
-
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload_body = {
-        "schema": build_table_schema(display_df),
-        "data": display_df.reset_index().transpose().values.tolist(),
+        "schema": build_table_schema(df),
+        "data": df.reset_index().transpose().values.tolist(),
         "datalink": {},
     }
     payload = {dx_settings.DX_MEDIA_TYPE: payload_body}
@@ -85,9 +78,10 @@ def format_dx(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     return (payload, metadata)
 
 
-def _render_dx(df, display_id) -> tuple:
+def format_dx(df, display_id) -> tuple:
+    df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
-    payload, metadata = format_dx(df, display_id)
+    payload, metadata = generate_dx_body(df, display_id)
     metadata[dx_settings.DX_MEDIA_TYPE]["datalink"]["dataframe_info"] = dataframe_info
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors

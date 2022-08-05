@@ -270,28 +270,37 @@ def is_default_index(index: pd.Index) -> bool:
     return index.equals(default_index)
 
 
-def clean_before_schema_build(df: pd.DataFrame) -> pd.DataFrame:
-    # temporary workaround for numeric column rendering errors with GRID
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
+def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     display_df = df.copy()
-    display_df = stringify_columns(display_df)
 
-    # temporary workaround for numeric MultiIndices
-    # because of pandas build_table_schema() errors
+    # preserve 0-n row numbers for frontend
+    # if custom/MultiIndex is used
     if not is_default_index(display_df.index):
-        print(f"CUSTOM INDEX FOUND, RESETTING FROM {display_df.index}")
         display_df.reset_index(inplace=True)
 
-    # build_table_schema() also doesn't like pd.NAs
+    # temporary workaround for numeric column rendering errors with GRID
+    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
+    display_df = stringify_columns(display_df)
+
+    # build_table_schema() doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
 
     for column in display_df.columns:
-
-        # workaround to JSONify shapely geometries without requiring shapely/geopandas dependency
-        if GEOPANDAS_INSTALLED:
-            import geopandas as gpd
-
-            if isinstance(display_df[column], gpd.GeoSeries):
-                display_df[column] = display_df[column].to_json()
+        display_df[column] = handle_geoseries(display_df[column])
 
     return display_df
+
+
+def handle_geoseries(col: pd.Series) -> pd.Series:
+    """
+    Workaround to JSONify shapely geometries without
+    requiring shapely/geopandas dependency.
+    """
+    if not GEOPANDAS_INSTALLED:
+        return col
+
+    import geopandas as gpd
+
+    if isinstance(col, gpd.GeoSeries):
+        col = col.to_json()
+    return col

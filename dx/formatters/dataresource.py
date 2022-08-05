@@ -12,7 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import clean_before_schema_build, truncate_and_describe
+from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.settings import settings
 
 
@@ -42,7 +42,7 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
-            payload, metadata = _render_dataresource(df_obj, display_id)
+            payload, metadata = format_dataresource(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
@@ -50,18 +50,14 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
+def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
-    display_df = clean_before_schema_build(df)
-
-    data = display_df.reset_index().to_dict("records")
-
     payload_body = {
-        "schema": build_table_schema(display_df),
-        "data": data,
+        "schema": build_table_schema(df),
+        "data": df.reset_index().to_dict("records"),
         "datalink": {},
     }
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}
@@ -81,9 +77,11 @@ def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> t
     return (payload, metadata)
 
 
-def _render_dataresource(df, display_id) -> tuple:
+def format_dataresource(df, display_id) -> tuple:
+    # enable 0-n row counts for frontend
+    df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
-    payload, metadata = format_dataresource(df, display_id)
+    payload, metadata = generate_dataresource_body(df, display_id)
     metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
         "dataframe_info"
     ] = dataframe_info
