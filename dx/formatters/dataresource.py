@@ -12,7 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import is_default_index, stringify_columns, truncate_and_describe
+from dx.formatters.utils import clean_before_schema_build, truncate_and_describe
 from dx.settings import settings
 
 
@@ -55,22 +55,13 @@ def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> t
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
-    # temporary workaround for numeric column rendering errors with GRID
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    display_df = df.copy()
-    display_df = stringify_columns(display_df)
+    display_df = clean_before_schema_build(df)
 
-    # temporary workaround for numeric MultiIndices
-    # because of pandas build_table_schema() errors
-    if not is_default_index(display_df.index):
-        display_df.reset_index(inplace=True)
-
-    # build_table_schema() also doesn't like pd.NAs
-    display_df.fillna(np.nan, inplace=True)
+    data = display_df.reset_index().to_dict("records")
 
     payload_body = {
         "schema": build_table_schema(display_df),
-        "data": display_df.reset_index().to_dict("records"),
+        "data": data,
         "datalink": {},
     }
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}

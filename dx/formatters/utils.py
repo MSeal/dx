@@ -1,8 +1,10 @@
 import sys
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 
+from dx.config import GEOPANDAS_INSTALLED
 from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
@@ -233,10 +235,6 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def stringify_indices(df: pd.DataFrame) -> pd.DataFrame:
-    return stringify_columns(df.transpose()).transpose()
-
-
 def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
     """
     Reduces the size of the dataframe, if necessary,
@@ -266,5 +264,34 @@ def is_default_index(index: pd.Index) -> bool:
     """
     Returns True if the index values are 0-n, where n is the number of items in the series.
     """
-    default_index = pd.Index(list(range(len(index))))
+    index_vals = index.values.tolist()
+    default_index = pd.Index(list(range(len(index_vals))))
+    index = pd.Index(index_vals)
     return index.equals(default_index)
+
+
+def clean_before_schema_build(df: pd.DataFrame) -> pd.DataFrame:
+    # temporary workaround for numeric column rendering errors with GRID
+    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
+    display_df = df.copy()
+    display_df = stringify_columns(display_df)
+
+    # temporary workaround for numeric MultiIndices
+    # because of pandas build_table_schema() errors
+    if not is_default_index(display_df.index):
+        print(f"CUSTOM INDEX FOUND, RESETTING FROM {display_df.index}")
+        display_df.reset_index(inplace=True)
+
+    # build_table_schema() also doesn't like pd.NAs
+    display_df.fillna(np.nan, inplace=True)
+
+    for column in display_df.columns:
+
+        # workaround to JSONify shapely geometries without requiring shapely/geopandas dependency
+        if GEOPANDAS_INSTALLED:
+            import geopandas as gpd
+
+            if isinstance(display_df[column], gpd.GeoSeries):
+                display_df[column] = display_df[column].to_json()
+
+    return display_df
