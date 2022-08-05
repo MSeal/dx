@@ -1,12 +1,10 @@
-import random
-import string
-
 import numpy as np
 import pandas as pd
 import pytest
-from dx.settings import get_settings
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
+
+from dx.settings import get_settings
 
 settings = get_settings()
 
@@ -37,23 +35,15 @@ def sample_dataframe() -> pd.DataFrame:
 @pytest.fixture
 def sample_large_dataframe() -> pd.DataFrame:
     """
-    Generates a random assortment of values of different data types,
-    and returns a larger dataframe than the `sample_dataframe` fixture.
+    Generates a dataframe that is within the MAX_ROWS/MAX_COLUMNS limits,
+    but has large values that should still exceed MAX_RENDER_SIZE_BYTES.
     """
-    n_rows = 100_000
-    data = {
-        "float_col": [random.randint(0, 100) for _ in range(n_rows)],
-        "int_col": [random.random() for _ in range(n_rows)],
-        "bool_col": [random.choice([True, False]) for _ in range(n_rows)],
-        "str_col": [
-            "".join(random.sample(string.ascii_uppercase, 3)) for _ in range(n_rows)
-        ],
-        "date_col": [
-            pd.Timestamp("now") - pd.Timedelta(hours=random.randint(-100, 100))
-            for _ in range(n_rows)
-        ],
-    }
-    return pd.DataFrame(data)
+    large_values = ["A" * 1_000 for _ in range(settings.DISPLAY_MAX_ROWS)]
+
+    df = pd.DataFrame()
+    for i in range(settings.DISPLAY_MAX_COLUMNS):
+        df[f"col_{i}"] = large_values
+    return df
 
 
 @pytest.fixture
