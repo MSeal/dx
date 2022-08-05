@@ -70,9 +70,9 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
             """<mark><code>dx.set_option({setting name}, {new value})</code></mark>"""
         )
         sample_override = """<code>dx.set_option("DISPLAY_MAX_ROWS", 250_000)</code>"""
-        override_warning = "<small><i><sup>*</sup>Be careful, as increasing these limits may negatively impact performance.</i></small>"
+        override_warning = "<small><i><sup>*</sup>Be careful; increasing these limits may negatively impact performance.</i></small>"
         user_feedback = f"""<div style="padding:0.25rem 1rem;">
-            <p>To adjust the settings<sup>*</sup>, execute {override_snippet} in a new cell.
+            <p>To adjust the settings*, execute {override_snippet} in a new cell.
             <br/>For example, to change the maximum number of rows to display to 250,000,
              you could execute the following: {sample_override}</p>
             {override_warning}</div>"""
