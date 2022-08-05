@@ -221,12 +221,19 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
 
 
 def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert numeric columns to strings, or flatten
+    MultiIndex columns and convert to strings.
+    """
     cols = df.columns
 
     def stringify_multiindex(vals):
-        return ", ".join([str(val) for val in vals if str(val)])
+        string_vals = [str(val) for val in vals if str(val)]
+        return ", ".join(string_vals)
 
     if isinstance(cols, pd.MultiIndex):
+        # .to_flat_index() would work if we didn't
+        # have to convert to strings here
         cols = cols.map(stringify_multiindex)
     else:
         cols = cols.map(str)
