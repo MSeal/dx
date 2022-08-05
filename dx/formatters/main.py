@@ -4,12 +4,14 @@ from typing import Optional
 
 import pandas as pd
 from IPython import get_ipython
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.settings import settings
+from dx.settings import get_settings
 
+settings = get_settings()
 warnings.filterwarnings("ignore")
 
 
@@ -21,9 +23,7 @@ class PandasSettings(BaseSettings):
     PANDAS_DISPLAY_MAX_ROWS: int = 60
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
     PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
-    PANDAS_MEDIA_TYPE: str = Field(
-        "application/vnd.dataresource+json", allow_mutation=False
-    )
+    PANDAS_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -56,4 +56,4 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
-    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
+    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER or DisplayFormatter()
