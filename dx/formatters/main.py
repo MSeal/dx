@@ -8,8 +8,9 @@ from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.settings import settings
+from dx.settings import get_settings
 
+settings = get_settings()
 warnings.filterwarnings("ignore")
 
 
@@ -17,13 +18,11 @@ DISPLAY_ID_TO_DATAFRAME = {}
 
 
 class PandasSettings(BaseSettings):
-    # "default" (pandas) display mode
+    # "plain" (pandas) display mode
     PANDAS_DISPLAY_MAX_ROWS: int = 60
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
     PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
-    PANDAS_MEDIA_TYPE: str = Field(
-        "application/vnd.dataresource+json", allow_mutation=False
-    )
+    PANDAS_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -46,7 +45,7 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
         return
 
     global settings
-    settings.DISPLAY_MODE = "default"
+    settings.DISPLAY_MODE = "plain"
 
     settings.DISPLAY_MAX_COLUMNS = pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = pandas_settings.PANDAS_DISPLAY_MAX_ROWS

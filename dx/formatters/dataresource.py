@@ -12,11 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.utils import (
-    stringify_columns,
-    stringify_indices,
-    truncate_and_describe,
-)
+from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.settings import settings
 
 
@@ -25,9 +21,7 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    DATARESOURCE_MEDIA_TYPE: str = Field(
-        "application/vnd.dataresource+json", allow_mutation=False
-    )
+    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
     DATARESOURCE_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
     class Config:
@@ -48,7 +42,7 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
-            payload, metadata = _render_dataresource(df_obj, display_id)
+            payload, metadata = format_dataresource(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
@@ -56,27 +50,14 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
+def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
-    # temporary workaround for numeric column rendering errors with GRID
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    display_df = df.copy()
-    display_df = stringify_columns(display_df)
-
-    # temporary workaround for numeric MultiIndices
-    # because of pandas build_table_schema() errors
-    if isinstance(display_df.index, pd.MultiIndex):
-        display_df = stringify_indices(display_df)
-
-    # build_table_schema() also doesn't like pd.NAs
-    display_df.fillna(np.nan, inplace=True)
-
     payload_body = {
-        "schema": build_table_schema(display_df),
-        "data": display_df.reset_index().to_dict("records"),
+        "schema": build_table_schema(df),
+        "data": df.reset_index().to_dict("records"),
         "datalink": {},
     }
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}
@@ -89,16 +70,18 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     }
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
 
-    if display_id is not None:
-        payload_body["datalink"]["display_id"] = display_id
-        metadata_body["datalink"]["display_id"] = display_id
+    display_id = display_id or str(uuid.uuid4())
+    payload_body["datalink"]["display_id"] = display_id
+    metadata_body["datalink"]["display_id"] = display_id
 
     return (payload, metadata)
 
 
-def _render_dataresource(df, display_id) -> tuple:
+def format_dataresource(df, display_id) -> tuple:
+    # enable 0-n row counts for frontend
+    df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
-    payload, metadata = format_dataresource(df, display_id)
+    payload, metadata = generate_dataresource_body(df, display_id)
     metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
         "dataframe_info"
     ] = dataframe_info
@@ -107,7 +90,7 @@ def _render_dataresource(df, display_id) -> tuple:
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
-        ipydisplay(payload, raw=True, display_id=display_id)
+        ipydisplay(payload, raw=True, metadata=metadata, display_id=display_id)
 
     return (payload, metadata)
 
@@ -124,19 +107,13 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     global settings
     settings.DISPLAY_MODE = "simple"
 
-    settings.DISPLAY_MAX_COLUMNS = (
-        dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
+    settings.DISPLAY_MAX_COLUMNS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
     settings.DISPLAY_MAX_ROWS = dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
     settings.MEDIA_TYPE = dataresource_settings.DATARESOURCE_MEDIA_TYPE
     settings.RENDERABLE_OBJECTS = dataresource_settings.DATARESOURCE_RENDERABLE_OBJECTS
 
-    pd.set_option(
-        "display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
-    )
-    pd.set_option(
-        "display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
-    )
+    pd.set_option("display.max_columns", dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS)
+    pd.set_option("display.max_rows", dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDataResourceDisplayFormatter()

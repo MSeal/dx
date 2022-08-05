@@ -1,7 +1,8 @@
 import pathlib
-from typing import List, Union
+from typing import List, Optional, Union
 
 import pandas as pd
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 
 from dx.settings import set_display_mode, settings
@@ -11,6 +12,7 @@ from dx.types import DXDisplayMode
 def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
     mode: DXDisplayMode = DXDisplayMode.simple,
+    ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
     """
     Display a single object with the DX display format.
@@ -28,10 +30,10 @@ def display(
 
     df = pd.DataFrame(data)
 
-    orig_mode = settings.DISPLAY_MODE
-    set_display_mode(mode)
+    orig_mode = settings.DISPLAY_MODE.value
+    set_display_mode(mode, ipython_shell=ipython_shell)
     ipydisplay(df)
-    set_display_mode(orig_mode)
+    set_display_mode(orig_mode, ipython_shell=ipython_shell)
     return
 
 

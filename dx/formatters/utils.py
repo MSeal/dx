@@ -1,8 +1,10 @@
 import sys
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 
+from dx.config import GEOPANDAS_INSTALLED
 from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
@@ -55,12 +57,8 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
         df = reduce_df(df)
         size_str = human_readable_size(orig_size)
         max_size_str = human_readable_size(max_size_bytes)
-        settings_size_str = (
-            f"<code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_str})"
-        )
-        size_warning = (
-            f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
-        )
+        settings_size_str = f"<code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_str})"
+        size_warning = f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
         warnings.append(size_warning)
 
     if warnings:
@@ -68,6 +66,23 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
         new_size_html = f"""A truncated version with <strong>{len(df):,}</code> row(s) and
          {len(df.reset_index().columns):,} column(s)</strong> will be viewable in DEX."""
         warning_html = f"{warning_html}<br/>{new_size_html}"
+
+        # give users more information on how to change settings
+        override_snippet = (
+            """<mark><code>dx.set_option({setting name}, {new value})</code></mark>"""
+        )
+        sample_override = """<code>dx.set_option("DISPLAY_MAX_ROWS", 250_000)</code>"""
+        override_warning = "<small><i><sup>*</sup>Be careful; increasing these limits may negatively impact performance.</i></small>"
+        user_feedback = f"""<div style="padding:0.25rem 1rem;">
+            <p>To adjust the settings*, execute {override_snippet} in a new cell.
+            <br/>For example, to change the maximum number of rows to display to 250,000,
+             you could execute the following: {sample_override}</p>
+            {override_warning}</div>"""
+        user_feedback_collapsed_section = (
+            f"""<details><summary>More Information</summary>{user_feedback}</details>"""
+        )
+
+        warning_html = f"{warning_html} {user_feedback_collapsed_section}"
         display_callout(warning_html, level="warning")
 
     return df
@@ -206,22 +221,25 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
 
 
 def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert numeric columns to strings, or flatten
+    MultiIndex columns and convert to strings.
+    """
     cols = df.columns
 
     def stringify_multiindex(vals):
-        return ", ".join(map(str, vals))
+        string_vals = [str(val) for val in vals if str(val)]
+        return ", ".join(string_vals)
 
     if isinstance(cols, pd.MultiIndex):
+        # .to_flat_index() would work if we didn't
+        # have to convert to strings here
         cols = cols.map(stringify_multiindex)
     else:
         cols = cols.map(str)
 
     df.columns = cols
     return df
-
-
-def stringify_indices(df: pd.DataFrame) -> pd.DataFrame:
-    return stringify_columns(df.transpose()).transpose()
 
 
 def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
@@ -247,3 +265,53 @@ def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
         "truncated_num_cols": num_truncated_cols,
     }
     return df, dataframe_info
+
+
+def is_default_index(index: pd.Index) -> bool:
+    """
+    Returns True if the index values are 0-n, where n is the number of items in the series.
+    """
+    index_vals = index.values.tolist()
+    default_index = pd.Index(list(range(len(index_vals))))
+    index = pd.Index(index_vals)
+    return index.equals(default_index)
+
+
+def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Any additional formatting that needs to happen to the index,
+    the columns, or the data itself should be done here.
+    """
+    display_df = df.copy()
+
+    # preserve 0-n row numbers for frontend
+    # if custom/MultiIndex is used
+    if not is_default_index(display_df.index):
+        display_df.reset_index(inplace=True)
+
+    # temporary workaround for numeric column rendering errors with GRID
+    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
+    display_df = stringify_columns(display_df)
+
+    # build_table_schema() doesn't like pd.NAs
+    display_df.fillna(np.nan, inplace=True)
+
+    for column in display_df.columns:
+        display_df[column] = handle_geoseries(display_df[column])
+
+    return display_df
+
+
+def handle_geoseries(col: pd.Series) -> pd.Series:
+    """
+    Workaround to JSONify shapely geometries without
+    requiring shapely/geopandas dependency.
+    """
+    if not GEOPANDAS_INSTALLED:
+        return col
+
+    import geopandas as gpd
+
+    if isinstance(col, gpd.GeoSeries):
+        col = col.to_json()
+    return col
