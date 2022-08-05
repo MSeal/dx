@@ -1,6 +1,9 @@
 import uuid
 
+import pandas as pd
+
 from dx.formatters.dx import format_dx, get_dx_settings
+from dx.formatters.utils import is_default_index
 
 dx_settings = get_dx_settings()
 
@@ -49,3 +52,24 @@ def test_fields_match_data_length(sample_dataframe):
     data = payload[dx_settings.DX_MEDIA_TYPE]["data"]
     fields = payload[dx_settings.DX_MEDIA_TYPE]["schema"]["fields"]
     assert len(data) == len(fields)
+
+
+def test_default_index_persists(sample_dataframe: pd.DataFrame):
+    """
+    Default indexes should not be reset.
+    """
+    payload, _ = format_dx(sample_dataframe)
+    index_values = payload[dx_settings.DX_MEDIA_TYPE]["data"][0]
+    assert is_default_index(pd.Index(index_values))
+
+
+def test_custom_index_resets(sample_dataframe: pd.DataFrame):
+    """
+    Custom indexes should reset to ensure the `index` is passed
+    with row value numbers to the frontend, from 0 to the length of the dataframe.
+    """
+    sample_dataframe.set_index(["col_1", "col_2"], inplace=True)
+    payload, _ = format_dx(sample_dataframe)
+    index_values = payload[dx_settings.DX_MEDIA_TYPE]["data"][0]
+    assert index_values != sample_dataframe.index.tolist()
+    assert is_default_index(pd.Index(index_values))
