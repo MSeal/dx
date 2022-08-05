@@ -224,7 +224,7 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
     cols = df.columns
 
     def stringify_multiindex(vals):
-        return ", ".join(map(str, vals))
+        return ", ".join([str(val) for val in vals if str(val)])
 
     if isinstance(cols, pd.MultiIndex):
         cols = cols.map(stringify_multiindex)
@@ -271,6 +271,10 @@ def is_default_index(index: pd.Index) -> bool:
 
 
 def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Any additional formatting that needs to happen to the index,
+    the columns, or the data itself should be done here.
+    """
     display_df = df.copy()
 
     # preserve 0-n row numbers for frontend
