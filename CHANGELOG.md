@@ -2,10 +2,12 @@ All notable changes will be documented here.
 
 ---
 ## `1.1.3`
-_2022-08-??_
+_2022-08-05_
 ### Added
 - Helper text for adjusting settings after a dataset has been truncated
-- Pre-render `.reset_index()` when a custom/MultiIndex is used to preserve `0-n` row numbers at the `index` level
+- `.reset_index()` when a custom/MultiIndex is used to preserve `0-n` row numbers at the `index` level
+- Support for geopandas GeoDataFrames and GeoSeries objects
+- More tests!
 
 ### Changed
 - `default` display mode (vanilla pandas) renamed to `plain`
