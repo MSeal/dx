@@ -4,7 +4,6 @@ from typing import Optional
 
 import pandas as pd
 from IPython import get_ipython
-from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
@@ -56,4 +55,4 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
-    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER or DisplayFormatter()
+    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
