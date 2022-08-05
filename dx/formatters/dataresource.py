@@ -50,7 +50,7 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
+def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
@@ -83,9 +83,9 @@ def format_dataresource(df: pd.DataFrame, display_id: str) -> tuple:
     }
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
 
-    if display_id is not None:
-        payload_body["datalink"]["display_id"] = display_id
-        metadata_body["datalink"]["display_id"] = display_id
+    display_id = display_id or str(uuid.uuid4())
+    payload_body["datalink"]["display_id"] = display_id
+    metadata_body["datalink"]["display_id"] = display_id
 
     return (payload, metadata)
 
