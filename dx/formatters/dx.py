@@ -58,19 +58,6 @@ def generate_dx_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tupl
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
-    # temporary workaround for numeric column rendering errors
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    display_df = df.copy()
-    display_df = stringify_columns(display_df)
-
-    # temporary workaround for numeric MultiIndices
-    # because of pandas build_table_schema() errors
-    if isinstance(display_df.index, pd.MultiIndex):
-        display_df = stringify_indices(display_df)
-
-    # build_table_schema() also doesn't like pd.NAs
-    display_df.fillna(np.nan, inplace=True)
-
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload_body = {
         "schema": build_table_schema(df),
