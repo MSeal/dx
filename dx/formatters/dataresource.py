@@ -44,7 +44,7 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
             _register_display_id(df_obj, display_id)
-            payload, metadata = _render_dataresource(df_obj, display_id)
+            payload, metadata = format_dataresource(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
