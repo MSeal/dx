@@ -1,6 +1,25 @@
 All notable changes will be documented here.
 
 ---
+## `1.1.3`
+_2022-08-05_
+### Added
+- Helper text for adjusting settings after a dataset has been truncated
+- `.reset_index()` when a custom/MultiIndex is used to preserve `0-n` row numbers at the `index` level
+- Support for geopandas GeoDataFrames and GeoSeries objects
+- `dx.random_dataframe(num_rows, num_columns)` convenience function
+- More tests!
+
+### Changed
+- `default` display mode (vanilla pandas) renamed to `plain`
+
+### Fixed
+- Properly pass `metadata` through during the `IPython.display` calls to render dataresource/dx formatted data
+- `plain` display format tests use a basic IPython `DisplayFormatter` instead of `None`
+
+<img width="568" alt="image" src="https://user-images.githubusercontent.com/7707189/182971951-52b440ae-f894-4eb0-8941-3cadd78aef0a.png">
+
+
 ## `1.1.1`-`1.1.2`
 _2022-07-22_
 ### Added

@@ -15,7 +15,9 @@ from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.callouts import display_callout
-from dx.settings import settings
+from dx.settings import get_settings
+
+settings = get_settings()
 
 logging.basicConfig(
     level=settings.LOG_LEVEL,

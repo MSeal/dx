@@ -1,10 +1,11 @@
 import logging
 import sys
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
@@ -70,16 +71,10 @@ def get_settings():
 settings = get_settings()
 
 
-logging.basicConfig(
-    level=settings.LOG_LEVEL,
-    force=True,
-    stream=sys.stdout,
-    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-)
-logger = logging.getLogger(__name__)
-
-
-def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
+def set_display_mode(
+    mode: DXDisplayMode = DXDisplayMode.simple,
+    ipython_shell: Optional[InteractiveShell] = None,
+):
     """
     Sets the display mode for the IPython formatter in the current session.
     - "plain" (vanilla python/pandas display)
@@ -95,14 +90,20 @@ def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
     settings.DISPLAY_MODE = mode
 
     if str(mode) == DXDisplayMode.enhanced.value:
-        register()
+        register(ipython_shell=ipython_shell)
     elif str(mode) == DXDisplayMode.simple.value:
-        deregister()
+        deregister(ipython_shell=ipython_shell)
     elif str(mode) == DXDisplayMode.plain.value:
-        reset()
+        reset(ipython_shell=ipython_shell)
+    else:
+        raise ValueError(f"`{mode}` is not a supported display mode")
 
 
-def set_option(key, value) -> None:
+def set_option(
+    key,
+    value,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> None:
     key = str(key).upper()
 
     global settings
@@ -113,7 +114,7 @@ def set_option(key, value) -> None:
         # IPython display formatter changes being done through
         # settings updates for now, but I don't like it being here
         if key == "DISPLAY_MODE":
-            set_display_mode(value)
+            set_display_mode(value, ipython_shell=ipython_shell)
 
         return
     raise ValueError(f"{key} is not a valid setting")

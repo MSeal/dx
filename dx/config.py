@@ -1,11 +1,21 @@
 import os
 
 from IPython import get_ipython
+from IPython.core.formatters import DisplayFormatter
 
 IN_IPYTHON_ENV = get_ipython() is not None
-DEFAULT_IPYTHON_DISPLAY_FORMATTER = None
+
+DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
 if IN_IPYTHON_ENV:
     DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
+
+# we don't want to require geopandas as a hard dependency
+try:
+    import geopandas as gpd
+
+    GEOPANDAS_INSTALLED = True
+except ImportError:
+    GEOPANDAS_INSTALLED = False
 
 
 def in_noteable_env() -> bool:

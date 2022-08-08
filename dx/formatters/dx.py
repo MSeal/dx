@@ -14,12 +14,7 @@ from pydantic import BaseSettings, Field
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.callouts import display_callout
 from dx.formatters.main import _get_df_variable_name, _register_display_id
-from dx.formatters.utils import (
-    is_default_index,
-    stringify_columns,
-    stringify_indices,
-    truncate_and_describe,
-)
+from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.settings import settings
 
 
@@ -50,7 +45,7 @@ class DXDisplayFormatter(DisplayFormatter):
             display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
             _register_display_id(df_obj, display_id)
-            payload, metadata = _render_dx(df_obj, display_id)
+            payload, metadata = format_dx(df_obj, display_id)
             # TODO: determine if/how we can pass payload/metadata with
             # display_id for the frontend to pick up properly
             return ({}, {})
@@ -58,7 +53,7 @@ class DXDisplayFormatter(DisplayFormatter):
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
+def generate_dx_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
@@ -70,16 +65,16 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
 
     # temporary workaround for numeric MultiIndices
     # because of pandas build_table_schema() errors
-    if not is_default_index(display_df.index):
-        display_df.reset_index(inplace=True)
+    if isinstance(display_df.index, pd.MultiIndex):
+        display_df = stringify_indices(display_df)
 
     # build_table_schema() also doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
 
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload_body = {
-        "schema": build_table_schema(display_df),
-        "data": display_df.reset_index().transpose().values.tolist(),
+        "schema": build_table_schema(df),
+        "data": df.reset_index().transpose().values.tolist(),
         "datalink": {},
     }
     payload = {dx_settings.DX_MEDIA_TYPE: payload_body}
@@ -92,16 +87,17 @@ def format_dx(df: pd.DataFrame, display_id: str) -> tuple:
     }
     metadata = {dx_settings.DX_MEDIA_TYPE: metadata_body}
 
-    if display_id is not None:
-        payload_body["datalink"]["display_id"] = display_id
-        metadata_body["datalink"]["display_id"] = display_id
+    display_id = display_id or str(uuid.uuid4())
+    payload_body["datalink"]["display_id"] = display_id
+    metadata_body["datalink"]["display_id"] = display_id
 
     return (payload, metadata)
 
 
-def _render_dx(df, display_id) -> tuple:
+def format_dx(df, display_id) -> tuple:
+    df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
-    payload, metadata = format_dx(df, display_id)
+    payload, metadata = generate_dx_body(df, display_id)
     metadata[dx_settings.DX_MEDIA_TYPE]["datalink"]["dataframe_info"] = dataframe_info
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors

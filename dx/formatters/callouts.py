@@ -39,9 +39,9 @@ class Callout(BaseModel):
 
         if self.use_header:
             heading_html = f"<h6 class='bp3-heading'>{self.level.value.title()}</h6>"
-            return f"<div class='{callout_class_str}'>{heading_html}{self.message}</div>"
+            return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{heading_html}{self.message}</div>"""
 
-        return f"<div class='{callout_class_str}'>{self.message}</div>"
+        return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{self.message}</div>"""
 
 
 def display_callout(
@@ -58,4 +58,7 @@ def display_callout(
         icon=icon,
     )
     display_id = display_id or str(uuid.uuid4())
+
+    # TODO: coordinate with frontend to replace this with a standalone media type
+    # instead of rendering HTML with custom classes/styles
     display(HTML(callout.html), display_id=display_id)
