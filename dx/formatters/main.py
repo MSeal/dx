@@ -31,7 +31,6 @@ warnings.filterwarnings("ignore")
 
 
 # TODO: make some more structured cache to handle all of this
-CELLID_TO_DISPLAY_IDS = {}
 DATAFRAME_HASH_TO_DISPLAY_ID = {}
 DATAFRAME_HASH_TO_VAR_NAME = {}
 DISPLAY_ID_TO_COLUMNS = {}
@@ -80,14 +79,13 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
 
 def _filter_and_update_display(
-    cell_id: str,
+    display_id: str,
     filter: str,
     output_variable_name: Optional[str] = None,
 ) -> None:
     """
-    Filters the dataframe in the cell with the given cell_id.
+    Filters the dataframe in the cell with the given display_id.
     """
-    display_id = get_display_id_for_cell(cell_id)
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
 
     # update DEX
@@ -119,13 +117,6 @@ def _filter_and_update_display(
         level="success",
         display_id=callout_display_id,
     )
-
-
-def get_display_id_for_cell(cell_id: str) -> str:
-    display_ids = CELLID_TO_DISPLAY_IDS[cell_id]
-    if not display_ids:
-        raise ValueError(f"{cell_id=} -> {CELLID_TO_DISPLAY_IDS=}")
-    return display_ids[-1]
 
 
 def get_display_id_for_df(df: pd.DataFrame) -> str:
@@ -193,16 +184,10 @@ def _register_display_id(
     df: pd.DataFrame,
     display_id: str,
 ) -> None:
-    global CELLID_TO_DISPLAY_IDS
     global DATAFRAME_HASH_TO_DISPLAY_ID
     global DATAFRAME_HASH_TO_VAR_NAME
     global DISPLAY_ID_TO_DATAFRAME_HASH
     global DISPLAY_ID_TO_COLUMNS
-
-    cell_id = get_cell_id()
-    cell_display_ids = CELLID_TO_DISPLAY_IDS.get(cell_id, [])
-    cell_display_ids.append(display_id)
-    CELLID_TO_DISPLAY_IDS[cell_id] = cell_display_ids
 
     df_hash = _generate_df_hash(df)
     DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
