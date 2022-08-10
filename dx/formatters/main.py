@@ -10,13 +10,16 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import update_display
 from pandas.util import hash_pandas_object
 from pydantic import BaseSettings, Field
+from sqlalchemy import create_engine
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.callouts import display_callout
+from dx.formatters.utils import handle_column_dtypes
 from dx.loggers import get_logger
 from dx.settings import get_settings
 
 settings = get_settings()
+sql_engine = create_engine("sqlite://", echo=False)
 
 logger = get_logger(__name__)
 
@@ -73,33 +76,31 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
 def _filter_and_update_display(
     display_id: str,
-    filter: str,
+    pandas_filter: str,
+    sql_filter: str,
     output_variable_name: Optional[str] = None,
+    limit: Optional[int] = None,
 ) -> None:
     """
     Filters the dataframe in the cell with the given display_id.
     """
+    row_limit = limit or settings.DISPLAY_MAX_ROWS
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
-
-    # update DEX
-    df = pd.read_parquet(f"/tmp/{df_hash}.parquet", engine="pyarrow")
-    columns = DISPLAY_ID_TO_COLUMNS[display_id]
-    df.columns = columns
-
-    # TODO: fix issues with .query where the columns aren't strings
-    df.columns = _string_flatten_columns(df.columns)
-
     df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
-    logger.debug(f"applying filter to `{df_name=}`: {filter=}")
-    new_df = df.query(filter, engine="python")
-    logger.debug(f"updating {display_id=} with {new_df.shape=}")
+    table_name = f"{df_name}{df_hash}"
+
+    query_string = f"SELECT * FROM {table_name} WHERE {sql_filter} LIMIT {row_limit}"
+    logger.debug(f"sql query string: {query_string}")
+
+    new_df = pd.read_sql(query_string, sql_engine)
+    logger.debug(new_df.iloc[0])
+
     update_display(new_df, display_id=display_id)
 
     # update callout
     callout_display_id = display_id + "-primary"
     output_variable_name = output_variable_name or "new_df"
-    filter_code = f"""{output_variable_name} = {df_name}.query({filter}, engine="python")"""
-    logger.debug(f"updating callout display for {callout_display_id=} ->\n{filter_code=}")
+    filter_code = f"""{output_variable_name} = {df_name}.query({pandas_filter}, engine="python")"""
     filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
     <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{filter_code}</pre>
     """
@@ -189,13 +190,13 @@ def _register_display_id(
     df_name = _get_df_variable_name(df)
     DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
 
-    # parquet needs string columns, which could cause problems for multi-index columns
-    DISPLAY_ID_TO_COLUMNS[display_id] = df.columns
-    df.columns = _string_flatten_columns(df.columns)
-    df.to_parquet(f"/tmp/{df_hash}.parquet", engine="pyarrow")
+    # make sure any dtypes/geometries/etc are converted
+    for column in df.columns:
+        df[column] = handle_column_dtypes(df[column])
 
-
-def _string_flatten_columns(columns: pd.Series) -> pd.Series:
-    if isinstance(columns, pd.MultiIndex):
-        columns = columns.to_flat_index()
-    return [str(c) for c in columns]
+    # prepending the hash to avoid any "unrecognized token" SQL errors
+    table_name = f"{df_name}{df_hash}"
+    logger.debug(f"writing to `{table_name}` table in sqlite")
+    with sql_engine.begin() as conn:
+        num_written_rows = df.to_sql(table_name, con=conn, if_exists="replace")
+    logger.debug(f"wrote {num_written_rows} rows to `{table_name}` table")
