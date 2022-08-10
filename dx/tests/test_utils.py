@@ -87,6 +87,12 @@ def test_default_index_returns_true(sample_dataframe: pd.DataFrame):
     assert is_default_index(index)
 
 
+def test_unsorted_default_index_returns_true(sample_dataframe: pd.DataFrame):
+    shuffled_sample_dataframe = sample_dataframe.sample(len(sample_dataframe))
+    index = shuffled_sample_dataframe.index
+    assert is_default_index(index)
+
+
 def test_custom_index_returns_false(sample_dataframe: pd.DataFrame):
     sample_dataframe.set_index("col_1", inplace=True)
     index = sample_dataframe.index

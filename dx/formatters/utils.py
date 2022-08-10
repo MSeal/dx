@@ -273,7 +273,7 @@ def is_default_index(index: pd.Index) -> bool:
     """
     index_vals = index.values.tolist()
     default_index = pd.Index(list(range(len(index_vals))))
-    index = pd.Index(index_vals)
+    index = pd.Index(sorted(index_vals))
     return index.equals(default_index)
 
 
