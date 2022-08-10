@@ -1,7 +1,5 @@
 import hashlib
-import logging
 import os
-import sys
 import warnings
 from functools import lru_cache
 from typing import Optional
@@ -15,17 +13,11 @@ from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
 from dx.formatters.callouts import display_callout
+from dx.loggers import get_logger
 from dx.settings import get_settings
 
+logger = get_logger(__name__)
 settings = get_settings()
-
-logging.basicConfig(
-    level=settings.LOG_LEVEL,
-    force=True,
-    stream=sys.stdout,
-    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
-)
-logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore")
 

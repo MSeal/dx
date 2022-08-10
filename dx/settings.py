@@ -1,5 +1,4 @@
 import logging
-import sys
 from functools import lru_cache
 from typing import List, Optional
 
@@ -14,9 +13,8 @@ MB = 1024 * 1024
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL = logging.DEBUG
+    LOG_LEVEL = logging.INFO
 
-    # "enhanced" (GRID) display mode
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
     HTML_TABLE_SCHEMA: bool = False
@@ -55,7 +53,7 @@ class Settings(BaseSettings):
                 val_type = eval(str(val))
                 valid_vals.append(val_type)
             except Exception as e:
-                logger.exception(f"can't evaluate {val} type as renderable object: {e}")
+                raise ValueError(f"can't evaluate {val} type as renderable object: {e}")
 
         return valid_vals
 
