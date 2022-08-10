@@ -300,23 +300,31 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     display_df.fillna(np.nan, inplace=True)
 
     for column in display_df.columns:
-        display_df[column] = handle_geoseries(display_df[column])
+        display_df[column] = handle_column_dtypes(display_df[column])
 
     return display_df
 
 
-def handle_geoseries(col: pd.Series) -> pd.Series:
-    """
-    Workaround to JSONify shapely geometries without
-    requiring shapely/geopandas dependency.
-    """
-    logger.debug(f"{GEOPANDAS_INSTALLED=}")
-    if not GEOPANDAS_INSTALLED:
-        return col
+def series_has_types(s: pd.Series, types: tuple) -> bool:
+    return any(isinstance(v, types) for v in s.values)
 
-    import geopandas as gpd
 
-    logger.debug(f"{type(col)=}")
-    if isinstance(col, gpd.GeoSeries):
-        col = col.to_json()
-    return col
+def handle_column_dtypes(s: pd.Series) -> pd.Series:
+    types = (type, np.dtype)
+    if series_has_types(s, types):
+        logger.debug(f"{s.name} has types; converting to strings")
+        s = s.astype(str)
+
+    if GEOPANDAS_INSTALLED:
+        import geopandas as gpd
+        import shapely.geometry.base
+
+        geometry_types = (
+            shapely.geometry.base.BaseGeometry,
+            shapely.geometry.base.BaseMultipartGeometry,
+        )
+        if series_has_types(s, geometry_types):
+            logger.debug(f"{s.name} has geometries; converting to JSON")
+            s = gpd.GeoSeries(s).to_json()
+
+    return s
