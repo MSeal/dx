@@ -6,8 +6,11 @@ import pandas as pd
 
 from dx.config import GEOPANDAS_INSTALLED
 from dx.formatters.callouts import display_callout
+from dx.loggers import get_logger
 from dx.settings import settings
 from dx.types import DXSamplingMethod
+
+logger = get_logger(__name__)
 
 
 def human_readable_size(size_bytes: int) -> str:
@@ -307,11 +310,13 @@ def handle_geoseries(col: pd.Series) -> pd.Series:
     Workaround to JSONify shapely geometries without
     requiring shapely/geopandas dependency.
     """
+    logger.debug(f"{GEOPANDAS_INSTALLED=}")
     if not GEOPANDAS_INSTALLED:
         return col
 
     import geopandas as gpd
 
+    logger.debug(f"{type(col)=}")
     if isinstance(col, gpd.GeoSeries):
         col = col.to_json()
     return col

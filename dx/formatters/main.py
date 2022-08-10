@@ -16,8 +16,9 @@ from dx.formatters.callouts import display_callout
 from dx.loggers import get_logger
 from dx.settings import get_settings
 
-logger = get_logger(__name__)
 settings = get_settings()
+
+logger = get_logger(__name__)
 
 warnings.filterwarnings("ignore")
 
