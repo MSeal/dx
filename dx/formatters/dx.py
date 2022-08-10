@@ -12,8 +12,7 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.callouts import display_callout
-from dx.formatters.main import _get_df_variable_name, _register_display_id
+from dx.formatters.main import _register_display_id
 from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.settings import settings
 
@@ -81,7 +80,7 @@ def generate_dx_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tupl
     return (payload, metadata)
 
 
-def format_dx(df, display_id) -> tuple:
+def format_dx(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
     payload, metadata = generate_dx_body(df, display_id)

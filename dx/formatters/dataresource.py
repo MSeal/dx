@@ -79,7 +79,7 @@ def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = Non
     return (payload, metadata)
 
 
-def format_dataresource(df, display_id) -> tuple:
+def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
     # enable 0-n row counts for frontend
     df = normalize_index_and_columns(df)
     df, dataframe_info = truncate_and_describe(df)
