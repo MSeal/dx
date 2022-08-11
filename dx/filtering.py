@@ -45,7 +45,6 @@ def update_display_id(
     logger.debug(f"sql query string: {query_string}")
 
     new_df = pd.read_sql(query_string, sql_engine)
-    logger.debug(new_df.iloc[0])
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
@@ -54,7 +53,11 @@ def update_display_id(
     logger.info(f"assigning subset {new_df_hash} to parent {df_hash=}")
     SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
 
+    # allow temporary override of the display limit
+    orig_sample_size = int(settings.DISPLAY_MAX_ROWS)
+    settings.set_option("DISPLAY_MAX_ROWS", row_limit)
     update_display(new_df, display_id=display_id)
+    settings.set_option("DISPLAY_MAX_ROWS", orig_sample_size)
 
     # TODO: replace with custom callout media type
     callout_display_id = display_id + "-primary"
