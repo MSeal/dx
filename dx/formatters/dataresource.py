@@ -12,8 +12,15 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.formatters.main import _register_display_id
+from dx.filtering import (
+    DATAFRAME_HASH_TO_DISPLAY_ID,
+    DATAFRAME_HASH_TO_VAR_NAME,
+    SUBSET_TO_DATAFRAME_HASH,
+    generate_df_hash,
+    register_display_id,
+)
 from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
+from dx.loggers import get_logger
 from dx.settings import settings
 
 
@@ -36,17 +43,26 @@ def get_dataresource_settings():
 
 dataresource_settings = get_dataresource_settings()
 
+logger = get_logger(__name__)
+
 
 class DXDataResourceDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
-            display_id = str(uuid.uuid4())
             df_obj = pd.DataFrame(obj)
-            _register_display_id(df_obj.copy(), display_id)
+            df_obj_hash = generate_df_hash(df_obj)
+
+            if df_obj_hash in SUBSET_TO_DATAFRAME_HASH:
+                parent_df_hash = SUBSET_TO_DATAFRAME_HASH[df_obj_hash]
+                parent_df_name = DATAFRAME_HASH_TO_VAR_NAME[parent_df_hash]
+                display_id = DATAFRAME_HASH_TO_DISPLAY_ID[parent_df_hash]
+                logger.debug(f"rendering subset of original dataframe '{parent_df_name}'")
+            else:
+                display_id = str(uuid.uuid4())
+                register_display_id(df_obj.copy(), display_id)
+
             payload, metadata = format_dataresource(df_obj, display_id)
-            # TODO: determine if/how we can pass payload/metadata with
-            # display_id for the frontend to pick up properly
             return ({}, {})
 
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
