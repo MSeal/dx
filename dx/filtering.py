@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from dx.formatters.callouts import display_callout
 from dx.formatters.utils import handle_column_dtypes
 from dx.loggers import get_logger
-from dx.settings import get_settings
+from dx.settings import get_settings, set_option
 
 DATAFRAME_HASH_TO_DISPLAY_ID = {}
 DATAFRAME_HASH_TO_VAR_NAME = {}
@@ -55,9 +55,9 @@ def update_display_id(
 
     # allow temporary override of the display limit
     orig_sample_size = int(settings.DISPLAY_MAX_ROWS)
-    settings.set_option("DISPLAY_MAX_ROWS", row_limit)
+    set_option("DISPLAY_MAX_ROWS", row_limit)
     update_display(new_df, display_id=display_id)
-    settings.set_option("DISPLAY_MAX_ROWS", orig_sample_size)
+    set_option("DISPLAY_MAX_ROWS", orig_sample_size)
 
     # TODO: replace with custom callout media type
     callout_display_id = display_id + "-primary"
