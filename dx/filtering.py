@@ -10,7 +10,6 @@ from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
 from dx.formatters.callouts import display_callout
-from dx.formatters.utils import handle_column_dtypes
 from dx.loggers import get_logger
 from dx.settings import get_settings, set_option
 
@@ -19,6 +18,8 @@ DATAFRAME_HASH_TO_VAR_NAME = {}
 DISPLAY_ID_TO_COLUMNS = {}
 DISPLAY_ID_TO_DATAFRAME_HASH = {}
 SUBSET_TO_DATAFRAME_HASH = {}
+SUBSET_FILTERS = {}
+
 logger = get_logger(__name__)
 
 settings = get_settings()
@@ -28,34 +29,41 @@ sql_engine = create_engine("sqlite://", echo=False)
 
 def update_display_id(
     display_id: str,
-    pandas_filter: str,
     sql_filter: str,
+    pandas_filter: Optional[str] = None,
+    filters: Optional[dict] = None,
     output_variable_name: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> None:
     """
     Filters the dataframe in the cell with the given display_id.
     """
+    global SUBSET_FILTERS
+
     row_limit = limit or settings.DISPLAY_MAX_ROWS
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
     df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
     table_name = f"{df_name}__{df_hash}"
 
-    query_string = f"SELECT * FROM {table_name} WHERE {sql_filter} LIMIT {row_limit}"
-    logger.debug(f"sql query string: {query_string}")
+    # store filters to be passed through metadata to the frontend
+    filters = filters or []
+    SUBSET_FILTERS[df_hash] = filters
 
+    query_string = sql_filter.format(table_name=table_name)
+    logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
     # during update_display(), which will prevent re-registering the display ID to the subset
     new_df_hash = generate_df_hash(new_df)
-    logger.info(f"assigning subset {new_df_hash} to parent {df_hash=}")
+    logger.debug(f"assigning subset {new_df_hash} to parent {df_hash=}")
     SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
 
     # allow temporary override of the display limit
     orig_sample_size = int(settings.DISPLAY_MAX_ROWS)
     set_option("DISPLAY_MAX_ROWS", row_limit)
+    logger.debug(f"updating {display_id=} with {max(row_limit, len(new_df))}-row resample")
     update_display(new_df, display_id=display_id)
     set_option("DISPLAY_MAX_ROWS", orig_sample_size)
 
@@ -143,6 +151,8 @@ def get_df_variable_name(
 
 
 def register_display_id(df: pd.DataFrame, display_id: str) -> None:
+    from dx.utils import handle_column_dtypes
+
     global DATAFRAME_HASH_TO_DISPLAY_ID
     global DATAFRAME_HASH_TO_VAR_NAME
     global DISPLAY_ID_TO_DATAFRAME_HASH
@@ -154,6 +164,7 @@ def register_display_id(df: pd.DataFrame, display_id: str) -> None:
 
     df_name = get_df_variable_name(df)
     DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
+    logger.debug(f"registering display_id {display_id=} for `{df_name}`")
 
     # make sure any dtypes/geometries/etc are converted
     for column in df.columns:
