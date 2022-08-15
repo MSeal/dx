@@ -49,8 +49,8 @@ class DXDisplayFormatter(DisplayFormatter):
             display_id = get_display_id(obj)
             format_dx(
                 obj,
-                display_id=display_id,
                 update=update_existing_display,
+                display_id=display_id,
                 filters=applied_filters,
             )
             return ({}, {})
@@ -79,7 +79,7 @@ def generate_dx_body(
         "datalink": {
             "dataframe_info": {},
             "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
-            "applied_filters": filters,
+            "applied_filters": [],
         },
     }
     metadata = {dx_settings.DX_MEDIA_TYPE: metadata_body}
@@ -91,15 +91,31 @@ def generate_dx_body(
     return (payload, metadata)
 
 
-def format_dx(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
+def format_dx(
+    df: pd.DataFrame,
+    update: bool = False,
+    display_id: Optional[str] = None,
+    filters: Optional[list] = None,
+) -> tuple:
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df)
     payload, metadata = generate_dx_body(df, display_id)
-    metadata[dx_settings.DX_MEDIA_TYPE]["datalink"]["dataframe_info"] = dataframe_info
+    metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
+        {
+            "dataframe_info": dataframe_info,
+            "applied_filters": filters,
+        }
+    )
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors
     with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
-        ipydisplay(payload, raw=True, metadata=metadata, display_id=display_id)
+        ipydisplay(
+            payload,
+            raw=True,
+            metadata=metadata,
+            display_id=display_id,
+            update=update,
+        )
 
     return (payload, metadata)
 

@@ -49,8 +49,8 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
             display_id = get_display_id(obj)
             format_dataresource(
                 obj,
-                display_id=display_id,
                 update=update_existing_display,
+                display_id=display_id,
                 filters=applied_filters,
             )
             return ({}, {})
@@ -61,7 +61,6 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
 def generate_dataresource_body(
     df: pd.DataFrame,
     display_id: Optional[str] = None,
-    filters: Optional[list[dict]] = None,
 ) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
@@ -78,7 +77,7 @@ def generate_dataresource_body(
         "datalink": {
             "dataframe_info": {},
             "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
-            "applied_filters": filters,
+            "applied_filters": [],
         },
     }
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
@@ -94,15 +93,18 @@ def format_dataresource(
     df: pd.DataFrame,
     update: bool = False,
     display_id: Optional[str] = None,
-    filters: Optional[list[dict]] = None,
+    filters: Optional[list] = None,
 ) -> tuple:
     # enable 0-n row counts for frontend
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df)
-    payload, metadata = generate_dataresource_body(df, display_id=display_id, filters=filters)
-    metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
-        "dataframe_info"
-    ] = dataframe_info
+    payload, metadata = generate_dataresource_body(df, display_id=display_id)
+    metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"].update(
+        {
+            "dataframe_info": dataframe_info,
+            "applied_filters": filters,
+        }
+    )
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors
     with pd.option_context(
