@@ -1,5 +1,5 @@
 import sys
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from dx.types import DXSamplingMethod
 logger = get_logger(__name__)
 
 
-def sample_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
+def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Reduces the size of a dataframe if it is too big,
     to help reduce the amount of data being sent to the
@@ -27,7 +27,7 @@ def sample_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
     df_too_wide = len(df.columns) > max_columns
     if df_too_wide:
         num_orig_columns = len(df.columns)
-        df = sample_columns(df, max_columns)
+        df = sample_columns(df, num_cols=max_columns)
         col_warning = f"""Dataframe has {num_orig_columns:,} column(s),
          which is more than <code>{settings.DISPLAY_MAX_COLUMNS=}</code>"""
         warnings.append(col_warning)
@@ -37,7 +37,7 @@ def sample_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
     df_too_long = len(df) > max_rows
     if df_too_long:
         num_orig_rows = len(df)
-        df = sample_rows(df, max_rows)
+        df = sample_rows(df, num_rows=max_rows, display_id=display_id)
         row_warning = f"""Dataframe has {num_orig_rows:,} row(s),
          which is more than <code>{settings.DISPLAY_MAX_ROWS=}</code>"""
         warnings.append(row_warning)
@@ -134,7 +134,7 @@ def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
     raise ValueError(f"Unknown sampling method: {sampling}")
 
 
-def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
+def sample_rows(df: pd.DataFrame, num_rows: int, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
     based on Settings.SAMPLING_METHOD, or
@@ -145,7 +145,7 @@ def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
         sampling = row_sampling
 
     if sampling == DXSamplingMethod.random:
-        return sample_random(df, num_rows)
+        return sample_random(df, num_rows, display_id=display_id)
     if sampling == DXSamplingMethod.first:
         return sample_first(df, num_rows)
     if sampling == DXSamplingMethod.last:
@@ -178,7 +178,7 @@ def sample_last(df: pd.DataFrame, num: int) -> pd.DataFrame:
     return df.tail(num)
 
 
-def sample_random(df: pd.DataFrame, num: int) -> pd.DataFrame:
+def sample_random(df: pd.DataFrame, num: int, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Samples a random selection of N rows based on the RANDOM_STATE seed.
 
@@ -187,7 +187,8 @@ def sample_random(df: pd.DataFrame, num: int) -> pd.DataFrame:
     """
     from dx.filtering import get_display_id_for_df
 
-    display_id = get_display_id_for_df(df)
+    # TODO: use hash for seed instead?
+    display_id = display_id or get_display_id_for_df(df)
     display_id_array = [ord(v) for v in str(display_id)]
     random_state = np.random.RandomState(seed=display_id_array)
     logger.debug(f"using random seed {random_state} from {display_id=}")
