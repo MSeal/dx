@@ -132,7 +132,7 @@ def get_applied_filters(df: pd.DataFrame) -> dict:
     Returns a dictionary of applied filters for a dataframe.
     """
     df_hash = generate_df_hash(df)
-    return SUBSET_FILTERS[df_hash]
+    return SUBSET_FILTERS.get(df_hash)
 
 
 def df_is_subset(df: pd.DataFrame) -> bool:
