@@ -45,10 +45,6 @@ def update_display_id(
     df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
     table_name = f"{df_name}__{df_hash}"
 
-    # store filters to be passed through metadata to the frontend
-    filters = filters or []
-    SUBSET_FILTERS[df_hash] = filters
-
     query_string = sql_filter.format(table_name=table_name)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
@@ -57,13 +53,19 @@ def update_display_id(
     # which will be checked when the DisplayFormatter.format() is called
     # during update_display(), which will prevent re-registering the display ID to the subset
     new_df_hash = generate_df_hash(new_df)
+
+    # store filters to be passed through metadata to the frontend
+    logger.debug(f"applying {filters=}")
+    filters = filters or []
+    SUBSET_FILTERS[new_df_hash] = filters
+
     logger.debug(f"assigning subset {new_df_hash} to parent {df_hash=}")
     SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
 
     # allow temporary override of the display limit
     orig_sample_size = int(settings.DISPLAY_MAX_ROWS)
     set_option("DISPLAY_MAX_ROWS", row_limit)
-    logger.debug(f"updating {display_id=} with {max(row_limit, len(new_df))}-row resample")
+    logger.debug(f"updating {display_id=} with {min(row_limit, len(new_df))}-row resample")
     update_display(new_df, display_id=display_id)
     set_option("DISPLAY_MAX_ROWS", orig_sample_size)
 
@@ -85,7 +87,7 @@ def update_display_id(
 
 def get_display_id_for_df(df: pd.DataFrame) -> str:
     df_hash = generate_df_hash(df)
-    return DATAFRAME_HASH_TO_DISPLAY_ID[df_hash]
+    return DATAFRAME_HASH_TO_DISPLAY_ID.get(df_hash)
 
 
 def generate_df_hash(df: pd.DataFrame) -> str:
@@ -150,7 +152,11 @@ def get_df_variable_name(
     return matching_df_vars[-1]
 
 
-def register_display_id(df: pd.DataFrame, display_id: str) -> None:
+def register_display_id(
+    df: pd.DataFrame,
+    display_id: str,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> None:
     from dx.utils import handle_column_dtypes
 
     global DATAFRAME_HASH_TO_DISPLAY_ID
@@ -162,7 +168,7 @@ def register_display_id(df: pd.DataFrame, display_id: str) -> None:
     DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
     DATAFRAME_HASH_TO_DISPLAY_ID[df_hash] = display_id
 
-    df_name = get_df_variable_name(df)
+    df_name = get_df_variable_name(df, ipython_shell=ipython_shell)
     DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
     logger.debug(f"registering display_id {display_id=} for `{df_name}`")
 
