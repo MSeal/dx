@@ -1,3 +1,4 @@
+from .comms import *
 from .config import *
 from .dx import *
 from .formatters import *
