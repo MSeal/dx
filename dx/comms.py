@@ -18,6 +18,7 @@ def target_func(comm, open_msg):
                 display_id=data["display_id"],
                 pandas_filter=data.get("pandas_filter"),
                 sql_filter=data.get("sql_filter"),
+                filters=data.get("filters"),
                 output_variable_name=data.get("output_variable_name"),
                 limit=data["limit"],
             )
