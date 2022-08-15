@@ -29,9 +29,9 @@ class Settings(BaseSettings):
 
     DISPLAY_MODE: DXDisplayMode = DXDisplayMode.simple
 
-    SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.outer
-    COLUMN_SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.outer
-    ROW_SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.outer
+    SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.random
+    COLUMN_SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.random
+    ROW_SAMPLING_METHOD: DXSamplingMethod = DXSamplingMethod.random
     # TODO: support more than just int type here
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sample.html
     RANDOM_STATE: int = 12_648_430
