@@ -1,6 +1,6 @@
 import logging
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ MB = 1024 * 1024
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL = logging.INFO
+    LOG_LEVEL = logging.DEBUG
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -23,9 +23,9 @@ class Settings(BaseSettings):
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
     RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
 
-    # what percentage of the dataset to remove during each truncation
+    # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
-    TRUNCATION_FACTOR: float = 0.1
+    SAMPLING_FACTOR: float = 0.1
 
     DISPLAY_MODE: DXDisplayMode = DXDisplayMode.simple
 
@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # TODO: support more than just int type here
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sample.html
     RANDOM_STATE: int = 12_648_430
+
+    STRINGIFY_COLUMNS: bool = True
+    STRINGIFY_INDEX: bool = False
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
@@ -116,3 +119,14 @@ def set_option(
 
         return
     raise ValueError(f"{key} is not a valid setting")
+
+
+def add_renderable_type(renderable_type: Union[type, list[type]]):
+    """
+    Add a type to the list of types that can be rendered by the formatter.
+    """
+    global settings
+
+    if not isinstance(renderable_type, list):
+        renderable_type = [renderable_type]
+    settings.RENDERABLE_OBJECTS.extend(renderable_type)
