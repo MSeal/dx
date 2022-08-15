@@ -13,7 +13,6 @@ from dx.filtering import (
     register_display_id,
 )
 from dx.loggers import get_logger
-from dx.sampling import stringify_columns
 
 logger = get_logger(__name__)
 
@@ -86,6 +85,28 @@ def handle_column_dtypes(s: pd.Series) -> pd.Series:
             s = gpd.GeoSeries(s).to_json()
 
     return s
+
+
+def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert numeric columns to strings, or flatten
+    MultiIndex columns and convert to strings.
+    """
+    cols = df.columns
+
+    def stringify_multiindex(vals):
+        string_vals = [str(val) for val in vals if str(val)]
+        return ", ".join(string_vals)
+
+    if isinstance(cols, pd.MultiIndex):
+        # .to_flat_index() would work if we didn't
+        # have to convert to strings here
+        cols = cols.map(stringify_multiindex)
+    else:
+        cols = cols.map(str)
+
+    df.columns = cols
+    return df
 
 
 def get_display_id(df: pd.DataFrame) -> str:
