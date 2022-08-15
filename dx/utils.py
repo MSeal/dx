@@ -1,7 +1,9 @@
 import uuid
+from typing import Optional
 
 import numpy as np
 import pandas as pd
+from IPython.core.interactiveshell import InteractiveShell
 
 from dx.config import GEOPANDAS_INSTALLED
 from dx.filtering import (
@@ -109,7 +111,10 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_display_id(df: pd.DataFrame) -> str:
+def get_display_id(
+    df: pd.DataFrame,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> str:
     """
     Checks whether `df` is a subset of any others currently being tracked,
     and either returns the known display ID or creates a new one.
@@ -123,7 +128,11 @@ def get_display_id(df: pd.DataFrame) -> str:
         logger.debug(f"rendering subset of original dataframe '{parent_df_name}'")
     else:
         display_id = str(uuid.uuid4())
-        register_display_id(df_obj.copy(), display_id)
+        register_display_id(
+            df_obj.copy(),
+            display_id=display_id,
+            ipython_shell=ipython_shell,
+        )
     return display_id
 
 
