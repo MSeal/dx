@@ -26,6 +26,7 @@ def target_func(comm, open_msg):
     comm.send({"connected": True})
 
 
-if IN_IPYTHON_ENV:
-    COMM_MANAGER = get_ipython().kernel.comm_manager
+ipython_shell = get_ipython()
+if IN_IPYTHON_ENV and getattr(ipython_shell, "kernel", None):
+    COMM_MANAGER = ipython_shell.kernel.comm_manager
     COMM_MANAGER.register_target("datalink", target_func)
