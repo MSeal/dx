@@ -12,16 +12,10 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.filtering import (
-    DATAFRAME_HASH_TO_DISPLAY_ID,
-    DATAFRAME_HASH_TO_VAR_NAME,
-    SUBSET_TO_DATAFRAME_HASH,
-    generate_df_hash,
-    register_display_id,
-)
-from dx.formatters.utils import normalize_index_and_columns, truncate_and_describe
 from dx.loggers import get_logger
+from dx.sampling import sample_and_describe
 from dx.settings import settings
+from dx.utils import df_is_subset, get_applied_filters, get_display_id, normalize_index_and_columns
 
 
 class DataResourceSettings(BaseSettings):
@@ -50,25 +44,25 @@ class DXDataResourceDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
-            df_obj = pd.DataFrame(obj)
-            df_obj_hash = generate_df_hash(df_obj)
-
-            if df_obj_hash in SUBSET_TO_DATAFRAME_HASH:
-                parent_df_hash = SUBSET_TO_DATAFRAME_HASH[df_obj_hash]
-                parent_df_name = DATAFRAME_HASH_TO_VAR_NAME[parent_df_hash]
-                display_id = DATAFRAME_HASH_TO_DISPLAY_ID[parent_df_hash]
-                logger.debug(f"rendering subset of original dataframe '{parent_df_name}'")
-            else:
-                display_id = str(uuid.uuid4())
-                register_display_id(df_obj.copy(), display_id)
-
-            payload, metadata = format_dataresource(df_obj, display_id)
+            update_existing_display = df_is_subset(obj)
+            applied_filters = get_applied_filters(obj)
+            display_id = get_display_id(obj)
+            format_dataresource(
+                obj,
+                display_id=display_id,
+                update=update_existing_display,
+                filters=applied_filters,
+            )
             return ({}, {})
 
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
-def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
+def generate_dataresource_body(
+    df: pd.DataFrame,
+    display_id: Optional[str] = None,
+    filters: Optional[list[dict]] = None,
+) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
@@ -84,6 +78,7 @@ def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = Non
         "datalink": {
             "dataframe_info": {},
             "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
+            "applied_filters": filters,
         },
     }
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
@@ -95,11 +90,16 @@ def generate_dataresource_body(df: pd.DataFrame, display_id: Optional[str] = Non
     return (payload, metadata)
 
 
-def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> tuple:
+def format_dataresource(
+    df: pd.DataFrame,
+    update: bool = False,
+    display_id: Optional[str] = None,
+    filters: Optional[list[dict]] = None,
+) -> tuple:
     # enable 0-n row counts for frontend
     df = normalize_index_and_columns(df)
-    df, dataframe_info = truncate_and_describe(df)
-    payload, metadata = generate_dataresource_body(df, display_id)
+    df, dataframe_info = sample_and_describe(df)
+    payload, metadata = generate_dataresource_body(df, display_id=display_id, filters=filters)
     metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"][
         "dataframe_info"
     ] = dataframe_info
@@ -108,7 +108,14 @@ def format_dataresource(df: pd.DataFrame, display_id: Optional[str] = None) -> t
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
-        ipydisplay(payload, raw=True, metadata=metadata, display_id=display_id)
+        logger.debug(f"displaying dataresource payload in {display_id=}")
+        ipydisplay(
+            payload,
+            raw=True,
+            metadata=metadata,
+            display_id=display_id,
+            update=update,
+        )
 
     return (payload, metadata)
 
