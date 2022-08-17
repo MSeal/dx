@@ -15,6 +15,7 @@ from dx.filtering import (
     register_display_id,
 )
 from dx.loggers import get_logger
+from dx.settings import settings
 
 logger = get_logger(__name__)
 
@@ -46,9 +47,9 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     display_df = df.copy()
 
-    # preserve 0-n row numbers for frontend
-    # if custom/MultiIndex is used
-    if not is_default_index(display_df.index):
+    if settings.RESET_INDEX_VALUES and not is_default_index(display_df.index):
+        # preserve 0-n row numbers for frontend
+        # if custom/MultiIndex is used
         display_df.reset_index(inplace=True)
 
     # temporary workaround for numeric column rendering errors with GRID
