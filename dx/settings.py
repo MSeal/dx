@@ -1,9 +1,8 @@
 import logging
+from contextlib import contextmanager
 from functools import lru_cache
-from typing import List, Optional, Union
+from typing import Optional, Set, Union
 
-import numpy as np
-import pandas as pd
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, validator
 
@@ -21,7 +20,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
+    RENDERABLE_OBJECTS: Set[type] = set()
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -36,25 +35,24 @@ class Settings(BaseSettings):
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sample.html
     RANDOM_STATE: int = 12_648_430
 
-    STRINGIFY_COLUMNS: bool = True
-    STRINGIFY_INDEX: bool = False
+    RESET_INDEX_VALUES: bool = False
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
         if isinstance(vals, str):
             vals = vals.replace(",", "").split()
-        if not isinstance(vals, list):
-            vals = [vals]
+        if not isinstance(vals, set):
+            vals = {vals}
 
-        valid_vals = []
+        valid_vals = set()
         for val in vals:
             if isinstance(val, type):
-                valid_vals.append(val)
+                valid_vals.add(val)
                 continue
             try:
                 val_type = eval(str(val))
-                valid_vals.append(val_type)
+                valid_vals.add(val_type)
             except Exception as e:
                 raise ValueError(f"can't evaluate {val} type as renderable object: {e}")
 
@@ -108,7 +106,7 @@ def set_option(
     key = str(key).upper()
 
     global settings
-    if getattr(settings, key, None):
+    if key in vars(settings):
         setattr(settings, key, value)
 
         # this may be the most straightforward way to handle
@@ -118,15 +116,31 @@ def set_option(
             set_display_mode(value, ipython_shell=ipython_shell)
 
         return
-    raise ValueError(f"{key} is not a valid setting")
+    raise ValueError(f"`{key}` is not a valid setting")
 
 
-def add_renderable_type(renderable_type: Union[type, list[type]]):
+@contextmanager
+def settings_context(**option_kwargs):
+    global settings
+    orig_settings = settings.dict()
+    try:
+        for setting, value in option_kwargs.items():
+            set_option(setting, value)
+        yield settings
+    finally:
+        for setting, value in orig_settings.items():
+            set_option(setting, value)
+
+
+def add_renderable_type(renderable_type: Union[type, list]):
     """
-    Add a type to the list of types that can be rendered by the formatter.
+    Convenience function to add a type (or list of types)
+    to the types that can be processed by the display formatter.
+    (settings.RENDERABLE_OBJECTS default: [pd.Series, pd.DataFrame, np.ndarray])
     """
     global settings
 
     if not isinstance(renderable_type, list):
         renderable_type = [renderable_type]
-    settings.RENDERABLE_OBJECTS.extend(renderable_type)
+
+    settings.RENDERABLE_OBJECTS.update(renderable_type)

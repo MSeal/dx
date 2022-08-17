@@ -1,6 +1,6 @@
 import uuid
 from functools import lru_cache
-from typing import List, Optional
+from typing import Optional, Set
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,7 @@ class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
-    DX_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
+    DX_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -61,7 +61,6 @@ class DXDisplayFormatter(DisplayFormatter):
 def generate_dx_body(
     df: pd.DataFrame,
     display_id: Optional[str] = None,
-    filters: Optional[list[dict]] = None,
 ) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the

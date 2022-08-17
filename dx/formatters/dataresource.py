@@ -1,6 +1,6 @@
 import uuid
 from functools import lru_cache
-from typing import List, Optional
+from typing import Optional, Set
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
-    DATARESOURCE_RENDERABLE_OBJECTS: List[type] = [pd.DataFrame, np.ndarray]
+    DATARESOURCE_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
