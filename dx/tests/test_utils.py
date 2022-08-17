@@ -1,5 +1,4 @@
 import pandas as pd
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.settings import get_settings, settings_context
 from dx.utils import is_default_index, normalize_index_and_columns
