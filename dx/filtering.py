@@ -1,5 +1,6 @@
 import hashlib
 import os
+import uuid
 from typing import Optional
 
 import pandas as pd
@@ -147,9 +148,14 @@ def get_df_variable_name(
         logger.debug(f"{named_df_vars_with_same_hash=}")
         return named_df_vars_with_same_hash[0]
 
-    # dataframe rendered without variable assignment
-    logger.debug(f"no matching dataframe variables found: {matching_df_vars=}")
-    return matching_df_vars[-1]
+    if df_vars:
+        # dataframe rendered without variable assignment
+        logger.debug(f"no matching dataframe variables found: {matching_df_vars=}")
+        return matching_df_vars[-1]
+
+    # no dataframe variables found, assign a new one for internal referencing
+    logger.debug("no dataframe variables found")
+    return f"unk_dataframe_{uuid.uuid4()}"
 
 
 def register_display_id(
