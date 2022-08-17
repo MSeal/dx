@@ -5,7 +5,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 import dx
 from dx.formatters.dataresource import DXDataResourceDisplayFormatter
 from dx.formatters.dx import DXDisplayFormatter
-from dx.settings import get_settings, set_display_mode
+from dx.settings import add_renderable_type, get_settings, set_display_mode
 from dx.types import DXDisplayMode
 
 settings = get_settings()
@@ -47,3 +47,13 @@ def test_display_preserves_global_display_mode(
         ipython_shell=get_ipython,
     )
     assert settings.DISPLAY_MODE == DXDisplayMode.simple, f"{settings=}"
+
+
+def test_add_renderables():
+    renderables = set(settings.RENDERABLE_OBJECTS)
+
+    class FakeRenderable:
+        pass
+
+    add_renderable_type(FakeRenderable)
+    assert settings.RENDERABLE_OBJECTS == renderables | {FakeRenderable}
