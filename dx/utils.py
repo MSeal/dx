@@ -1,9 +1,8 @@
 import uuid
-from typing import Optional
 
 import numpy as np
 import pandas as pd
-from IPython.core.interactiveshell import InteractiveShell
+import structlog
 
 from dx.config import GEOPANDAS_INSTALLED
 from dx.filtering import (
@@ -12,12 +11,10 @@ from dx.filtering import (
     SUBSET_FILTERS,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
-    register_display_id,
 )
-from dx.loggers import get_logger
 from dx.settings import settings
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def human_readable_size(size_bytes: int) -> str:
@@ -72,7 +69,7 @@ def series_has_types(s: pd.Series, types: tuple) -> bool:
 def handle_column_dtypes(s: pd.Series) -> pd.Series:
     types = (type, np.dtype)
     if series_has_types(s, types):
-        logger.debug(f"{s.name} has types; converting to strings")
+        logger.debug(f"series `{s.name}` has types; converting to strings")
         s = s.astype(str)
 
     if GEOPANDAS_INSTALLED:
@@ -84,7 +81,7 @@ def handle_column_dtypes(s: pd.Series) -> pd.Series:
             shapely.geometry.base.BaseMultipartGeometry,
         )
         if series_has_types(s, geometry_types):
-            logger.debug(f"{s.name} has geometries; converting to JSON")
+            logger.debug(f"series `{s.name}` has geometries; converting to JSON")
             s = gpd.GeoSeries(s).to_json()
 
     return s
@@ -112,10 +109,7 @@ def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_display_id(
-    df: pd.DataFrame,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> str:
+def get_display_id(df: pd.DataFrame) -> str:
     """
     Checks whether `df` is a subset of any others currently being tracked,
     and either returns the known display ID or creates a new one.
@@ -129,11 +123,6 @@ def get_display_id(
         logger.debug(f"rendering subset of original dataframe '{parent_df_name}'")
     else:
         display_id = str(uuid.uuid4())
-        register_display_id(
-            df_obj.copy(),
-            display_id=display_id,
-            ipython_shell=ipython_shell,
-        )
     return display_id
 
 
@@ -151,4 +140,13 @@ def df_is_subset(df: pd.DataFrame) -> bool:
     with a parent dataframe during a filter/update call.
     """
     df_hash = generate_df_hash(df)
-    return df_hash in SUBSET_TO_DATAFRAME_HASH
+    is_subset = df_hash in SUBSET_TO_DATAFRAME_HASH
+    logger.debug(f"{df_hash=} {is_subset=}")
+    return is_subset
+
+
+def to_dataframe(obj) -> pd.DataFrame:
+    logger.debug(f"converting {type(obj)} to pd.DataFrame")
+    # TODO: support custom converters
+    df = pd.DataFrame(obj)
+    return df
