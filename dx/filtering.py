@@ -1,9 +1,9 @@
 import hashlib
-import os
 import uuid
 from typing import Optional
 
 import pandas as pd
+import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import update_display
@@ -11,8 +11,7 @@ from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
 from dx.formatters.callouts import display_callout
-from dx.loggers import get_logger
-from dx.settings import get_settings, set_option
+from dx.settings import get_settings, settings_context
 
 DATAFRAME_HASH_TO_DISPLAY_ID = {}
 DATAFRAME_HASH_TO_VAR_NAME = {}
@@ -21,7 +20,7 @@ DISPLAY_ID_TO_DATAFRAME_HASH = {}
 SUBSET_TO_DATAFRAME_HASH = {}
 SUBSET_FILTERS = {}
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 settings = get_settings()
 
@@ -64,26 +63,29 @@ def update_display_id(
     SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
 
     # allow temporary override of the display limit
-    orig_sample_size = int(settings.DISPLAY_MAX_ROWS)
-    set_option("DISPLAY_MAX_ROWS", row_limit)
-    logger.debug(f"updating {display_id=} with {min(row_limit, len(new_df))}-row resample")
-    update_display(new_df, display_id=display_id)
-    set_option("DISPLAY_MAX_ROWS", orig_sample_size)
+    with settings_context(DISPLAY_MAX_ROWS=row_limit):
+        logger.debug(f"updating {display_id=} with {min(row_limit, len(new_df))}-row resample")
+        update_display(new_df, display_id=display_id)
 
-    # TODO: replace with custom callout media type
-    callout_display_id = display_id + "-primary"
-    output_variable_name = output_variable_name or "new_df"
-    filter_code = f"""{output_variable_name} = {df_name}.query({pandas_filter}, engine="python")"""
-    filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
-    <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{filter_code}</pre>
-    """
-    display_callout(
-        filter_msg,
-        header=False,
-        icon="info",
-        level="success",
-        display_id=callout_display_id,
-    )
+    # we can't reference a variable type to suggest to users to perform a `df.query()`
+    # type operation since it was never declared in the first place
+    if not df_name.startswith("unk_dataframe_"):
+        # TODO: replace with custom callout media type
+        output_variable_name = output_variable_name or "new_df"
+        filter_code = (
+            f"""{output_variable_name} = {df_name}.query("{pandas_filter.format(df_name=df_name)}", engine="python")"""
+        )
+        filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
+        <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{filter_code}</pre>
+        """
+        display_callout(
+            filter_msg,
+            header=False,
+            icon="info",
+            level="success",
+            display_id=display_id + "-primary",
+            update=True,
+        )
 
 
 def get_display_id_for_df(df: pd.DataFrame) -> str:
@@ -124,10 +126,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     return hash_str
 
 
-def get_cell_id() -> str:
-    return os.environ.get("LAST_EXECUTED_CELL_ID")
-
-
 def get_df_variable_name(
     df: pd.DataFrame,
     ipython_shell: Optional[InteractiveShell] = None,
@@ -148,7 +146,7 @@ def get_df_variable_name(
         logger.debug(f"{named_df_vars_with_same_hash=}")
         return named_df_vars_with_same_hash[0]
 
-    if df_vars:
+    if matching_df_vars:
         # dataframe rendered without variable assignment
         logger.debug(f"no matching dataframe variables found: {matching_df_vars=}")
         return matching_df_vars[-1]
@@ -161,8 +159,13 @@ def get_df_variable_name(
 def register_display_id(
     df: pd.DataFrame,
     display_id: str,
+    is_subset: bool = False,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
+    if is_subset:
+        logger.debug("rendered subset of original dataset; not re-registering")
+        return
+
     from dx.utils import handle_column_dtypes
 
     global DATAFRAME_HASH_TO_DISPLAY_ID
