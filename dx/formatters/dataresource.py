@@ -4,18 +4,26 @@ from typing import Optional, Set
 
 import numpy as np
 import pandas as pd
+import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.display import HTML
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.loggers import get_logger
+from dx.filtering import register_display_id
 from dx.sampling import sample_and_describe
 from dx.settings import settings
-from dx.utils import df_is_subset, get_applied_filters, get_display_id, normalize_index_and_columns
+from dx.utils import (
+    df_is_subset,
+    get_applied_filters,
+    get_display_id,
+    normalize_index_and_columns,
+    to_dataframe,
+)
 
 
 class DataResourceSettings(BaseSettings):
@@ -28,6 +36,7 @@ class DataResourceSettings(BaseSettings):
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
+        json_encoders = {type: lambda t: str(t)}
 
 
 @lru_cache
@@ -37,22 +46,34 @@ def get_dataresource_settings():
 
 dataresource_settings = get_dataresource_settings()
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class DXDataResourceDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+            if not isinstance(obj, pd.DataFrame):
+                obj = to_dataframe(obj)
             update_existing_display = df_is_subset(obj)
             applied_filters = get_applied_filters(obj)
             display_id = get_display_id(obj)
+
             format_dataresource(
                 obj,
                 update=update_existing_display,
                 display_id=display_id,
                 filters=applied_filters,
             )
+
+            # this needs to happen after sending to the frontend
+            # so the user doesn't wait as long for writing to sqlite
+            register_display_id(
+                obj,
+                display_id=display_id,
+                is_subset=update_existing_display,
+            )
+
             return ({}, {})
 
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
@@ -97,7 +118,7 @@ def format_dataresource(
 ) -> tuple:
     # enable 0-n row counts for frontend
     df = normalize_index_and_columns(df)
-    df, dataframe_info = sample_and_describe(df)
+    df, dataframe_info = sample_and_describe(df, display_id=display_id)
     payload, metadata = generate_dataresource_body(df, display_id=display_id)
     metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"].update(
         {
@@ -118,6 +139,13 @@ def format_dataresource(
             display_id=display_id,
             update=update,
         )
+
+    # temporary placeholder for copy/paste user messaging
+    ipydisplay(
+        HTML("<div></div>"),
+        display_id=display_id + "-primary",
+        update=update,
+    )
 
     return (payload, metadata)
 

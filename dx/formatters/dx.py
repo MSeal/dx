@@ -4,18 +4,26 @@ from typing import Optional, Set
 
 import numpy as np
 import pandas as pd
+import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.display import HTML
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.loggers import get_logger
+from dx.filtering import register_display_id
 from dx.sampling import sample_and_describe
 from dx.settings import settings
-from dx.utils import df_is_subset, get_applied_filters, get_display_id, normalize_index_and_columns
+from dx.utils import (
+    df_is_subset,
+    get_applied_filters,
+    get_display_id,
+    normalize_index_and_columns,
+    to_dataframe,
+)
 
 
 class DXSettings(BaseSettings):
@@ -37,22 +45,34 @@ def get_dx_settings():
 
 dx_settings = get_dx_settings()
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class DXDisplayFormatter(DisplayFormatter):
     def format(self, obj, **kwargs):
 
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+            if not isinstance(obj, pd.DataFrame):
+                obj = to_dataframe(obj)
             update_existing_display = df_is_subset(obj)
             applied_filters = get_applied_filters(obj)
             display_id = get_display_id(obj)
+
             format_dx(
                 obj,
                 update=update_existing_display,
                 display_id=display_id,
                 filters=applied_filters,
             )
+
+            # this needs to happen after sending to the frontend
+            # so the user doesn't wait as long for writing to sqlite
+            register_display_id(
+                obj,
+                display_id=display_id,
+                is_subset=update_existing_display,
+            )
+
             return ({}, {})
 
         return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
@@ -97,8 +117,8 @@ def format_dx(
     filters: Optional[list] = None,
 ) -> tuple:
     df = normalize_index_and_columns(df)
-    df, dataframe_info = sample_and_describe(df)
-    payload, metadata = generate_dx_body(df, display_id)
+    df, dataframe_info = sample_and_describe(df, display_id=display_id)
+    payload, metadata = generate_dx_body(df, display_id=display_id)
     metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
         {
             "dataframe_info": dataframe_info,
@@ -115,6 +135,13 @@ def format_dx(
             display_id=display_id,
             update=update,
         )
+
+    # temporary placeholder for copy/paste user messaging
+    ipydisplay(
+        HTML("<div></div>"),
+        display_id=display_id + "-primary",
+        update=update,
+    )
 
     return (payload, metadata)
 
