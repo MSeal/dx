@@ -1,9 +1,9 @@
+import structlog
 from IPython import get_ipython
 
 from dx.config import IN_IPYTHON_ENV
-from dx.loggers import get_logger
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # ref: https://jupyter-notebook.readthedocs.io/en/stable/comms.html#opening-a-comm-from-the-frontend
