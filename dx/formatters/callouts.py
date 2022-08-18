@@ -37,11 +37,18 @@ class Callout(BaseModel):
             callout_classes.append(f"bp3-icon-{self.icon.value}-sign")
         callout_class_str = " ".join(callout_classes)
 
+        msg = self.message
         if self.use_header:
             heading_html = f"<h6 class='bp3-heading'>{self.level.value.title()}</h6>"
-            return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{heading_html}{self.message}</div>"""
+            msg = f"{heading_html}{self.message}"
 
-        return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{self.message}</div>"""
+        style = ";".join(
+            [
+                "margin-bottom: 0.5rem",
+                "margin-top: 0.5rem",
+            ]
+        )
+        return f"""<div class="{callout_class_str}" style="{style}">{msg}</div>"""
 
 
 def display_callout(
