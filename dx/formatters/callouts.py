@@ -2,7 +2,7 @@ import enum
 import uuid
 from typing import Optional
 
-from IPython.display import HTML, display
+from IPython.display import HTML, display, update_display
 from pydantic import BaseModel
 
 
@@ -50,6 +50,7 @@ def display_callout(
     header: bool = True,
     icon: Optional[CalloutIcon] = None,
     display_id: str = None,
+    update: bool = False,
 ) -> None:
     callout = Callout(
         message=message,
@@ -61,4 +62,10 @@ def display_callout(
 
     # TODO: coordinate with frontend to replace this with a standalone media type
     # instead of rendering HTML with custom classes/styles
-    display(HTML(callout.html), display_id=display_id)
+    if update:
+        update_display(HTML(callout.html), display_id=display_id)
+    else:
+        display(
+            HTML(callout.html),
+            display_id=display_id,
+        )
