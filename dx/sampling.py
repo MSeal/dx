@@ -3,13 +3,14 @@ from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import structlog
 
 from dx.formatters.callouts import display_callout
-from dx.loggers import get_logger
 from dx.settings import settings
 from dx.types import DXSamplingMethod
+from dx.utils import is_default_index
 
-logger = get_logger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.DataFrame:
@@ -222,7 +223,10 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
     return pd.concat([start_rows, end_rows])
 
 
-def sample_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
+def sample_and_describe(
+    df: pd.DataFrame,
+    display_id: Optional[str] = None,
+) -> Tuple[pd.DataFrame, dict]:
     """
     Reduces the size of the dataframe, if necessary,
     and generates a dictionary of shape/size information
@@ -231,7 +235,10 @@ def sample_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
     num_orig_rows, num_orig_cols = df.shape
     orig_size_bytes = sys.getsizeof(df)
 
-    df = sample_if_too_big(df)
+    # TODO: may need to provide extra info to the frontend rather than true/false
+    using_default_index = is_default_index(df.index)
+
+    df = sample_if_too_big(df, display_id=display_id)
 
     num_truncated_rows, num_truncated_cols = df.shape
     truncated_size_bytes = sys.getsizeof(df)
@@ -243,5 +250,6 @@ def sample_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
         "truncated_size_bytes": truncated_size_bytes,
         "truncated_num_rows": num_truncated_rows,
         "truncated_num_cols": num_truncated_cols,
+        "user_defined_index": using_default_index,
     }
     return df, dataframe_info
