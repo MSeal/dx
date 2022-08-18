@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
+import structlog
 from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
@@ -10,6 +11,8 @@ from pydantic import BaseSettings, validator
 from dx.types import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
+
+logger = structlog.get_logger(__name__)
 
 
 class Settings(BaseSettings):
@@ -99,6 +102,10 @@ def set_display_mode(
         raise ValueError(f"`{mode}` is not a supported display mode")
 
 
+def set_log_level(level: int):
+    logging.getLogger("dx").setLevel(level)
+
+
 def set_option(
     key,
     value,
@@ -117,6 +124,7 @@ def set_option(
             "HTML_TABLE_SCHEMA": "html.table_schema",
         }
         if key in pd_options:
+            logger.debug(f"setting pandas option {pd_options[key]} to {value}")
             pandas_set_option(pd_options[key], value)
 
         # this may be the most straightforward way to handle
@@ -124,6 +132,9 @@ def set_option(
         # settings updates for now, but I don't like it being here
         if key == "DISPLAY_MODE":
             set_display_mode(value, ipython_shell=ipython_shell)
+
+        if key == "LOG_LEVEL":
+            set_log_level(value)
 
         return
     raise ValueError(f"`{key}` is not a valid setting")
@@ -133,6 +144,12 @@ def set_option(
 def settings_context(**option_kwargs):
     global settings
     orig_settings = settings.dict()
+    option_kwargs = {str(k).upper(): v for k, v in option_kwargs.items()}
+
+    # handle DISPLAY_MODE updates first since it can overwrite other settings
+    if display_mode := option_kwargs.pop("DISPLAY_MODE", None):
+        set_display_mode(display_mode)
+
     try:
         for setting, value in option_kwargs.items():
             set_option(setting, value)
@@ -153,4 +170,5 @@ def add_renderable_type(renderable_type: Union[type, list]):
     if not isinstance(renderable_type, list):
         renderable_type = [renderable_type]
 
+    logger.debug(f"adding `{renderable_type}` to {settings.RENDERABLE_OBJECTS=}")
     settings.RENDERABLE_OBJECTS.update(renderable_type)
