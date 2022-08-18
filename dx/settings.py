@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Optional, Set, Union
 
 from IPython.core.interactiveshell import InteractiveShell
+from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
@@ -108,6 +109,15 @@ def set_option(
     global settings
     if key in vars(settings):
         setattr(settings, key, value)
+
+        # make sure pandas settings are updated as well for display sizes
+        pd_options = {
+            "DISPLAY_MAX_ROWS": "display.max_rows",
+            "DISPLAY_MAX_COLUMNS": "display.max_columns",
+            "HTML_TABLE_SCHEMA": "html.table_schema",
+        }
+        if key in pd_options:
+            pandas_set_option(pd_options[key], value)
 
         # this may be the most straightforward way to handle
         # IPython display formatter changes being done through
