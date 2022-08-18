@@ -72,9 +72,7 @@ def update_display_id(
     if not df_name.startswith("unk_dataframe_"):
         # TODO: replace with custom callout media type
         output_variable_name = output_variable_name or "new_df"
-        filter_code = (
-            f"""{output_variable_name} = {df_name}.query("{pandas_filter.format(df_name=df_name)}", engine="python")"""
-        )
+        filter_code = f"""{output_variable_name} = {df_name}.query("{pandas_filter.format(df_name=df_name)}", engine="python")"""
         filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
         <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{filter_code}</pre>
         """
@@ -153,7 +151,8 @@ def get_df_variable_name(
 
     # no dataframe variables found, assign a new one for internal referencing
     logger.debug("no dataframe variables found")
-    return f"unk_dataframe_{uuid.uuid4()}"
+    df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
+    return df_uuid
 
 
 def register_display_id(
