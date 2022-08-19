@@ -2,9 +2,9 @@ from .comms import *
 from .config import *
 from .dx import *
 from .formatters import *
-from .helpers import *
 from .loggers import *
 from .settings import *
+from .utils import *
 
 __version__ = "1.2.0"
 
