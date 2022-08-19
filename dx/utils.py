@@ -18,6 +18,12 @@ logger = structlog.get_logger(__name__)
 
 
 def human_readable_size(size_bytes: int) -> str:
+    """
+    Converts bytes to a more human-readable string.
+
+    >>> human_readable_size(1689445298)
+    '1.5 GiB'
+    """
     size_str = ""
     for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
         if abs(size_bytes) < 1024.0:
@@ -64,10 +70,17 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def series_has_types(s: pd.Series, types: tuple) -> bool:
+    """
+    Checks if a pd.Series has any values included in a tuple of types/dtypes.
+    """
     return any(isinstance(v, types) for v in s.values)
 
 
 def handle_column_dtypes(s: pd.Series) -> pd.Series:
+    """
+    Cleaning/conversion for values in a series to prevent
+    build_table_schema() or frontend rendering errors.
+    """
     types = (type, np.dtype)
     if series_has_types(s, types):
         logger.debug(f"series `{s.name}` has types; converting to strings")
@@ -89,6 +102,10 @@ def handle_column_dtypes(s: pd.Series) -> pd.Series:
 
 
 def stringify_index(vals: pd.Index):
+    """
+    Convenience method to cast index/column values as strings.
+    (Handles pd.Index as well as pd.MultiIndex objects)
+    """
     if isinstance(vals[0], (list, tuple)):
         # pd.MultiIndex
         return list(map(stringify_index, vals))
@@ -132,6 +149,9 @@ def df_is_subset(df: pd.DataFrame) -> bool:
 
 
 def to_dataframe(obj) -> pd.DataFrame:
+    """
+    Converts an object to a pandas dataframe.
+    """
     logger.debug(f"converting {type(obj)} to pd.DataFrame")
     # TODO: support custom converters
     df = pd.DataFrame(obj)
