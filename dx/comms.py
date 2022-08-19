@@ -23,7 +23,6 @@ def target_func(comm, open_msg):
                 limit=data["limit"],
             )
 
-    # no idea where this goes
     comm.send({"connected": True})
 
 
