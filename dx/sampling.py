@@ -8,7 +8,6 @@ import structlog
 from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
-from dx.utils import is_default_index
 
 logger = structlog.get_logger(__name__)
 
