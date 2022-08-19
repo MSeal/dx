@@ -57,19 +57,22 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     # if index or column values are numeric, we need to convert to strings
     # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
+    logger.debug(f"before: {display_df.index[:5]=}")
+    if settings.STRINGIFY_INDEX_VALUES:
+        index_names = display_df.index.names
+        string_index = pd.Index(stringify_index(display_df.index))
+        string_index.set_names(index_names)
+        display_df.index = string_index
+    if settings.FLATTEN_INDEX_VALUES:
+        display_df.index = flatten_index(display_df.index)
+    logger.debug(f"after: {display_df.index[:5]=}")
+
     logger.debug(f"before: {display_df.columns[:5]=}")
     if settings.STRINGIFY_COLUMN_VALUES:
         display_df.columns = pd.Index(stringify_index(display_df.columns))
     if settings.FLATTEN_COLUMN_VALUES:
         display_df.columns = flatten_index(display_df.columns)
     logger.debug(f"after: {display_df.columns[:5]=}")
-
-    logger.debug(f"before: {display_df.index[:5]=}")
-    if settings.STRINGIFY_INDEX_VALUES:
-        display_df.index = pd.Index(stringify_index(display_df.index))
-    if settings.FLATTEN_INDEX_VALUES:
-        display_df.index = flatten_index(display_df.index)
-    logger.debug(f"after: {display_df.index[:5]=}")
 
     # build_table_schema() doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
