@@ -28,8 +28,8 @@ def test_register_ipython_display_formatter(
     register(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
 
-    assert settings.DISPLAY_MAX_COLUMNS == dx_settings.DISPLAY_MAX_COLUMNS
-    assert settings.DISPLAY_MAX_ROWS == dx_settings.DISPLAY_MAX_ROWS
+    assert settings.DISPLAY_MAX_COLUMNS == dx_settings.DX_DISPLAY_MAX_COLUMNS
+    assert settings.DISPLAY_MAX_ROWS == dx_settings.DX_DISPLAY_MAX_ROWS
 
     assert pd.get_option("display.max_columns") == settings.DISPLAY_MAX_COLUMNS
     assert pd.get_option("display.max_rows") == settings.DISPLAY_MAX_ROWS
@@ -49,8 +49,8 @@ def test_deregister_ipython_display_formatter(
     deregister(ipython_shell=get_ipython)
     assert isinstance(get_ipython.display_formatter, DXDataResourceDisplayFormatter)
 
-    assert settings.DISPLAY_MAX_COLUMNS == dataresource_settings.DISPLAY_MAX_COLUMNS
-    assert settings.DISPLAY_MAX_ROWS == dataresource_settings.DISPLAY_MAX_ROWS
+    assert settings.DISPLAY_MAX_COLUMNS == dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
+    assert settings.DISPLAY_MAX_ROWS == dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
 
     assert pd.get_option("display.max_columns") == settings.DISPLAY_MAX_COLUMNS
     assert pd.get_option("display.max_rows") == settings.DISPLAY_MAX_ROWS

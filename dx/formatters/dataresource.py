@@ -28,16 +28,16 @@ from dx.utils import (
 
 class DataResourceSettings(BaseSettings):
     # "simple" (classic simpleTable/DEX) display mode
-    DISPLAY_MAX_ROWS: int = 100_000
-    DISPLAY_MAX_COLUMNS: int = 50
-    HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
-    RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
+    DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
+    DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
+    DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
+    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
+    DATARESOURCE_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
-    FLATTEN_INDEX_VALUES: bool = False
-    FLATTEN_COLUMN_VALUES: bool = True
-    STRINGIFY_INDEX_VALUES: bool = True
-    STRINGIFY_COLUMN_VALUES: bool = True
+    DATARESOURCE_FLATTEN_INDEX_VALUES: bool = False
+    DATARESOURCE_FLATTEN_COLUMN_VALUES: bool = True
+    DATARESOURCE_STRINGIFY_INDEX_VALUES: bool = True
+    DATARESOURCE_STRINGIFY_COLUMN_VALUES: bool = True
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -97,7 +97,7 @@ def generate_dataresource_body(
         "data": df.reset_index().to_dict("records"),
         "datalink": {},
     }
-    payload = {dataresource_settings.MEDIA_TYPE: payload_body}
+    payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload_body}
 
     metadata_body = {
         "datalink": {
@@ -106,7 +106,7 @@ def generate_dataresource_body(
             "applied_filters": [],
         },
     }
-    metadata = {dataresource_settings.MEDIA_TYPE: metadata_body}
+    metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata_body}
 
     display_id = display_id or str(uuid.uuid4())
     payload_body["datalink"]["display_id"] = display_id
@@ -125,7 +125,7 @@ def format_dataresource(
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
     payload, metadata = generate_dataresource_body(df, display_id=display_id)
-    metadata[dataresource_settings.MEDIA_TYPE]["datalink"].update(
+    metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"].update(
         {
             "dataframe_info": dataframe_info,
             "applied_filters": filters,
@@ -133,7 +133,9 @@ def format_dataresource(
     )
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors
-    with pd.option_context("html.table_schema", dataresource_settings.HTML_TABLE_SCHEMA):
+    with pd.option_context(
+        "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    ):
         logger.debug(f"displaying dataresource payload in {display_id=}")
         ipydisplay(
             payload,
@@ -176,7 +178,7 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
         "STRINGIFY_COLUMN_VALUES",
     }
     for setting in settings_to_apply:
-        val = getattr(dataresource_settings, setting, None)
+        val = getattr(dataresource_settings, f"DATARESOURCE_{setting}", None)
         setattr(settings, setting, val)
 
     ipython = ipython_shell or get_ipython()
