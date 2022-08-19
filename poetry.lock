@@ -144,6 +144,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "faker"
+version = "14.1.0"
+description = "Faker is a Python package that generates fake data for you."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+python-dateutil = ">=2.4"
+
+[[package]]
 name = "fiona"
 version = "1.8.21"
 description = "Fiona reads and writes spatial data files"
@@ -676,12 +687,13 @@ optional = false
 python-versions = "*"
 
 [extras]
+faker = ["Faker"]
 geopandas = ["geopandas"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "94bcb79f418333f0f51a0348f326fd82764321a6b9366d99b580079125548501"
+content-hash = "503ac9f2f69e94335c0853eba574760a436f5b99746ca4119955f00e6cda1109"
 
 [metadata.files]
 appnope = [
@@ -756,6 +768,7 @@ executing = [
     {file = "executing-0.10.0-py2.py3-none-any.whl", hash = "sha256:9c745f80cda11eb22b62cbecf21156491a794eb56ab06f9d286a44e62822b24e"},
     {file = "executing-0.10.0.tar.gz", hash = "sha256:d1cd87c2e371e9966261410c5b3769d6df2f9e4a79a83eebd2662dd3388f9833"},
 ]
+faker = []
 fiona = [
     {file = "Fiona-1.8.21-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:39c656421e25b4d0d73d0b6acdcbf9848e71f3d9b74f44c27d2d516d463409ae"},
     {file = "Fiona-1.8.21-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:43b1d2e45506e56cf3a9f59ba5d6f7981f3f75f4725d1e6cb9a33ba856371ebd"},
