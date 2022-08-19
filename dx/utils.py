@@ -59,10 +59,16 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
     logger.debug(f"before: {display_df.index[:5]=}")
     if settings.STRINGIFY_INDEX_VALUES:
-        index_names = display_df.index.names
-        string_index = pd.Index(stringify_index(display_df.index))
-        string_index.set_names(index_names)
-        display_df.index = string_index
+        if isinstance(display_df.index, pd.MultiIndex):
+            display_df.index = pd.MultiIndex(
+                stringify_index(display_df.index),
+                names=display_df.index.names,
+            )
+        else:
+            display_df.index = pd.Index(
+                stringify_index(display_df.index),
+                name=display_df.index.name,
+            )
     if settings.FLATTEN_INDEX_VALUES:
         display_df.index = flatten_index(display_df.index)
     logger.debug(f"after: {display_df.index[:5]=}")
