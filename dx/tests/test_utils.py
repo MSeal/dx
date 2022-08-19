@@ -1,7 +1,7 @@
 import pandas as pd
 
 from dx.settings import get_settings, settings_context
-from dx.utils import is_default_index, normalize_index_and_columns
+from dx.utils.formatting import is_default_index, normalize_index_and_columns
 
 settings = get_settings()
 

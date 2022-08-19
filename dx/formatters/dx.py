@@ -14,17 +14,12 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.filtering import register_display_id
+from dx.filtering import get_applied_filters
 from dx.sampling import sample_and_describe
 from dx.settings import settings
-from dx.utils import (
-    df_is_subset,
-    get_applied_filters,
-    get_display_id,
-    is_default_index,
-    normalize_index_and_columns,
-    to_dataframe,
-)
+from dx.utils.datatypes import to_dataframe
+from dx.utils.formatting import is_default_index, normalize_index_and_columns
+from dx.utils.tracking import df_is_subset, get_display_id, register_display_id, store_in_sqlite
 
 
 class DXSettings(BaseSettings):
@@ -63,21 +58,22 @@ class DXDisplayFormatter(DisplayFormatter):
             update_existing_display = df_is_subset(obj)
             applied_filters = get_applied_filters(obj)
             display_id = get_display_id(obj)
+            df_uuid = register_display_id(
+                obj,
+                display_id=display_id,
+                is_subset=update_existing_display,
+            )
 
             format_dx(
-                obj,
+                obj.copy(),
                 update=update_existing_display,
                 display_id=display_id,
                 filters=applied_filters,
             )
 
             # this needs to happen after sending to the frontend
-            # so the user doesn't wait as long for writing to sqlite
-            register_display_id(
-                obj,
-                display_id=display_id,
-                is_subset=update_existing_display,
-            )
+            # so the user doesn't wait as long for writing larger datasets
+            store_in_sqlite(df_uuid, obj)
 
             return ({}, {})
 
