@@ -33,8 +33,9 @@ def test_default_index_persists(sample_dataframe: pd.DataFrame):
     """
     Default indexes should not be reset.
     """
-    df = normalize_index_and_columns(sample_dataframe.copy())
-    assert df.index.equals(sample_dataframe.index)
+    with settings_context(STRINGIFY_INDEX_VALUES=False):
+        df = normalize_index_and_columns(sample_dataframe.copy())
+    assert list(df.index) == list(sample_dataframe.index)
 
 
 def test_custom_index_resets(sample_dataframe: pd.DataFrame):

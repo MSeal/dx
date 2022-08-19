@@ -27,11 +27,16 @@ from dx.utils import (
 
 
 class DXSettings(BaseSettings):
-    DX_DISPLAY_MAX_ROWS: int = 100_000
-    DX_DISPLAY_MAX_COLUMNS: int = 50
-    DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
-    DX_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
+    DISPLAY_MAX_ROWS: int = 100_000
+    DISPLAY_MAX_COLUMNS: int = 50
+    HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
+    MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
+    RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
+
+    FLATTEN_INDEX_VALUES: bool = False
+    FLATTEN_COLUMN_VALUES: bool = True
+    STRINGIFY_INDEX_VALUES: bool = True
+    STRINGIFY_COLUMN_VALUES: bool = True
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
@@ -92,7 +97,7 @@ def generate_dx_body(
         "data": df.reset_index().transpose().values.tolist(),
         "datalink": {},
     }
-    payload = {dx_settings.DX_MEDIA_TYPE: payload_body}
+    payload = {dx_settings.MEDIA_TYPE: payload_body}
 
     metadata_body = {
         "datalink": {
@@ -101,7 +106,7 @@ def generate_dx_body(
             "applied_filters": [],
         },
     }
-    metadata = {dx_settings.DX_MEDIA_TYPE: metadata_body}
+    metadata = {dx_settings.MEDIA_TYPE: metadata_body}
 
     display_id = display_id or str(uuid.uuid4())
     payload_body["datalink"]["display_id"] = display_id
@@ -119,7 +124,7 @@ def format_dx(
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
     payload, metadata = generate_dx_body(df, display_id=display_id)
-    metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
+    metadata[dx_settings.MEDIA_TYPE]["datalink"].update(
         {
             "dataframe_info": dataframe_info,
             "applied_filters": filters,
@@ -127,7 +132,7 @@ def format_dx(
     )
 
     # don't pass a dataframe in here, otherwise you'll get recursion errors
-    with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
+    with pd.option_context("html.table_schema", dx_settings.HTML_TABLE_SCHEMA):
         ipydisplay(
             payload,
             raw=True,
@@ -157,13 +162,19 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     global settings
     settings.DISPLAY_MODE = "enhanced"
 
-    settings.DISPLAY_MAX_COLUMNS = dx_settings.DX_DISPLAY_MAX_COLUMNS
-    settings.DISPLAY_MAX_ROWS = dx_settings.DX_DISPLAY_MAX_ROWS
-    settings.MEDIA_TYPE = dx_settings.DX_MEDIA_TYPE
-    settings.RENDERABLE_OBJECTS = dx_settings.DX_RENDERABLE_OBJECTS
-
-    pd.set_option("display.max_columns", dx_settings.DX_DISPLAY_MAX_COLUMNS)
-    pd.set_option("display.max_rows", dx_settings.DX_DISPLAY_MAX_ROWS)
+    settings_to_apply = {
+        "DISPLAY_MAX_COLUMNS",
+        "DISPLAY_MAX_ROWS",
+        "MEDIA_TYPE",
+        "RENDERABLE_OBJECTS",
+        "FLATTEN_INDEX_VALUES",
+        "FLATTEN_COLUMN_VALUES",
+        "STRINGIFY_INDEX_VALUES",
+        "STRINGIFY_COLUMN_VALUES",
+    }
+    for setting in settings_to_apply:
+        val = getattr(dx_settings, setting, None)
+        setattr(settings, setting, val)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DXDisplayFormatter()
