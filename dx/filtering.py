@@ -161,6 +161,10 @@ def register_display_id(
     is_subset: bool = False,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
+    """
+    Hashes the dataframe object and tracks display_id for future references in other function calls,
+    and writes the data to a local sqlite table for follow-on SQL querying.
+    """
     if is_subset:
         logger.debug("rendered subset of original dataset; not re-registering")
         return
