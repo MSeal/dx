@@ -150,7 +150,7 @@ def get_df_variable_name(
         return matching_df_vars[-1]
 
     # no dataframe variables found, assign a new one for internal referencing
-    logger.debug("no dataframe variables found")
+    logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
 
