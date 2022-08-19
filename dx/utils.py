@@ -55,10 +55,21 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
         # if custom/MultiIndex is used
         display_df.reset_index(inplace=True)
 
-    # if columns are numeric, we need to convert to strings (whether pd.Index or pd.MultiIndex)
-    # to avoid build_table_schema() errors
-    display_df.columns = pd.Index(stringify_index(display_df.columns))
-    display_df.index = pd.Index(stringify_index(display_df.index))
+    # if index or column values are numeric, we need to convert to strings
+    # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
+    logger.debug(f"before: {display_df.columns[:5]=}")
+    if settings.STRINGIFY_COLUMN_VALUES:
+        display_df.columns = pd.Index(stringify_index(display_df.columns))
+    if settings.FLATTEN_COLUMN_VALUES:
+        display_df.columns = flatten_index(display_df.columns)
+    logger.debug(f"after: {display_df.columns[:5]=}")
+
+    logger.debug(f"before: {display_df.index[:5]=}")
+    if settings.STRINGIFY_INDEX_VALUES:
+        display_df.index = pd.Index(stringify_index(display_df.index))
+    if settings.FLATTEN_INDEX_VALUES:
+        display_df.index = flatten_index(display_df.index)
+    logger.debug(f"after: {display_df.index[:5]=}")
 
     # build_table_schema() doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
@@ -101,15 +112,21 @@ def handle_column_dtypes(s: pd.Series) -> pd.Series:
     return s
 
 
-def stringify_index(vals: pd.Index):
+def flatten_index(index: pd.Index, separator: str = ", "):
+    if not isinstance(index[0], (list, tuple)):
+        return index
+    return list(map(separator.join, index))
+
+
+def stringify_index(index: pd.Index):
     """
     Convenience method to cast index/column values as strings.
     (Handles pd.Index as well as pd.MultiIndex objects)
     """
-    if isinstance(vals[0], (list, tuple)):
+    if isinstance(index[0], (list, tuple)):
         # pd.MultiIndex
-        return list(map(stringify_index, vals))
-    return tuple(map(str, vals))
+        return list(map(stringify_index, index))
+    return tuple(map(str, index))
 
 
 def get_display_id(df: pd.DataFrame) -> str:
