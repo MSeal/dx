@@ -49,9 +49,10 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
         # if custom/MultiIndex is used
         display_df.reset_index(inplace=True)
 
-    # temporary workaround for numeric column rendering errors with GRID
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    display_df = stringify_columns(display_df)
+    # if columns are numeric, we need to convert to strings (whether pd.Index or pd.MultiIndex)
+    # to avoid build_table_schema() errors
+    display_df.columns = pd.Index(stringify_index(display_df.columns))
+    display_df.index = pd.Index(stringify_index(display_df.index))
 
     # build_table_schema() doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
@@ -87,26 +88,11 @@ def handle_column_dtypes(s: pd.Series) -> pd.Series:
     return s
 
 
-def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Convert numeric columns to strings, or flatten
-    MultiIndex columns and convert to strings.
-    """
-    cols = df.columns
-
-    def stringify_multiindex(vals):
-        string_vals = [str(val) for val in vals if str(val)]
-        return ", ".join(string_vals)
-
-    if isinstance(cols, pd.MultiIndex):
-        # .to_flat_index() would work if we didn't
-        # have to convert to strings here
-        cols = cols.map(stringify_multiindex)
-    else:
-        cols = cols.map(str)
-
-    df.columns = cols
-    return df
+def stringify_index(vals: pd.Index):
+    if isinstance(vals[0], (list, tuple)):
+        # pd.MultiIndex
+        return list(map(stringify_index, vals))
+    return tuple(map(str, vals))
 
 
 def get_display_id(df: pd.DataFrame) -> str:
