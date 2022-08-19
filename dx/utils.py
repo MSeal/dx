@@ -60,14 +60,14 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f"before: {display_df.index[:5]=}")
     if settings.STRINGIFY_INDEX_VALUES:
         if isinstance(display_df.index, pd.MultiIndex):
-            display_df.index = pd.MultiIndex(
+            display_df.index = pd.MultiIndex.from_tuples(
                 stringify_index(display_df.index),
-                names=display_df.index.names,
+                names=list(map(str, display_df.index.names)),
             )
         else:
             display_df.index = pd.Index(
                 stringify_index(display_df.index),
-                name=display_df.index.name,
+                name=str(display_df.index.name),
             )
     if settings.FLATTEN_INDEX_VALUES:
         display_df.index = flatten_index(display_df.index)
