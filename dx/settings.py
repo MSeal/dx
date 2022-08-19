@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
+import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
@@ -41,6 +42,11 @@ class Settings(BaseSettings):
 
     RESET_INDEX_VALUES: bool = False
 
+    FLATTEN_INDEX_VALUES: bool = False
+    FLATTEN_COLUMN_VALUES: bool = False
+    STRINGIFY_INDEX_VALUES: bool = False
+    STRINGIFY_COLUMN_VALUES: bool = False
+
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
@@ -61,6 +67,20 @@ class Settings(BaseSettings):
                 raise ValueError(f"can't evaluate {val} type as renderable object: {e}")
 
         return valid_vals
+
+    @validator("DISPLAY_MAX_COLUMNS", pre=True, always=True)
+    def validate_display_max_columns(cls, val):
+        if val < 0:
+            raise ValueError("DISPLAY_MAX_COLUMNS must be >= 0")
+        pd.set_option("display.max_columns", val)
+        return val
+
+    @validator("DISPLAY_MAX_ROWS", pre=True, always=True)
+    def validate_display_max_rows(cls, val):
+        if val < 0:
+            raise ValueError("DISPLAY_MAX_ROWS must be >= 0")
+        pd.set_option("display.max_rows", val)
+        return val
 
     class Config:
         validate_assignment = True
