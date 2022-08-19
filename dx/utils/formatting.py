@@ -111,3 +111,23 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     s = geometry.handle_geometry_series(s)
 
     return s
+
+
+def flatten_sequences(val):
+    if not isinstance(val, (list, set, tuple)):
+        return val
+    return "||".join([str(v) for v in val])
+
+
+def expand_sequences(val):
+    if "||" not in str(val):
+        return val
+
+    vals = []
+    for val in val.split("||"):
+        try:
+            val = eval(val)
+        except Exception as e:
+            logger.debug(f"can't eval({val}): {e}")
+        vals.append(val)
+    return vals

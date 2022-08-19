@@ -9,7 +9,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
-from dx.utils.formatting import clean_column_values
+from dx.utils.formatting import clean_column_values, expand_sequences, flatten_sequences
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
@@ -51,6 +51,8 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     SHA256 hash:
     'd3148913511e79be9b301d5ef665196a889b53cce82643b9fdee9d25403828b8'
     """
+    for col in df.columns:
+        df[col] = df[col].apply(expand_sequences)
     # this will be a series of hash values the length of df
     df_hash_series = hash_pandas_object(df)
     # then string-concatenate all the hashed values, which could be very large
@@ -155,6 +157,9 @@ def store_in_sqlite(table_name: str, df: pd.DataFrame):
     # make sure any dtypes/geometries/etc are converted
     for column in tracking_df.columns:
         tracking_df[column] = clean_column_values(tracking_df[column])
+
+        # flatten any lists/sets/tuples
+        tracking_df[column] = tracking_df[column].apply(flatten_sequences)
 
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:

@@ -6,6 +6,7 @@ from IPython.display import update_display
 
 from dx.formatters.callouts import display_callout
 from dx.settings import get_settings, settings_context
+from dx.utils.formatting import expand_sequences
 from dx.utils.tracking import (
     DATAFRAME_HASH_TO_VAR_NAME,
     DISPLAY_ID_TO_DATAFRAME_HASH,
@@ -52,6 +53,11 @@ def update_display_id(
     query_string = sql_filter.format(table_name=table_name)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
+
+    # in the event there were nested values stored,
+    # try to expand them back to their original datatypes
+    for col in new_df.columns:
+        new_df[col] = new_df[col].apply(expand_sequences)
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
