@@ -21,6 +21,7 @@ from dx.utils import (
     df_is_subset,
     get_applied_filters,
     get_display_id,
+    is_default_index,
     normalize_index_and_columns,
     to_dataframe,
 )
@@ -121,8 +122,10 @@ def format_dx(
     display_id: Optional[str] = None,
     filters: Optional[list] = None,
 ) -> tuple:
+    default_index_used = is_default_index(df.index)
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
+    dataframe_info["default_index_used"] = default_index_used
     payload, metadata = generate_dx_body(df, display_id=display_id)
     metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
         {

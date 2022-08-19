@@ -235,9 +235,6 @@ def sample_and_describe(
     num_orig_rows, num_orig_cols = df.shape
     orig_size_bytes = sys.getsizeof(df)
 
-    # TODO: may need to provide extra info to the frontend rather than true/false
-    using_default_index = is_default_index(df.index)
-
     df = sample_if_too_big(df, display_id=display_id)
 
     num_truncated_rows, num_truncated_cols = df.shape
@@ -250,6 +247,5 @@ def sample_and_describe(
         "truncated_size_bytes": truncated_size_bytes,
         "truncated_num_rows": num_truncated_rows,
         "truncated_num_cols": num_truncated_cols,
-        "user_defined_index": using_default_index,
     }
     return df, dataframe_info

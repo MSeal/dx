@@ -21,6 +21,7 @@ from dx.utils import (
     df_is_subset,
     get_applied_filters,
     get_display_id,
+    is_default_index,
     normalize_index_and_columns,
     to_dataframe,
 )
@@ -122,8 +123,10 @@ def format_dataresource(
     filters: Optional[list] = None,
 ) -> tuple:
     # enable 0-n row counts for frontend
+    default_index_used = is_default_index(df.index)
     df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
+    dataframe_info["default_index_used"] = default_index_used
     payload, metadata = generate_dataresource_body(df, display_id=display_id)
     metadata[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["datalink"].update(
         {
