@@ -8,6 +8,8 @@ import structlog
 from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
+from dx.utils.formatting import human_readable_size
+from dx.utils.tracking import get_display_id_for_df
 
 logger = structlog.get_logger(__name__)
 
@@ -18,7 +20,6 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     to help reduce the amount of data being sent to the
     frontend for non-default media types.
     """
-    from dx.utils import human_readable_size
 
     warnings = []
 
@@ -185,7 +186,6 @@ def sample_random(df: pd.DataFrame, num: int, display_id: Optional[str] = None) 
     Example: sampling random 8 of 20 rows:
     [XX...XX.X..X...X.XX.]
     """
-    from dx.filtering import get_display_id_for_df
 
     # TODO: use hash for seed instead?
     display_id = display_id or get_display_id_for_df(df)
