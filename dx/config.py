@@ -9,14 +9,6 @@ DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
 if IN_IPYTHON_ENV:
     DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
 
-# we don't want to require geopandas as a hard dependency
-try:
-    import geopandas as gpd
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
-
 
 def in_noteable_env() -> bool:
     """
