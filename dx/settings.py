@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     STRINGIFY_INDEX_VALUES: bool = False
     STRINGIFY_COLUMN_VALUES: bool = False
 
+    DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
+
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
