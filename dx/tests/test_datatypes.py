@@ -16,12 +16,13 @@ from dx.utils.tracking import generate_df_hash, sql_engine, store_in_sqlite
 
 
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
-def test_dtype_generator(dtype: str):
+def test_df_generator(dtype: str, num_rows: int = 5):
     params = {dt: False for dt in SORTED_DX_DATATYPES}
     params[dtype] = True
-    df = random_dataframe(**params)
-    dtype_col = df.columns[0]
-    assert df[dtype_col].notnull().all()
+    df = random_dataframe(num_rows=num_rows, **params)
+    assert len(df) == num_rows
+    assert isinstance(df[dtype], pd.Series)
+    assert df[dtype].notnull().all()
 
 
 @pytest.mark.xfail(reason="only for dev")

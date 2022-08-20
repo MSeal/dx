@@ -198,47 +198,47 @@ def random_dataframe(num_rows: int = 5, **DX_DATATYPES):  # noqa: C901
     df = pd.DataFrame(index=list(range(num_rows)))
 
     if DX_DATATYPES.get("dtype_column"):
-        df["dtype_col"] = generate_dtype_series(num_rows)
+        df["dtype_column"] = generate_dtype_series(num_rows)
 
     # numeric columns
     if DX_DATATYPES.get("integer_column"):
-        df["int_col"] = generate_integer_series(num_rows)
+        df["integer_column"] = generate_integer_series(num_rows)
 
     if DX_DATATYPES.get("float_column"):
-        df["float_col"] = generate_float_series(num_rows)
+        df["float_column"] = generate_float_series(num_rows)
 
     if DX_DATATYPES.get("complex_number_column"):
-        df["complex_num_col"] = generate_complex_number_series(num_rows)
+        df["complex_number_column"] = generate_complex_number_series(num_rows)
 
     # date/time columns
     if DX_DATATYPES.get("datetime_column"):
-        df["datetime_col"] = date_time.generate_datetime_series(num_rows)
+        df["datetime_column"] = date_time.generate_datetime_series(num_rows)
 
     if DX_DATATYPES.get("time_delta_column"):
-        df["time_delta_col"] = date_time.generate_time_delta_series(num_rows)
+        df["time_delta_column"] = date_time.generate_time_delta_series(num_rows)
 
     if DX_DATATYPES.get("time_period_column"):
-        df["time_period_col"] = date_time.generate_time_period_series(num_rows)
+        df["time_period_column"] = date_time.generate_time_period_series(num_rows)
 
     if DX_DATATYPES.get("time_interval_column"):
-        df["time_interval_col"] = date_time.generate_time_interval_series(num_rows)
+        df["time_interval_column"] = date_time.generate_time_interval_series(num_rows)
 
     # string columns
     if DX_DATATYPES.get("text_column"):
-        df["text_col"] = generate_text_series(num_rows)
+        df["text_column"] = generate_text_series(num_rows)
 
     if DX_DATATYPES.get("keyword_column"):
-        df["keyword_col"] = generate_keyword_series(num_rows)
+        df["keyword_column"] = generate_keyword_series(num_rows)
 
     # container columns
     if DX_DATATYPES.get("dict_column"):
-        df["dict_col"] = generate_dict_series(num_rows)
+        df["dict_column"] = generate_dict_series(num_rows)
 
     if DX_DATATYPES.get("list_column"):
-        df["list_col"] = generate_list_series(num_rows)
+        df["list_column"] = generate_list_series(num_rows)
 
     if DX_DATATYPES.get("nested_tabular_column"):
-        df["nested_col"] = generate_nested_tabular_series(
+        df["nested_tabular_column"] = generate_nested_tabular_series(
             num_rows,
             float_column=True,
             keyword_column=True,
@@ -246,25 +246,23 @@ def random_dataframe(num_rows: int = 5, **DX_DATATYPES):  # noqa: C901
 
     # geopandas/shapely columns
     if DX_DATATYPES.get("latlon_point_column"):
-        df["latlon_col"] = geometry.generate_latlon_series(num_rows)
+        df["latlon_point_column"] = geometry.generate_latlon_series(num_rows)
 
     if DX_DATATYPES.get("filled_geojson_column"):
-        df["geojson_filled_buffer_col"] = geometry.generate_filled_geojson_series(num_rows)
+        df["filled_geojson_column"] = geometry.generate_filled_geojson_series(num_rows)
 
     if DX_DATATYPES.get("exterior_geojson_column"):
-        df["geojson_exterior_bounds_col"] = geometry.generate_exterior_bounds_geojson_series(
-            num_rows
-        )
+        df["exterior_geojson_column"] = geometry.generate_exterior_bounds_geojson_series(num_rows)
 
     # extras
     if DX_DATATYPES.get("bytes_column"):
-        df["bytes_col"] = generate_bytes_series(num_rows)
+        df["bytes_column"] = generate_bytes_series(num_rows)
 
     if DX_DATATYPES.get("ipv4_address_column"):
-        df["ipv4_col"] = generate_ipv4_series(num_rows)
+        df["ipv4_address_column"] = generate_ipv4_series(num_rows)
 
     if DX_DATATYPES.get("ipv6_address_column"):
-        df["ipv6_col"] = generate_ipv6_series(num_rows)
+        df["ipv6_address_column"] = generate_ipv6_series(num_rows)
 
     return df
 
