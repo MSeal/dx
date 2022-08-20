@@ -75,7 +75,7 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     display_df.fillna(np.nan, inplace=True)
 
     for column in display_df.columns:
-        display_df[column] = clean_column_values(display_df[column])
+        display_df[column] = clean_column_values_for_display(display_df[column])
 
     return display_df
 
@@ -83,7 +83,7 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
 def flatten_index(index: pd.Index, separator: str = ", "):
     if not isinstance(index[0], (list, tuple)):
         return index
-    return list(map(separator.join, index))
+    return list(map(separator.join, [str(val) for val in index]))
 
 
 def stringify_index(index: pd.Index):
@@ -97,7 +97,7 @@ def stringify_index(index: pd.Index):
     return tuple(map(str, index))
 
 
-def clean_column_values(s: pd.Series) -> pd.Series:
+def clean_column_values_for_display(s: pd.Series) -> pd.Series:
     """
     Cleaning/conversion for values in a series to prevent
     build_table_schema() or frontend rendering errors.
@@ -114,18 +114,44 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     return s
 
 
-def flatten_sequences(val):
-    if not isinstance(val, (list, set, tuple)):
-        return val
-    return "||".join([str(v) for v in val])
+def clean_column_values_for_hash(s: pd.Series) -> pd.Series:
+    """
+    Cleaning/conversion for values in a series to prevent
+    hash_pandas_object() errors.
+    """
+    s = geometry.handle_geometry_series(s)
+
+    s = datatypes.handle_dict_series(s)
+    s = datatypes.handle_sequence_series(s)
+    return s
 
 
-def expand_sequences(val):
-    if "||" not in str(val):
+def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
+    """
+    Cleaning/conversion for values in a series to prevent
+    errors writing to sqlite.
+    """
+    s = datatypes.handle_dtype_series(s)
+    s = datatypes.handle_interval_series(s)
+    s = datatypes.handle_complex_number_series(s)
+    s = datatypes.handle_ip_address_series(s)
+
+    s = date_time.handle_time_period_series(s)
+
+    s = geometry.handle_geometry_series(s)
+
+    s = datatypes.handle_dict_series(s)
+    s = datatypes.handle_sequence_series(s)
+    return s
+
+
+# TODO: clean this up
+def expand_sequences(val, separator: str = ", "):
+    if separator not in str(val):
         return val
 
     vals = []
-    for val in val.split("||"):
+    for val in val.split(separator):
         try:
             val = eval(val)
         except Exception as e:
