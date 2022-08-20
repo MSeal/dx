@@ -22,14 +22,6 @@ settings = get_settings()
 SUBSET_FILTERS = {}
 
 
-def get_applied_filters(df: pd.DataFrame) -> dict:
-    """
-    Returns a dictionary of applied filters for a dataframe.
-    """
-    df_hash = generate_df_hash(df)
-    return SUBSET_FILTERS.get(df_hash)
-
-
 def update_display_id(
     display_id: str,
     sql_filter: str,
