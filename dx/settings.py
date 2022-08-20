@@ -49,6 +49,9 @@ class Settings(BaseSettings):
 
     DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
 
+    # controls dataframe variable tracking, hashing, and storing in sqlite
+    ENABLE_DATALINK: bool = False
+
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
