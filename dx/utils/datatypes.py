@@ -194,50 +194,52 @@ def quick_random_dataframe(
     return df.astype(dtype, errors="ignore")
 
 
-def random_dataframe(num_rows: int = 5, **DX_DATATYPES):  # noqa: C901
+def random_dataframe(num_rows: int = 5, **kwargs):  # noqa: C901
+
+    kwargs = kwargs or DX_DATATYPES
     df = pd.DataFrame(index=list(range(num_rows)))
 
-    if DX_DATATYPES.get("dtype_column"):
+    if kwargs.get("dtype_column"):
         df["dtype_column"] = generate_dtype_series(num_rows)
 
     # numeric columns
-    if DX_DATATYPES.get("integer_column"):
+    if kwargs.get("integer_column"):
         df["integer_column"] = generate_integer_series(num_rows)
 
-    if DX_DATATYPES.get("float_column"):
+    if kwargs.get("float_column"):
         df["float_column"] = generate_float_series(num_rows)
 
-    if DX_DATATYPES.get("complex_number_column"):
+    if kwargs.get("complex_number_column"):
         df["complex_number_column"] = generate_complex_number_series(num_rows)
 
     # date/time columns
-    if DX_DATATYPES.get("datetime_column"):
+    if kwargs.get("datetime_column"):
         df["datetime_column"] = date_time.generate_datetime_series(num_rows)
 
-    if DX_DATATYPES.get("time_delta_column"):
+    if kwargs.get("time_delta_column"):
         df["time_delta_column"] = date_time.generate_time_delta_series(num_rows)
 
-    if DX_DATATYPES.get("time_period_column"):
+    if kwargs.get("time_period_column"):
         df["time_period_column"] = date_time.generate_time_period_series(num_rows)
 
-    if DX_DATATYPES.get("time_interval_column"):
+    if kwargs.get("time_interval_column"):
         df["time_interval_column"] = date_time.generate_time_interval_series(num_rows)
 
     # string columns
-    if DX_DATATYPES.get("text_column"):
+    if kwargs.get("text_column"):
         df["text_column"] = generate_text_series(num_rows)
 
-    if DX_DATATYPES.get("keyword_column"):
+    if kwargs.get("keyword_column"):
         df["keyword_column"] = generate_keyword_series(num_rows)
 
     # container columns
-    if DX_DATATYPES.get("dict_column"):
+    if kwargs.get("dict_column"):
         df["dict_column"] = generate_dict_series(num_rows)
 
-    if DX_DATATYPES.get("list_column"):
+    if kwargs.get("list_column"):
         df["list_column"] = generate_list_series(num_rows)
 
-    if DX_DATATYPES.get("nested_tabular_column"):
+    if kwargs.get("nested_tabular_column"):
         df["nested_tabular_column"] = generate_nested_tabular_series(
             num_rows,
             float_column=True,
@@ -245,23 +247,23 @@ def random_dataframe(num_rows: int = 5, **DX_DATATYPES):  # noqa: C901
         )
 
     # geopandas/shapely columns
-    if DX_DATATYPES.get("latlon_point_column"):
+    if kwargs.get("latlon_point_column"):
         df["latlon_point_column"] = geometry.generate_latlon_series(num_rows)
 
-    if DX_DATATYPES.get("filled_geojson_column"):
+    if kwargs.get("filled_geojson_column"):
         df["filled_geojson_column"] = geometry.generate_filled_geojson_series(num_rows)
 
-    if DX_DATATYPES.get("exterior_geojson_column"):
+    if kwargs.get("exterior_geojson_column"):
         df["exterior_geojson_column"] = geometry.generate_exterior_bounds_geojson_series(num_rows)
 
     # extras
-    if DX_DATATYPES.get("bytes_column"):
+    if kwargs.get("bytes_column"):
         df["bytes_column"] = generate_bytes_series(num_rows)
 
-    if DX_DATATYPES.get("ipv4_address_column"):
+    if kwargs.get("ipv4_address_column"):
         df["ipv4_address_column"] = generate_ipv4_series(num_rows)
 
-    if DX_DATATYPES.get("ipv6_address_column"):
+    if kwargs.get("ipv6_address_column"):
         df["ipv6_address_column"] = generate_ipv6_series(num_rows)
 
     return df
