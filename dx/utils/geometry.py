@@ -30,7 +30,7 @@ def handle_geometry_series(s: pd.Series):
     )
     if any(isinstance(v, types) for v in s.values):
         logger.debug(f"series `{s.name}` has geometries; converting to JSON")
-        s = gpd.GeoSeries(s).to_json()
+        s = s.apply(lambda x: x.to_json() if isinstance(x, types) else x)
     return s
 
 
