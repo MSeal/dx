@@ -62,12 +62,16 @@ class DXDisplayFormatter(DisplayFormatter):
             if not isinstance(obj, pd.DataFrame):
                 obj = to_dataframe(obj)
 
-            if not settings.ENABLE_DATALINK:
-                format_dx(obj.copy())
-                return ({}, {})
-
             default_index_used = is_default_index(obj.index)
             obj = normalize_index_and_columns(obj)
+
+            if not settings.ENABLE_DATALINK:
+                format_dx(
+                    obj,
+                    has_default_index=default_index_used,
+                )
+                return ({}, {})
+
             obj_hash = generate_df_hash(obj)
             update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
             applied_filters = SUBSET_FILTERS.get(obj_hash)
