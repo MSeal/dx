@@ -135,6 +135,7 @@ def format_dataresource(
     filters: Optional[list] = None,
     has_default_index: bool = True,
 ) -> tuple:
+    display_id = display_id or str(uuid.uuid4())
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
     dataframe_info["default_index_used"] = has_default_index
     payload, metadata = generate_dataresource_body(df, display_id=display_id)
