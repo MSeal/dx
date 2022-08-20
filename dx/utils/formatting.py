@@ -107,9 +107,10 @@ def clean_column_values(s: pd.Series) -> pd.Series:
 
     s = datatypes.handle_dtype_series(s)
     s = datatypes.handle_interval_series(s)
+    s = datatypes.handle_ip_address_series(s)
+    s = datatypes.handle_complex_number_series(s)
 
     s = geometry.handle_geometry_series(s)
-
     return s
 
 

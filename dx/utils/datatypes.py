@@ -20,50 +20,6 @@ except ImportError:
 logger = structlog.get_logger(__name__)
 
 
-def handle_dtype_series(s: pd.Series):
-    """
-    Casts dtypes as strings.
-    """
-    types = (type, np.dtype)
-    if any(isinstance(v, types) for v in s.values):
-        logger.debug(f"series `{s.name}` has types; converting to strings")
-        s = s.astype(str)
-    return s
-
-
-def handle_interval_series(s: pd.Series) -> pd.Series:
-    types = (pd.Interval)
-    if any(isinstance(v, types) for v in s.values):
-        logger.debug(f"series `{s.name}` has intervals; converting to left/right")
-        s = s.apply(lambda x: [x.left, x.right] if isinstance(x, types) else x)
-    return s
-
-
-def to_dataframe(obj) -> pd.DataFrame:
-    """
-    Converts an object to a pandas dataframe.
-    """
-    logger.debug(f"converting {type(obj)} to pd.DataFrame")
-    # TODO: support custom converters
-    df = pd.DataFrame(obj)
-    return df
-
-
-def quick_random_dataframe(
-    num_rows: int = 5,
-    num_cols: int = 2,
-    dtype: str = "float",
-    factor: float = 1.0,
-) -> pd.DataFrame:
-    """
-    Convenience function wrapping `pd.DataFrame(np.random.rand( num_rows, num_columns ))`
-    to create a dataframe of random 0.0-1.0 values.
-    """
-    data = np.random.rand(num_rows, num_cols) * factor
-    df = pd.DataFrame(data)
-    return df.astype(dtype, errors="ignore")
-
-
 def generate_integer_series(num_rows: int) -> pd.Series:
     return pd.Series([np.random.randint(-100, 100) for _ in range(num_rows)])
 
@@ -138,12 +94,62 @@ def generate_ipv6_series(num_rows: int) -> pd.Series:
     return pd.Series([random_ipv6() for _ in range(num_rows)])
 
 
+def handle_dtype_series(s: pd.Series):
+    """
+    Casts dtypes as strings.
+    """
+    types = (type, np.dtype)
+    if any(isinstance(v, types) for v in s.values):
+        logger.debug(f"series `{s.name}` has types; converting to strings")
+        s = s.astype(str)
+    return s
+
+
+def handle_interval_series(s: pd.Series) -> pd.Series:
+    types = pd.Interval
+    if any(isinstance(v, types) for v in s.values):
+        logger.debug(f"series `{s.name}` has intervals; converting to left/right")
+        s = s.apply(lambda x: [x.left, x.right] if isinstance(x, types) else x)
+    return s
+
+
+def handle_ip_address_series(s: pd.Series) -> pd.Series:
+    types = (ipaddress.IPv4Address, ipaddress.IPv6Address)
+    if any(isinstance(v, types) for v in s.values):
+        logger.debug(f"series `{s.name}` has ip addresses; converting to strings")
+        s = s.astype(str)
+    return s
+
+
+def handle_complex_number_series(s: pd.Series) -> pd.Series:
+    types = (complex, np.complex)
+    if any(isinstance(v, types) for v in s.values):
+        logger.debug(f"series `{s.name}` has complex numbers; converting to real/imag")
+        s = s.apply(lambda x: [x.real, x.imag] if isinstance(x, types) else x)
+    return s
+
+
+def quick_random_dataframe(
+    num_rows: int = 5,
+    num_cols: int = 2,
+    dtype: str = "float",
+    factor: float = 1.0,
+) -> pd.DataFrame:
+    """
+    Convenience function wrapping `pd.DataFrame(np.random.rand( num_rows, num_columns ))`
+    to create a dataframe of random 0.0-1.0 values.
+    """
+    data = np.random.rand(num_rows, num_cols) * factor
+    df = pd.DataFrame(data)
+    return df.astype(dtype, errors="ignore")
+
+
 def random_dataframe(
     num_rows: int = 5,
     integer_column: bool = True,
     float_column: bool = True,
     datetime_column: bool = True,
-    time_delta_column: bool = True,
+    time_delta_column: bool = False,
     time_period_column: bool = False,
     time_interval_column: bool = False,
     text_column: bool = False,
@@ -154,7 +160,7 @@ def random_dataframe(
     latlon_point_column: bool = False,
     filled_geojson_column: bool = False,
     exterior_geojson_column: bool = False,
-    bytes_column: bool = False,
+    bytes_column: bool = True,
     ipv4_address_column: bool = False,
     ipv6_address_column: bool = False,
     complex_number_column: bool = False,
@@ -227,4 +233,14 @@ def random_dataframe(
     if ipv6_address_column:
         df["ipv6_col"] = generate_ipv6_series(num_rows)
 
+    return df
+
+
+def to_dataframe(obj) -> pd.DataFrame:
+    """
+    Converts an object to a pandas dataframe.
+    """
+    logger.debug(f"converting {type(obj)} to pd.DataFrame")
+    # TODO: support custom converters
+    df = pd.DataFrame(obj)
     return df

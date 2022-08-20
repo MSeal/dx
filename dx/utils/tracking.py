@@ -1,4 +1,5 @@
 import hashlib
+import json
 import uuid
 from typing import Optional
 
@@ -9,7 +10,8 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
-from dx.utils.formatting import clean_column_values, expand_sequences, flatten_sequences
+from dx.utils.formatting import clean_column_values, flatten_sequences
+from dx.utils.geometry import handle_geometry_series
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
@@ -51,10 +53,16 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     SHA256 hash:
     'd3148913511e79be9b301d5ef665196a889b53cce82643b9fdee9d25403828b8'
     """
-    for col in df.columns:
-        df[col] = df[col].apply(expand_sequences)
+    hash_df = df.copy()
+
+    # some dtypes can't be hashed
+    for col in hash_df.columns:
+        hash_df[col] = hash_df[col].apply(flatten_sequences)
+        hash_df[col] = handle_geometry_series(hash_df[col])
+        hash_df[col] = hash_df[col].apply(lambda x: json.dumps(x) if isinstance(x, dict) else x)
+
     # this will be a series of hash values the length of df
-    df_hash_series = hash_pandas_object(df)
+    df_hash_series = hash_pandas_object(hash_df)
     # then string-concatenate all the hashed values, which could be very large
     df_hash_str = "-".join(df_hash_series.astype(str))
     # then hash the resulting (potentially large) string
@@ -160,6 +168,9 @@ def store_in_sqlite(table_name: str, df: pd.DataFrame):
 
         # flatten any lists/sets/tuples
         tracking_df[column] = tracking_df[column].apply(flatten_sequences)
+        tracking_df[column] = tracking_df[column].apply(
+            lambda x: json.dumps(x) if isinstance(x, dict) else x
+        )
 
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:
