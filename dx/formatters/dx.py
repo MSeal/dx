@@ -14,12 +14,18 @@ from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
-from dx.filtering import get_applied_filters
+from dx.filtering import SUBSET_FILTERS
 from dx.sampling import sample_and_describe
 from dx.settings import settings
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import is_default_index, normalize_index_and_columns
-from dx.utils.tracking import df_is_subset, get_display_id, register_display_id, store_in_sqlite
+from dx.utils.tracking import (
+    SUBSET_TO_DATAFRAME_HASH,
+    generate_df_hash,
+    get_display_id,
+    register_display_id,
+    store_in_sqlite,
+)
 
 
 class DXSettings(BaseSettings):
@@ -55,12 +61,21 @@ class DXDisplayFormatter(DisplayFormatter):
         if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             if not isinstance(obj, pd.DataFrame):
                 obj = to_dataframe(obj)
-            update_existing_display = df_is_subset(obj)
-            applied_filters = get_applied_filters(obj)
-            display_id = get_display_id(obj)
-            df_uuid = register_display_id(
+
+            if not settings.ENABLE_DATALINK:
+                format_dx(obj.copy())
+                return ({}, {})
+
+            default_index_used = is_default_index(obj.index)
+            obj = normalize_index_and_columns(obj)
+            obj_hash = generate_df_hash(obj)
+            update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
+            applied_filters = SUBSET_FILTERS.get(obj_hash)
+            display_id = get_display_id(obj_hash)
+            sqlite_df_table = register_display_id(
                 obj,
                 display_id=display_id,
+                df_hash=obj_hash,
                 is_subset=update_existing_display,
             )
 
@@ -69,11 +84,12 @@ class DXDisplayFormatter(DisplayFormatter):
                 update=update_existing_display,
                 display_id=display_id,
                 filters=applied_filters,
+                has_default_index=default_index_used,
             )
 
             # this needs to happen after sending to the frontend
             # so the user doesn't wait as long for writing larger datasets
-            store_in_sqlite(df_uuid, obj)
+            store_in_sqlite(sqlite_df_table, obj)
 
             return ({}, {})
 
@@ -117,11 +133,10 @@ def format_dx(
     update: bool = False,
     display_id: Optional[str] = None,
     filters: Optional[list] = None,
+    has_default_index: bool = True,
 ) -> tuple:
-    default_index_used = is_default_index(df.index)
-    df = normalize_index_and_columns(df)
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
-    dataframe_info["default_index_used"] = default_index_used
+    dataframe_info["default_index_used"] = has_default_index
     payload, metadata = generate_dx_body(df, display_id=display_id)
     metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
         {
@@ -141,11 +156,12 @@ def format_dx(
         )
 
     # temporary placeholder for copy/paste user messaging
-    ipydisplay(
-        HTML("<div></div>"),
-        display_id=display_id + "-primary",
-        update=update,
-    )
+    if settings.ENABLE_DATALINK:
+        ipydisplay(
+            HTML("<div></div>"),
+            display_id=display_id + "-primary",
+            update=update,
+        )
 
     return (payload, metadata)
 
