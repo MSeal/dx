@@ -1,6 +1,14 @@
 import uuid
 
-from dx.formatters.dataresource import generate_dataresource_body, get_dataresource_settings
+import pytest
+
+from dx.formatters.dataresource import (
+    format_dataresource,
+    generate_dataresource_body,
+    get_dataresource_settings,
+)
+from dx.settings import settings_context
+from dx.utils.datatypes import quick_random_dataframe
 
 dataresource_settings = get_dataresource_settings()
 
@@ -48,3 +56,13 @@ def test_fields_match_data_width(sample_dataframe):
     data = payload[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["data"]
     fields = payload[dataresource_settings.DATARESOURCE_MEDIA_TYPE]["schema"]["fields"]
     assert len(data[0]) == len(fields)
+
+
+@pytest.mark.parametrize("enabled", [True, False])
+def test_datalink_toggle(enabled: bool):
+    df = quick_random_dataframe()
+    with settings_context(enable_datalink=enabled):
+        try:
+            format_dataresource(df)
+        except Exception as e:
+            assert False, f"failed with {e}"
