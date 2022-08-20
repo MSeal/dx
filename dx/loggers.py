@@ -8,7 +8,7 @@ import structlog
 from dx.settings import settings
 
 # Timestamp format applied to both vanilla and structlog messages
-timestamper = structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S")
+timestamper = structlog.processors.TimeStamper(fmt=settings.DATETIME_STRING_FORMAT)
 
 # Pre-processing for Vanilla Log messages
 pre_chain = [
