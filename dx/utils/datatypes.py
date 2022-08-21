@@ -173,7 +173,7 @@ def handle_ip_address_series(s: pd.Series) -> pd.Series:
 def handle_sequence_series(s: pd.Series) -> pd.Series:
     types = (list, tuple, set, np.ndarray)
     if any(isinstance(v, types) for v in s.values):
-        logger.debug(f"series `{s.name}` has sequences; converting to list")
+        logger.debug(f"series `{s.name}` has sequences; converting to comma-separated string")
         s = s.apply(lambda x: ", ".join([str(val) for val in x] if isinstance(x, types) else x))
     return s
 
