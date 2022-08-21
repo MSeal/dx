@@ -1,13 +1,8 @@
 import pandas as pd
-from IPython.core.formatters import DisplayFormatter
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
-from dx.formatters.dataresource import (
-    DXDataResourceDisplayFormatter,
-    deregister,
-    get_dataresource_settings,
-)
-from dx.formatters.dx import DXDisplayFormatter, get_dx_settings, register
+from dx.formatters.dataresource import deregister, get_dataresource_settings
+from dx.formatters.dx import get_dx_settings, register
 from dx.formatters.main import get_pandas_settings, reset
 from dx.settings import get_settings
 
@@ -25,8 +20,11 @@ def test_register_ipython_display_formatter(
     successfully registered as a DXDisplayFormatter and that
     global settings have been properly updated.
     """
+    formatters = get_ipython.display_formatter.formatters
+
     register(ipython_shell=get_ipython)
-    assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
+    assert dataresource_settings.DATARESOURCE_MEDIA_TYPE not in formatters
+    assert dx_settings.DX_MEDIA_TYPE in formatters
 
     assert settings.DISPLAY_MAX_COLUMNS == dx_settings.DX_DISPLAY_MAX_COLUMNS
     assert settings.DISPLAY_MAX_ROWS == dx_settings.DX_DISPLAY_MAX_ROWS
@@ -43,11 +41,15 @@ def test_deregister_ipython_display_formatter(
     successfully registered as a DXDataResourceDisplayFormatter
     and that global settings have been properly updated.
     """
+    formatters = get_ipython.display_formatter.formatters
+
     register(ipython_shell=get_ipython)
-    assert isinstance(get_ipython.display_formatter, DXDisplayFormatter)
+    assert dataresource_settings.DATARESOURCE_MEDIA_TYPE not in formatters
+    assert dx_settings.DX_MEDIA_TYPE in formatters
 
     deregister(ipython_shell=get_ipython)
-    assert isinstance(get_ipython.display_formatter, DXDataResourceDisplayFormatter)
+    assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in formatters
+    assert dx_settings.DX_MEDIA_TYPE not in formatters
 
     assert settings.DISPLAY_MAX_COLUMNS == dataresource_settings.DATARESOURCE_DISPLAY_MAX_COLUMNS
     assert settings.DISPLAY_MAX_ROWS == dataresource_settings.DATARESOURCE_DISPLAY_MAX_ROWS
@@ -64,11 +66,13 @@ def test_reset_ipython_display_formatter(
     `IPython.core.formatters.DisplayFormatter` after resetting
     and that global settings have been properly updated.
     """
+    formatters = get_ipython.display_formatter.formatters
     deregister(ipython_shell=get_ipython)
-    assert isinstance(get_ipython.display_formatter, DXDataResourceDisplayFormatter)
+    assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in formatters
 
     reset(ipython_shell=get_ipython)
-    assert isinstance(get_ipython.display_formatter, DisplayFormatter)
+    assert dataresource_settings.DATARESOURCE_MEDIA_TYPE not in formatters
+    assert dx_settings.DX_MEDIA_TYPE not in formatters
 
     assert settings.DISPLAY_MAX_COLUMNS == pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
     assert settings.DISPLAY_MAX_ROWS == pandas_settings.PANDAS_DISPLAY_MAX_ROWS
