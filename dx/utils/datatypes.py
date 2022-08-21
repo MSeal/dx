@@ -8,7 +8,6 @@ import pandas as pd
 import structlog
 
 from dx.utils import date_time, geometry
-from dx.utils.formatting import flatten_index
 
 try:
     from faker import Faker
@@ -175,7 +174,7 @@ def handle_sequence_series(s: pd.Series) -> pd.Series:
     types = (list, tuple, set, np.ndarray)
     if any(isinstance(v, types) for v in s.values):
         logger.debug(f"series `{s.name}` has sequences; converting to list")
-        s = flatten_index(s, separator="||")
+        s = s.apply(lambda x: ", ".join([str(val) for val in x] if isinstance(x, types) else x))
     return s
 
 

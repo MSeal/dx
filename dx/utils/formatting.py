@@ -41,49 +41,74 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     display_df = df.copy()
 
-    if settings.RESET_INDEX_VALUES and not is_default_index(display_df.index):
-        # preserve 0-n row numbers for frontend
-        # if custom/MultiIndex is used
-        display_df.reset_index(inplace=True)
-
-    # if index or column values are numeric, we need to convert to strings
-    # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
-    logger.debug(f"before: {display_df.index[:5]=}")
-    if settings.STRINGIFY_INDEX_VALUES:
-        if isinstance(display_df.index, pd.MultiIndex):
-            display_df.index = pd.MultiIndex.from_tuples(
-                stringify_index(display_df.index),
-                names=list(map(str, display_df.index.names)),
-            )
-        else:
-            display_df.index = pd.Index(
-                stringify_index(display_df.index),
-                name=str(display_df.index.name),
-            )
-    if settings.FLATTEN_INDEX_VALUES:
-        display_df.index = flatten_index(display_df.index)
-    logger.debug(f"after: {display_df.index[:5]=}")
-
-    logger.debug(f"before: {display_df.columns[:5]=}")
-    if settings.STRINGIFY_COLUMN_VALUES:
-        display_df.columns = pd.Index(stringify_index(display_df.columns))
-    if settings.FLATTEN_COLUMN_VALUES:
-        display_df.columns = flatten_index(display_df.columns)
-    logger.debug(f"after: {display_df.columns[:5]=}")
+    display_df = normalize_index(display_df)
+    display_df = normalize_columns(display_df)
 
     # build_table_schema() doesn't like pd.NAs
     display_df.fillna(np.nan, inplace=True)
 
-    for column in display_df.columns:
-        display_df[column] = clean_column_values_for_display(display_df[column])
-
     return display_df
 
 
-def flatten_index(index: pd.Index, separator: str = ", "):
-    if not isinstance(index[0], (list, tuple)):
-        return index
-    return list(map(separator.join, [str(val) for val in index]))
+def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
+    """ """
+    if settings.RESET_INDEX_VALUES and not is_default_index(df.index):
+        # preserve 0-n row numbers for frontend
+        # if custom/MultiIndex is used
+        df.reset_index(inplace=True)
+
+    is_multiindex = isinstance(df.index, pd.MultiIndex)
+
+    # if index or column values are numeric, we need to convert to strings
+    # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
+    logger.debug(f"before: {df.index[:5]=}")
+
+    index_name = getattr(df.index, "names", None)
+    # may be `FrozenList([None, None ...])`
+    if not any(index_name):
+        index_name = getattr(df.index, "name")
+    index_name = index_name or "index"
+    logger.debug(f"{index_name=}")
+    # build_table_schema() doesn't like non-string index names
+    if not isinstance(index_name, str):
+        if is_multiindex:
+            index_name = list(map(str, index_name))
+        else:
+            index_name = str(index_name)
+    logger.debug(f"{index_name=}")
+
+    if settings.FLATTEN_INDEX_VALUES and is_multiindex:
+        df.index = df.index.to_flat_index()
+        df.index = [", ".join([str(val) for val in index_vals]) for index_vals in df.index]
+
+    if settings.STRINGIFY_INDEX_VALUES:
+        if is_multiindex:
+            df.index = pd.MultiIndex.from_tuples(stringify_index(df.index), names=index_name)
+        else:
+            df.index = pd.Index(stringify_index(df.index), name=index_name)
+    logger.debug(f"after: {df.index[:5]=}")
+    return df
+
+
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Any additional formatting that needs to happen to the columns,
+    or the data itself should be done here.
+    """
+    logger.debug(f"before: {df.columns[:5]=}")
+
+    if settings.FLATTEN_COLUMN_VALUES and isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.to_flat_index()
+        df.columns = [", ".join([str(val) for val in column_vals]) for column_vals in df.columns]
+
+    if settings.STRINGIFY_COLUMN_VALUES:
+        df.columns = pd.Index(stringify_index(df.columns))
+
+    for column in df.columns:
+        df[column] = clean_column_values_for_display(df[column])
+
+    logger.debug(f"after: {df.columns[:5]=}")
+    return df
 
 
 def stringify_index(index: pd.Index):
