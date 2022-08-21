@@ -5,7 +5,7 @@ import pandas as pd
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 
-from dx.settings import set_display_mode, settings
+from dx.settings import settings_context
 from dx.types import DXDisplayMode
 
 
@@ -29,11 +29,9 @@ def display(
             raise ValueError(f"Unsupported file type: `{path.suffix}`")
 
     df = pd.DataFrame(data)
+    with settings_context(display_mode=mode, ipython_shell=ipython_shell):
+        ipydisplay(df)
 
-    orig_mode = settings.DISPLAY_MODE.value
-    set_display_mode(mode, ipython_shell=ipython_shell)
-    ipydisplay(df)
-    set_display_mode(orig_mode, ipython_shell=ipython_shell)
     return
 
 
