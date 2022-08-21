@@ -1,6 +1,34 @@
 All notable changes will be documented here.
 
 ---
+## Unreleased
+_2022-08-21_
+
+### Added
+- `dx.add_renderable_type()` function to make it easier to update types that can be processed with the simple/enhanced display modes
+- `pd.Series` as a default renderable type (to go with the existing `pd.DataFrame` and `np.ndarray` types) 
+- Support for the following data types inside `pd.DataFrame` columns:
+    - `type` and `np.dtype` 
+    - `shapely.geometry` objects
+    - `pd.Timedelta` and `datetime.timedelta`
+    - `pd.Period`
+    - `pd.Interval`
+    - `complex` numbers
+    - `ipaddress.IPv4Address` and `.IPv6Address`
+- Extra dataset generation functions for development/testing under `dx.utils.datatypes`
+  - `dx.quick_random_dataframe(n_rows, n_columns)` to get a `pd.DataFrame` of 0.0-1.0 floats (convenience wrapper for `pd.DataFrame(np.random.rand(n_rows, n_columns))`)
+  - `dx.random_dataframe()` with different boolean values to enable based on available datatypes (`dx.DX_DATATYPES`)
+- `settings_context` context manager to allow temporarily changing a setting (or multiple)
+- Logging via `structlog` (default level: `logging.WARNING`)
+
+### Changed
+- Default sampling method changed from `outer` to `random`
+  
+### Fixed
+- Displaying a dataframe with an out-of-order index (like with `.sample()`) no longer resets the index before sending data to the frontend.
+- Index/column flattening and string-formatting is behind settings and is handled more explicitly
+- `dx` should no longer interfere with other media type / mime bundles (e.g. matplotlib) formatted by the existing IPython display formatter
+   
 ## `1.1.3`
 _2022-08-05_
 ### Added
