@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL = logging.DEBUG
+    LOG_LEVEL = logging.WARNING
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
 
     # controls dataframe variable tracking, hashing, and storing in sqlite
-    ENABLE_DATALINK: bool = True
+    ENABLE_DATALINK: bool = False
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
