@@ -209,8 +209,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
         formatters[mimetype].for_type(obj, handle_dataresource_format)
     formatters[mimetype].enabled = True
 
-    logger.debug(f"before: {formatters=}")
     for other_media_type in [get_dx_settings().DX_MEDIA_TYPE]:
         if other_media_type in formatters:
             del formatters[other_media_type]
-    logger.debug(f"after: {formatters=}")
