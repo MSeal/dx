@@ -1,6 +1,9 @@
 import structlog
 from IPython import get_ipython
 
+from dx.settings import get_settings
+
+settings = get_settings()
 logger = structlog.get_logger(__name__)
 
 
@@ -25,6 +28,10 @@ def target_func(comm, open_msg):
 
 
 ipython_shell = get_ipython()
-if ipython_shell is not None and getattr(ipython_shell, "kernel", None):
+if (
+    ipython_shell is not None
+    and getattr(ipython_shell, "kernel", None)
+    and settings.ENABLE_DATALINK
+):
     COMM_MANAGER = ipython_shell.kernel.comm_manager
     COMM_MANAGER.register_target("datalink", target_func)
