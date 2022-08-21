@@ -54,6 +54,7 @@ logger = structlog.get_logger(__name__)
 
 
 def handle_dataresource_format(obj):
+    logger.debug(f"*** handling dataresource format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
 
