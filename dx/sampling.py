@@ -186,12 +186,14 @@ def sample_random(df: pd.DataFrame, num: int, display_id: Optional[str] = None) 
     Example: sampling random 8 of 20 rows:
     [XX...XX.X..X...X.XX.]
     """
-
-    # TODO: use hash for seed instead?
-    display_id = display_id or get_display_id_for_df(df)
-    display_id_array = [ord(v) for v in str(display_id)]
-    random_state = np.random.RandomState(seed=display_id_array)
-    logger.debug(f"using random seed {random_state} from {display_id=}")
+    if settings.ENABLE_DATALINK:
+        # TODO: use hash for seed instead?
+        display_id = display_id or get_display_id_for_df(df)
+        display_id_array = [ord(v) for v in str(display_id)]
+        random_state = np.random.RandomState(seed=display_id_array)
+        logger.debug(f"using random seed {random_state} from {display_id=}")
+    else:
+        random_state = settings.RANDOM_STATE
     return df.sample(num, random_state=random_state)
 
 
