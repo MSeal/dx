@@ -2,7 +2,7 @@ import enum
 import uuid
 from typing import Optional
 
-from IPython.display import HTML, display
+from IPython.display import HTML, display, update_display
 from pydantic import BaseModel
 
 
@@ -37,11 +37,18 @@ class Callout(BaseModel):
             callout_classes.append(f"bp3-icon-{self.icon.value}-sign")
         callout_class_str = " ".join(callout_classes)
 
+        msg = self.message
         if self.use_header:
             heading_html = f"<h6 class='bp3-heading'>{self.level.value.title()}</h6>"
-            return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{heading_html}{self.message}</div>"""
+            msg = f"{heading_html}{self.message}"
 
-        return f"""<div class="{callout_class_str}" style="margin-bottom: 0.5rem">{self.message}</div>"""
+        style = ";".join(
+            [
+                "margin-bottom: 0.5rem",
+                "margin-top: 0.5rem",
+            ]
+        )
+        return f"""<div class="{callout_class_str}" style="{style}">{msg}</div>"""
 
 
 def display_callout(
@@ -50,6 +57,7 @@ def display_callout(
     header: bool = True,
     icon: Optional[CalloutIcon] = None,
     display_id: str = None,
+    update: bool = False,
 ) -> None:
     callout = Callout(
         message=message,
@@ -61,4 +69,10 @@ def display_callout(
 
     # TODO: coordinate with frontend to replace this with a standalone media type
     # instead of rendering HTML with custom classes/styles
-    display(HTML(callout.html), display_id=display_id)
+    if update:
+        update_display(HTML(callout.html), display_id=display_id)
+    else:
+        display(
+            HTML(callout.html),
+            display_id=display_id,
+        )

@@ -3,18 +3,21 @@ from functools import lru_cache
 from typing import Optional
 
 import pandas as pd
+import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
-from dx.config import DEFAULT_IPYTHON_DISPLAY_FORMATTER, IN_IPYTHON_ENV
+from dx.formatters.dataresource import get_dataresource_settings
+from dx.formatters.dx import get_dx_settings
 from dx.settings import get_settings
 
+logger = structlog.get_logger(__name__)
 settings = get_settings()
+dataresource_settings = get_dataresource_settings()
+dx_settings = get_dx_settings()
+
 warnings.filterwarnings("ignore")
-
-
-DISPLAY_ID_TO_DATAFRAME = {}
 
 
 class PandasSettings(BaseSettings):
@@ -41,7 +44,7 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     Resets all nteract/Noteable options, reverting to the default
     pandas display options and IPython display formatter.
     """
-    if not IN_IPYTHON_ENV and ipython_shell is None:
+    if get_ipython() is None and ipython_shell is None:
         return
 
     global settings
@@ -55,4 +58,9 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
-    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
+
+    formatters = ipython.display_formatter.formatters
+
+    for media_type in [dataresource_settings.DATARESOURCE_MEDIA_TYPE, dx_settings.DX_MEDIA_TYPE]:
+        if media_type in formatters:
+            del formatters[media_type]

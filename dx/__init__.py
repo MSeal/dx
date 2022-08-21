@@ -1,9 +1,11 @@
-from .config import *
+from .comms import *
 from .dx import *
 from .formatters import *
-from .helpers import *
+from .loggers import *
 from .settings import *
+from .utils import *
 
-__version__ = "1.1.3"
+__version__ = "1.2.0"
 
+configure_logging()
 set_display_mode("simple")

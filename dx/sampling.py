@@ -1,31 +1,26 @@
 import sys
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import structlog
 
-from dx.config import GEOPANDAS_INSTALLED
 from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
+from dx.utils.formatting import human_readable_size
+from dx.utils.tracking import get_display_id_for_df
+
+logger = structlog.get_logger(__name__)
 
 
-def human_readable_size(size_bytes: int) -> str:
-    size_str = ""
-    for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
-        if abs(size_bytes) < 1024.0:
-            size_str = f"{size_bytes:3.1f} {unit}"
-            break
-        size_bytes /= 1024.0
-    return size_str
-
-
-def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
+def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Reduces the size of a dataframe if it is too big,
     to help reduce the amount of data being sent to the
     frontend for non-default media types.
     """
+
     warnings = []
 
     # check number of columns first, then trim rows if needed
@@ -33,7 +28,7 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
     df_too_wide = len(df.columns) > max_columns
     if df_too_wide:
         num_orig_columns = len(df.columns)
-        df = sample_columns(df, max_columns)
+        df = sample_columns(df, num_cols=max_columns)
         col_warning = f"""Dataframe has {num_orig_columns:,} column(s),
          which is more than <code>{settings.DISPLAY_MAX_COLUMNS=}</code>"""
         warnings.append(col_warning)
@@ -43,7 +38,7 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
     df_too_long = len(df) > max_rows
     if df_too_long:
         num_orig_rows = len(df)
-        df = sample_rows(df, max_rows)
+        df = sample_rows(df, num_rows=max_rows, display_id=display_id)
         row_warning = f"""Dataframe has {num_orig_rows:,} row(s),
          which is more than <code>{settings.DISPLAY_MAX_ROWS=}</code>"""
         warnings.append(row_warning)
@@ -61,6 +56,7 @@ def truncate_if_too_big(df: pd.DataFrame) -> pd.DataFrame:
         size_warning = f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
         warnings.append(size_warning)
 
+    # TODO: replace with custom callout media type
     if warnings:
         warning_html = "<br/>".join(warnings)
         new_size_html = f"""A truncated version with <strong>{len(df):,}</code> row(s) and
@@ -99,7 +95,7 @@ def reduce_df(df: pd.DataFrame, orig_num_rows: int = 0) -> pd.DataFrame:
         return df
 
     num_current_rows = len(df)
-    num_rows_to_remove = int(num_current_rows * settings.TRUNCATION_FACTOR)
+    num_rows_to_remove = int(num_current_rows * settings.SAMPLING_FACTOR)
     num_truncated_rows = num_current_rows - num_rows_to_remove
     truncated_rows = sample_rows(df, num_truncated_rows)
 
@@ -139,7 +135,7 @@ def sample_columns(df: pd.DataFrame, num_cols: int) -> pd.DataFrame:
     raise ValueError(f"Unknown sampling method: {sampling}")
 
 
-def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
+def sample_rows(df: pd.DataFrame, num_rows: int, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Samples a dataframe to a specified number of rows
     based on Settings.SAMPLING_METHOD, or
@@ -150,7 +146,7 @@ def sample_rows(df: pd.DataFrame, num_rows: int) -> pd.DataFrame:
         sampling = row_sampling
 
     if sampling == DXSamplingMethod.random:
-        return sample_random(df, num_rows)
+        return sample_random(df, num_rows, display_id=display_id)
     if sampling == DXSamplingMethod.first:
         return sample_first(df, num_rows)
     if sampling == DXSamplingMethod.last:
@@ -183,14 +179,22 @@ def sample_last(df: pd.DataFrame, num: int) -> pd.DataFrame:
     return df.tail(num)
 
 
-def sample_random(df: pd.DataFrame, num: int) -> pd.DataFrame:
+def sample_random(df: pd.DataFrame, num: int, display_id: Optional[str] = None) -> pd.DataFrame:
     """
     Samples a random selection of N rows based on the RANDOM_STATE seed.
 
     Example: sampling random 8 of 20 rows:
     [XX...XX.X..X...X.XX.]
     """
-    return df.sample(num, random_state=settings.RANDOM_STATE)
+    if settings.ENABLE_DATALINK:
+        # TODO: use hash for seed instead?
+        display_id = display_id or get_display_id_for_df(df)
+        display_id_array = [ord(v) for v in str(display_id)]
+        random_state = np.random.RandomState(seed=display_id_array)
+        logger.debug(f"using random seed {random_state} from {display_id=}")
+    else:
+        random_state = settings.RANDOM_STATE
+    return df.sample(num, random_state=random_state)
 
 
 def sample_inner(df: pd.DataFrame, num: int) -> pd.DataFrame:
@@ -220,29 +224,10 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
     return pd.concat([start_rows, end_rows])
 
 
-def stringify_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Convert numeric columns to strings, or flatten
-    MultiIndex columns and convert to strings.
-    """
-    cols = df.columns
-
-    def stringify_multiindex(vals):
-        string_vals = [str(val) for val in vals if str(val)]
-        return ", ".join(string_vals)
-
-    if isinstance(cols, pd.MultiIndex):
-        # .to_flat_index() would work if we didn't
-        # have to convert to strings here
-        cols = cols.map(stringify_multiindex)
-    else:
-        cols = cols.map(str)
-
-    df.columns = cols
-    return df
-
-
-def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
+def sample_and_describe(
+    df: pd.DataFrame,
+    display_id: Optional[str] = None,
+) -> Tuple[pd.DataFrame, dict]:
     """
     Reduces the size of the dataframe, if necessary,
     and generates a dictionary of shape/size information
@@ -251,7 +236,7 @@ def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
     num_orig_rows, num_orig_cols = df.shape
     orig_size_bytes = sys.getsizeof(df)
 
-    df = truncate_if_too_big(df)
+    df = sample_if_too_big(df, display_id=display_id)
 
     num_truncated_rows, num_truncated_cols = df.shape
     truncated_size_bytes = sys.getsizeof(df)
@@ -265,53 +250,3 @@ def truncate_and_describe(df: pd.DataFrame) -> Tuple[pd.DataFrame, dict]:
         "truncated_num_cols": num_truncated_cols,
     }
     return df, dataframe_info
-
-
-def is_default_index(index: pd.Index) -> bool:
-    """
-    Returns True if the index values are 0-n, where n is the number of items in the series.
-    """
-    index_vals = index.values.tolist()
-    default_index = pd.Index(list(range(len(index_vals))))
-    index = pd.Index(index_vals)
-    return index.equals(default_index)
-
-
-def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Any additional formatting that needs to happen to the index,
-    the columns, or the data itself should be done here.
-    """
-    display_df = df.copy()
-
-    # preserve 0-n row numbers for frontend
-    # if custom/MultiIndex is used
-    if not is_default_index(display_df.index):
-        display_df.reset_index(inplace=True)
-
-    # temporary workaround for numeric column rendering errors with GRID
-    # https://noteables.slack.com/archives/C03CB8A4Z2L/p1658497348488939
-    display_df = stringify_columns(display_df)
-
-    # build_table_schema() doesn't like pd.NAs
-    display_df.fillna(np.nan, inplace=True)
-
-    for column in display_df.columns:
-        display_df[column] = handle_geoseries(display_df[column])
-
-    return display_df
-
-
-def handle_geoseries(col: pd.Series) -> pd.Series:
-    """
-    Workaround to JSONify shapely geometries without
-    requiring shapely/geopandas dependency.
-    """
-    if not GEOPANDAS_INSTALLED:
-        return col
-
-    import geopandas as gpd
-
-    if isinstance(col, gpd.GeoSeries):
-        col = col.to_json()
-    return col
