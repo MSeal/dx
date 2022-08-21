@@ -83,7 +83,7 @@ def configure_logging(app_level: Optional[int] = None):
             "loggers": {
                 "": {
                     "handlers": ["default"],
-                    "level": "INFO",
+                    "level": "WARNING",
                     "propagate": True,
                 },
             },
