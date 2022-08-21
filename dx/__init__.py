@@ -7,5 +7,5 @@ from .utils import *
 
 __version__ = "1.2.0"
 
-# configure_logging()
+configure_logging()
 set_display_mode("simple")
