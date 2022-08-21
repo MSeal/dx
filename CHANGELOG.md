@@ -1,7 +1,7 @@
 All notable changes will be documented here.
 
 ---
-## Unreleased
+## `1.2.0`
 _2022-08-21_
 
 ### Added
