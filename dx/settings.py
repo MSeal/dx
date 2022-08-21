@@ -87,6 +87,11 @@ class Settings(BaseSettings):
         pd.set_option("display.max_rows", val)
         return val
 
+    @validator("HTML_TABLE_SCHEMA", pre=True, always=True)
+    def validate_html_table_schema(cls, val):
+        pd.set_option("html.table_schema", val)
+        return val
+
     class Config:
         validate_assignment = True
 
@@ -166,22 +171,22 @@ def set_option(
 
 
 @contextmanager
-def settings_context(**option_kwargs):
+def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_kwargs):
     global settings
     orig_settings = settings.dict()
     option_kwargs = {str(k).upper(): v for k, v in option_kwargs.items()}
 
     # handle DISPLAY_MODE updates first since it can overwrite other settings
     if display_mode := option_kwargs.pop("DISPLAY_MODE", None):
-        set_display_mode(display_mode)
+        set_display_mode(display_mode, ipython_shell=ipython_shell)
 
     try:
         for setting, value in option_kwargs.items():
-            set_option(setting, value)
+            set_option(setting, value, ipython_shell=ipython_shell)
         yield settings
     finally:
         for setting, value in orig_settings.items():
-            set_option(setting, value)
+            set_option(setting, value, ipython_shell=ipython_shell)
 
 
 def add_renderable_type(renderable_type: Union[type, list]):
