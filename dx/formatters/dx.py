@@ -8,8 +8,6 @@ import structlog
 from IPython import get_ipython
 from IPython.core.formatters import BaseFormatter
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import HTML
-from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
@@ -136,7 +134,7 @@ def format_dx(
     df, dataframe_info = sample_and_describe(df, display_id=display_id)
     dataframe_info["default_index_used"] = has_default_index
     payload, metadata = generate_dx_body(df, display_id=display_id)
-    metadata[dx_settings.DX_MEDIA_TYPE]["datalink"].update(
+    metadata["datalink"].update(
         {
             "dataframe_info": dataframe_info,
             "applied_filters": filters,
