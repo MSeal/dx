@@ -5,7 +5,6 @@ All notable changes will be documented here.
 _2022-08-21_
 
 ### Added
-- `dx.add_renderable_type()` function to make it easier to update types that can be processed with the simple/enhanced display modes
 - `pd.Series` as a default renderable type (to go with the existing `pd.DataFrame` and `np.ndarray` types) 
 - Support for the following data types inside `pd.DataFrame` columns:
     - `type` and `np.dtype` 
