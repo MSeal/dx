@@ -5,19 +5,21 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython import get_ipython
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
-from dx.formatters.dataresource import get_dataresource_settings
-from dx.formatters.dx import get_dx_settings
 from dx.settings import get_settings
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
-dataresource_settings = get_dataresource_settings()
-dx_settings = get_dx_settings()
 
 warnings.filterwarnings("ignore")
+
+
+DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
+if get_ipython() is not None:
+    DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
 
 
 class PandasSettings(BaseSettings):
@@ -29,6 +31,7 @@ class PandasSettings(BaseSettings):
 
     class Config:
         validate_assignment = True  # we need this to enforce `allow_mutation`
+        json_encoders = {type: lambda t: str(t)}
 
 
 @lru_cache
@@ -58,9 +61,4 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
 
     ipython = ipython_shell or get_ipython()
-
-    formatters = ipython.display_formatter.formatters
-
-    for media_type in [dataresource_settings.DATARESOURCE_MEDIA_TYPE, dx_settings.DX_MEDIA_TYPE]:
-        if media_type in formatters:
-            del formatters[media_type]
+    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER

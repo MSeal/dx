@@ -6,12 +6,14 @@ import numpy as np
 import pandas as pd
 import structlog
 from IPython import get_ipython
-from IPython.core.formatters import BaseFormatter
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.display import HTML, display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
 from dx.filtering import SUBSET_FILTERS
+from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
 from dx.sampling import sample_and_describe
 from dx.settings import settings
 from dx.utils.datatypes import to_dataframe
@@ -89,13 +91,22 @@ def handle_dataresource_format(obj):
 
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
-    store_in_sqlite(sqlite_df_table, obj)
+    if not update_existing_display:
+        store_in_sqlite(sqlite_df_table, obj)
+
     return payload, metadata
 
 
-class DXDataResourceDisplayFormatter(BaseFormatter):
-    print_method = "_repr_data_resource_"
-    _return_type = (dict,)
+class DXDataResourceDisplayFormatter(DisplayFormatter):
+    formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
+
+    def format(self, obj, **kwargs):
+
+        if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+            handle_dataresource_format(obj)
+            return ({}, {})
+
+        return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
 def generate_dataresource_body(
@@ -146,24 +157,24 @@ def format_dataresource(
     # having a display handle that we could update in place,
     # but that went through as a display_data message, instead of execute_result
     # and we can't do it with BaseFormatter, otherwise we'll double-render
-    # with pd.option_context(
-    #     "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
-    # ):
-    #     logger.debug(f"displaying dataresource payload in {display_id=}")
-    #     ipydisplay(
-    #         payload,
-    #         raw=True,
-    #         metadata=metadata,
-    #         display_id=display_id,
-    #         update=update,
-    #     )
+    with pd.option_context(
+        "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
+    ):
+        logger.debug(f"displaying dataresource payload in {display_id=}")
+        display(
+            {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload},
+            raw=True,
+            metadata={dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata},
+            display_id=display_id,
+            update=update,
+        )
+    # temporary placeholder for copy/paste user messaging
+    display(
+        HTML("<div></div>"),
+        display_id=display_id + "-primary",
+        update=update,
+    )
 
-    # # temporary placeholder for copy/paste user messaging
-    # ipydisplay(
-    #     HTML("<div></div>"),
-    #     display_id=display_id + "-primary",
-    #     update=update,
-    # )
     return (payload, metadata)
 
 
@@ -173,8 +184,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     display formatter, used for simpleTable / "classic DEX" outputs
     and updates global dx & pandas settings with dataresource settings.
     """
-    from dx.formatters.dx import get_dx_settings
-
     if get_ipython() is None and ipython_shell is None:
         return
 
@@ -198,18 +207,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
     ipython = ipython_shell or get_ipython()
 
-    # https://github.com/pandas-dev/pandas/blob/ad190575aa75962d2d0eade2de81a5fe5a2e285b/pandas/io/formats/printing.py#L244
-    # https://github.com/pandas-dev/pandas/blob/926b9ceff10d9b7a957811f0a4de3167332196de/pandas/io/formats/printing.py?q=_repr_data_resource_#L268
-    # https://ipython.readthedocs.io/en/stable/config/integrating.html#formatters-for-third-party-types
-    # https://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#:~:text=plain.for_type(int%2C%20int_formatter)
-    formatters = ipython.display_formatter.formatters
-    mimetype = dataresource_settings.DATARESOURCE_MEDIA_TYPE
-
-    formatters[mimetype] = DXDataResourceDisplayFormatter()
-    for obj in settings.RENDERABLE_OBJECTS:
-        formatters[mimetype].for_type(obj, handle_dataresource_format)
-    formatters[mimetype].enabled = True
-
-    for other_media_type in [get_dx_settings().DX_MEDIA_TYPE]:
-        if other_media_type in formatters:
-            del formatters[other_media_type]
+    custom_formatter = DXDataResourceDisplayFormatter()
+    custom_formatter.formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
+    ipython.display_formatter = custom_formatter
