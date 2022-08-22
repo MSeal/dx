@@ -1,0 +1,23 @@
+name: Publish docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup nox
+        uses: daisylb/setup-nox@v2.1.0
+      - name: Setup poetry
+        uses: Gr1N/setup-poetry@v7
+      - name: Install dependencies
+        run: |
+          poetry export -f requirements.txt --without-hashes --dev > /tmp/requirements.txt
+          pip install --constraint=/tmp/requirements.txt nox_poetry
+      - name: Publish docs
+        run: nox -s publish_docs
