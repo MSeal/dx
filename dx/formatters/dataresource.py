@@ -35,7 +35,7 @@ class DataResourceSettings(BaseSettings):
 
     DATARESOURCE_FLATTEN_INDEX_VALUES: bool = False
     DATARESOURCE_FLATTEN_COLUMN_VALUES: bool = True
-    DATARESOURCE_STRINGIFY_INDEX_VALUES: bool = True
+    DATARESOURCE_STRINGIFY_INDEX_VALUES: bool = False
     DATARESOURCE_STRINGIFY_COLUMN_VALUES: bool = True
 
     class Config:

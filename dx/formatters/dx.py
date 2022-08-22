@@ -34,7 +34,7 @@ class DXSettings(BaseSettings):
 
     DX_FLATTEN_INDEX_VALUES: bool = False
     DX_FLATTEN_COLUMN_VALUES: bool = True
-    DX_STRINGIFY_INDEX_VALUES: bool = True
+    DX_STRINGIFY_INDEX_VALUES: bool = False
     DX_STRINGIFY_COLUMN_VALUES: bool = True
 
     class Config:
