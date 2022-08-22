@@ -1,6 +1,11 @@
 All notable changes will be documented here.
 
 ---
+## Unreleased
+
+### Changed
+- `STRINGIFY_INDEX_VALUES` is `False` by default (index `.name` will still be a string, but values will keep their original type)
+
 ## `1.2.0`
 _2022-08-21_
 
