@@ -11,17 +11,27 @@ from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
-from dx.utils.geometry import GEOPANDAS_INSTALLED
 
 MB = 1024 * 1024
 
 logger = structlog.get_logger(__name__)
 
-DEFAULT_RENDERABLE_TYPES = {pd.Series, pd.DataFrame, np.ndarray}
-if GEOPANDAS_INSTALLED:
+
+try:
     import geopandas as gpd
 
-    DEFAULT_RENDERABLE_TYPES.update(gpd.GeoDataFrame, gpd.GeoSeries)
+    GEOPANDAS_INSTALLED = True
+except ImportError:
+    GEOPANDAS_INSTALLED = False
+
+
+@lru_cache
+def get_default_renderable_types():
+    types = {pd.Series, pd.DataFrame, np.ndarray}
+    if GEOPANDAS_INSTALLED:
+        gpd_types = {gpd.GeoDataFrame, gpd.GeoSeries}
+        types.update(gpd_types)
+    return types
 
 
 class Settings(BaseSettings):
@@ -33,7 +43,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    RENDERABLE_OBJECTS: Set[type] = DEFAULT_RENDERABLE_TYPES
+    RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -194,6 +204,8 @@ def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_
             set_option(setting, value, ipython_shell=ipython_shell)
         yield settings
     finally:
+        if display_mode is not None:
+            set_display_mode(orig_settings["DISPLAY_MODE"], ipython_shell=ipython_shell)
         for setting, value in orig_settings.items():
             # only reset it if it was adjusted originally; don't reset everything
             if setting in option_kwargs:
