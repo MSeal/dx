@@ -1,8 +1,7 @@
 import uuid
 from functools import lru_cache
-from typing import Optional, Set
+from typing import Optional
 
-import numpy as np
 import pandas as pd
 import structlog
 from IPython import get_ipython
@@ -32,7 +31,6 @@ class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
-    DX_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
     DX_FLATTEN_INDEX_VALUES: bool = False
     DX_FLATTEN_COLUMN_VALUES: bool = True
@@ -54,7 +52,12 @@ dx_settings = get_dx_settings()
 logger = structlog.get_logger(__name__)
 
 
-def handle_dx_format(obj):
+def handle_dx_format(
+    obj,
+    ipython_shell: Optional[InteractiveShell] = None,
+):
+    ipython = ipython_shell or get_ipython()
+
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
 
@@ -77,6 +80,7 @@ def handle_dx_format(obj):
         display_id=display_id,
         df_hash=obj_hash,
         is_subset=update_existing_display,
+        ipython_shell=ipython,
     )
 
     payload, metadata = format_dx(
@@ -152,15 +156,15 @@ def format_dx(
         }
     )
 
-    # TODO: figure out a way to mimic this behavior since it was helpful
-    # having a display handle that we could update in place,
-    # but that went through as a display_data message, instead of execute_result
-    # and we can't do it with BaseFormatter, otherwise we'll double-render
+    payload = {dx_settings.DX_MEDIA_TYPE: payload}
+    metadata = {dx_settings.DX_MEDIA_TYPE: metadata}
+
+    # this needs to happen so we can update by display_id as needed
     with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
         display(
-            {dx_settings.DX_MEDIA_TYPE: payload},
+            payload,
             raw=True,
-            metadata={dx_settings.DX_MEDIA_TYPE: metadata},
+            metadata=metadata,
             display_id=display_id,
             update=update,
         )
@@ -181,7 +185,6 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     Enables the DEX media type output display formatting and
     updates global dx & pandas settings with DX settings.
     """
-
     if get_ipython() is None and ipython_shell is None:
         return
 
@@ -191,7 +194,7 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     settings_to_apply = {
         "DISPLAY_MAX_COLUMNS",
         "DISPLAY_MAX_ROWS",
-        "HTML_TABLE_SCHEMA",
+        # "HTML_TABLE_SCHEMA",
         "MEDIA_TYPE",
         "RENDERABLE_OBJECTS",
         "FLATTEN_INDEX_VALUES",

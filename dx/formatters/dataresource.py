@@ -1,8 +1,7 @@
 import uuid
 from functools import lru_cache
-from typing import Optional, Set
+from typing import Optional
 
-import numpy as np
 import pandas as pd
 import structlog
 from IPython import get_ipython
@@ -33,7 +32,6 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
-    DATARESOURCE_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
     DATARESOURCE_FLATTEN_INDEX_VALUES: bool = False
     DATARESOURCE_FLATTEN_COLUMN_VALUES: bool = True
@@ -55,7 +53,12 @@ dataresource_settings = get_dataresource_settings()
 logger = structlog.get_logger(__name__)
 
 
-def handle_dataresource_format(obj):
+def handle_dataresource_format(
+    obj,
+    ipython_shell: Optional[InteractiveShell] = None,
+):
+    ipython = ipython_shell or get_ipython()
+
     logger.debug(f"*** handling dataresource format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
@@ -79,6 +82,7 @@ def handle_dataresource_format(obj):
         display_id=display_id,
         df_hash=obj_hash,
         is_subset=update_existing_display,
+        ipython_shell=ipython,
     )
 
     payload, metadata = format_dataresource(
@@ -150,21 +154,22 @@ def format_dataresource(
         {
             "dataframe_info": dataframe_info,
             "applied_filters": filters,
+            "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
         }
     )
 
-    # TODO: figure out a way to mimic this behavior since it was helpful
-    # having a display handle that we could update in place,
-    # but that went through as a display_data message, instead of execute_result
-    # and we can't do it with BaseFormatter, otherwise we'll double-render
+    payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload}
+    metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata}
+
+    # this needs to happen so we can update by display_id as needed
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
         logger.debug(f"displaying dataresource payload in {display_id=}")
         display(
-            {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload},
+            payload,
             raw=True,
-            metadata={dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata},
+            metadata=metadata,
             display_id=display_id,
             update=update,
         )
@@ -193,7 +198,7 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     settings_to_apply = {
         "DISPLAY_MAX_COLUMNS",
         "DISPLAY_MAX_ROWS",
-        "HTML_TABLE_SCHEMA",
+        # "HTML_TABLE_SCHEMA",
         "MEDIA_TYPE",
         "RENDERABLE_OBJECTS",
         "FLATTEN_INDEX_VALUES",
