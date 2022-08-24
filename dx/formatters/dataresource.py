@@ -198,9 +198,7 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
     settings_to_apply = {
         "DISPLAY_MAX_COLUMNS",
         "DISPLAY_MAX_ROWS",
-        # "HTML_TABLE_SCHEMA",
         "MEDIA_TYPE",
-        "RENDERABLE_OBJECTS",
         "FLATTEN_INDEX_VALUES",
         "FLATTEN_COLUMN_VALUES",
         "STRINGIFY_INDEX_VALUES",
