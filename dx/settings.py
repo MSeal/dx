@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
+import numpy as np
 import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
@@ -10,10 +11,17 @@ from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
 from dx.types import DXDisplayMode, DXSamplingMethod
+from dx.utils.geometry import GEOPANDAS_INSTALLED
 
 MB = 1024 * 1024
 
 logger = structlog.get_logger(__name__)
+
+DEFAULT_RENDERABLE_TYPES = {pd.Series, pd.DataFrame, np.ndarray}
+if GEOPANDAS_INSTALLED:
+    import geopandas as gpd
+
+    DEFAULT_RENDERABLE_TYPES.update(gpd.GeoDataFrame, gpd.GeoSeries)
 
 
 class Settings(BaseSettings):
@@ -25,7 +33,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    RENDERABLE_OBJECTS: Set[type] = set()
+    RENDERABLE_OBJECTS: Set[type] = DEFAULT_RENDERABLE_TYPES
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -187,7 +195,9 @@ def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_
         yield settings
     finally:
         for setting, value in orig_settings.items():
-            set_option(setting, value, ipython_shell=ipython_shell)
+            # only reset it if it was adjusted originally; don't reset everything
+            if setting in option_kwargs:
+                set_option(setting, value, ipython_shell=ipython_shell)
 
 
 def add_renderable_type(renderable_type: Union[type, list]):
