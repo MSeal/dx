@@ -24,6 +24,7 @@ from dx.utils.tracking import (
     get_display_id,
     register_display_id,
     store_in_sqlite,
+    track_column_conversions,
 )
 
 
@@ -63,15 +64,17 @@ def handle_dx_format(
         obj = to_dataframe(obj)
 
     default_index_used = is_default_index(obj.index)
-    obj = normalize_index_and_columns(obj)
 
     if not settings.ENABLE_DATALINK:
+        obj = normalize_index_and_columns(obj)
         payload, metadata = format_dx(
             obj,
             has_default_index=default_index_used,
         )
         return payload, metadata
 
+    orig_obj = obj.copy()
+    obj = normalize_index_and_columns(obj)
     obj_hash = generate_df_hash(obj)
     update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
     applied_filters = SUBSET_FILTERS.get(obj_hash)
@@ -83,6 +86,13 @@ def handle_dx_format(
             df_hash=obj_hash,
             ipython_shell=ipython,
         )
+
+    track_column_conversions(
+        orig_df=orig_obj,
+        df=obj,
+        display_id=display_id,
+    )
+    del orig_obj
 
     payload, metadata = format_dx(
         obj.copy(),
