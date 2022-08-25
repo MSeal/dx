@@ -8,11 +8,13 @@ from IPython.display import update_display
 from dx.formatters.callouts import display_callout
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
-from dx.utils.formatting import expand_sequences
 from dx.utils.tracking import (
     DATAFRAME_HASH_TO_VAR_NAME,
     DISPLAY_ID_TO_DATAFRAME_HASH,
+    DISPLAY_ID_TO_DATETIME_COLUMNS,
+    DISPLAY_ID_TO_INDEX,
     DISPLAY_ID_TO_ORIG_METADATA,
+    DISPLAY_ID_TO_SEQUENCE_COLUMNS,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
 )
@@ -77,6 +79,7 @@ def update_display_id(
     query_string = sql_filter.format(table_name=table_name)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
+    logger.debug(f"{new_df.columns=}")
 
     with sql_engine.connect() as conn:
         orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
@@ -87,7 +90,15 @@ def update_display_id(
     # in the event there were nested values stored,
     # try to expand them back to their original datatypes
     for col in new_df.columns:
-        new_df[col] = new_df[col].apply(expand_sequences)
+        if col in DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id]:
+            new_df[col] = new_df[col].apply(lambda x: x.split(", "))
+    # resetting original formatting
+    if display_id in DISPLAY_ID_TO_INDEX:
+        index_col = DISPLAY_ID_TO_INDEX[display_id] or "index"
+        new_df.set_index(index_col, inplace=True)
+    if display_id in DISPLAY_ID_TO_DATETIME_COLUMNS:
+        for col in DISPLAY_ID_TO_DATETIME_COLUMNS[display_id]:
+            new_df[col] = pd.to_datetime(new_df[col])
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
