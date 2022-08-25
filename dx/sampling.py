@@ -1,5 +1,5 @@
 import sys
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -224,29 +224,19 @@ def sample_outer(df: pd.DataFrame, num: int) -> pd.DataFrame:
     return pd.concat([start_rows, end_rows])
 
 
-def sample_and_describe(
-    df: pd.DataFrame,
-    display_id: Optional[str] = None,
-) -> Tuple[pd.DataFrame, dict]:
+def get_df_dimensions(df: pd.DataFrame, prefix: Optional[str] = None) -> dict:
     """
-    Reduces the size of the dataframe, if necessary,
-    and generates a dictionary of shape/size information
-    about the dataframe before/after truncation.
+    Returns a dictionary of shape/size information
+    about the dataframe.
     """
-    num_orig_rows, num_orig_cols = df.shape
-    orig_size_bytes = sys.getsizeof(df)
+    if prefix is not None:
+        prefix = f"{prefix}_"
+    else:
+        prefix = ""
 
-    df = sample_if_too_big(df, display_id=display_id)
-
-    num_truncated_rows, num_truncated_cols = df.shape
-    truncated_size_bytes = sys.getsizeof(df)
-
-    dataframe_info = {
-        "orig_size_bytes": orig_size_bytes,
-        "orig_num_rows": num_orig_rows,
-        "orig_num_cols": num_orig_cols,
-        "truncated_size_bytes": truncated_size_bytes,
-        "truncated_num_rows": num_truncated_rows,
-        "truncated_num_cols": num_truncated_cols,
+    num_rows, num_cols = df.shape
+    return {
+        f"{prefix}size_bytes": df.memory_usage(deep=True).sum(),
+        f"{prefix}num_rows": num_rows,
+        f"{prefix}num_cols": num_cols,
     }
-    return df, dataframe_info
