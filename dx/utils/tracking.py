@@ -9,6 +9,8 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
+from dx.utils.datatypes import is_sequence_series
+from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import (
     clean_column_values_for_hash,
     clean_column_values_for_sqlite,
@@ -33,6 +35,11 @@ DATAFRAME_HASH_TO_VAR_NAME = {}
 DISPLAY_ID_TO_COLUMNS = {}
 DISPLAY_ID_TO_DATAFRAME_HASH = {}
 DISPLAY_ID_TO_ORIG_METADATA = {}
+
+DISPLAY_ID_TO_INDEX = {}
+DISPLAY_ID_TO_DATETIME_COLUMNS = {}
+DISPLAY_ID_TO_CONVERTED_COLUMNS = {}
+DISPLAY_ID_TO_SEQUENCE_COLUMNS = {}
 
 SUBSET_TO_DATAFRAME_HASH = {}
 
@@ -92,6 +99,7 @@ def is_equal(df: pd.DataFrame, other_df: pd.DataFrame, df_hash: str):
 
     # this could be expensive, so we only want to do it if we're
     # pretty sure two dataframes could be equal
+    logger.debug("-- cleaning before hashing --")
     other_hash = generate_df_hash(normalize_index_and_columns(other_df))
     if df_hash != other_hash:
         return False
@@ -173,13 +181,60 @@ def get_display_id(df_hash: str) -> str:
 
 
 def store_in_sqlite(table_name: str, df: pd.DataFrame):
+    logger.debug(f"{df.columns=}")
     tracking_df = df.copy()
 
+    logger.debug("-- cleaning before sqlite --")
     for col in tracking_df.columns:
         tracking_df[col] = clean_column_values_for_sqlite(tracking_df[col])
 
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:
-        num_written_rows = tracking_df.to_sql(table_name, con=conn, if_exists="replace")
+        num_written_rows = tracking_df.to_sql(
+            table_name,
+            con=conn,
+            if_exists="replace",
+            index=True,  # this is the default, but just to be explicit
+        )
     logger.debug(f"wrote {num_written_rows} row(s) to `{table_name}` table")
     return num_written_rows
+
+
+def track_column_conversions(
+    orig_df: pd.DataFrame,
+    df: pd.DataFrame,
+    display_id: str,
+) -> None:
+    # keep track of any original->cleaned column conversions
+    # because once the cleaned versions are sent to the frontend,
+    # any frontend interactions are going to be referencing values
+    # that aren't actually present in the dataset.
+    # this means that in filtering.py, we need to apply filters
+    # to the cleaned version of the dataframe, pull the index values
+    # of the resulting row(s), then swap out the results with the
+    # index positions of the original data
+    logger.debug(f"{orig_df.columns=}")
+    logger.debug(f"{df.columns=}")
+
+    DISPLAY_ID_TO_INDEX[display_id] = df.index.name
+    DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
+        c for c in orig_df.columns if is_datetime_series(df[c])
+    ]
+    DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id] = [
+        c for c in orig_df.columns if is_sequence_series(df[c])
+    ]
+
+    if display_id not in DISPLAY_ID_TO_CONVERTED_COLUMNS:
+        DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id] = {}
+
+    for col in orig_df.columns:
+        if col not in df.columns:
+            # hopefully it was set as an index?
+            continue
+
+        if df[col].dtype != orig_df[col].dtype:
+            DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id][col] = (orig_df[col], df[col])
+            continue
+        if not (df[col] == orig_df[col]).all():
+            DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id][col] = (orig_df[col], df[col])
+            continue
