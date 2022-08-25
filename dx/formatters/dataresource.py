@@ -13,11 +13,12 @@ from pydantic import BaseSettings, Field
 
 from dx.filtering import SUBSET_FILTERS
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
-from dx.sampling import sample_and_describe
+from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
+    DISPLAY_ID_TO_ORIG_METADATA,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
     get_display_id,
@@ -77,13 +78,13 @@ def handle_dataresource_format(
     update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
     applied_filters = SUBSET_FILTERS.get(obj_hash)
     display_id = get_display_id(obj_hash)
-    sqlite_df_table = register_display_id(
-        obj,
-        display_id=display_id,
-        df_hash=obj_hash,
-        is_subset=update_existing_display,
-        ipython_shell=ipython,
-    )
+    if not update_existing_display:
+        sqlite_df_table = register_display_id(
+            obj,
+            display_id=display_id,
+            df_hash=obj_hash,
+            ipython_shell=ipython,
+        )
 
     payload, metadata = format_dataresource(
         obj,
@@ -130,7 +131,13 @@ def generate_dataresource_body(
     metadata = {
         "datalink": {
             "dataframe_info": {},
-            "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
+            "dx_settings": settings.dict(
+                exclude={
+                    "RENDERABLE_OBJECTS": True,
+                    "DATETIME_STRING_FORMAT": True,
+                    "MEDIA_TYPE": True,
+                }
+            ),
             "applied_filters": [],
             "display_id": display_id,
         },
@@ -147,16 +154,28 @@ def format_dataresource(
     has_default_index: bool = True,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
-    df, dataframe_info = sample_and_describe(df, display_id=display_id)
-    dataframe_info["default_index_used"] = has_default_index
+
+    # determine original dataset size, and truncated/sampled size if it's beyond the limits
+    orig_df_dimensions = get_df_dimensions(df, prefix="orig")
+    df = sample_if_too_big(df, display_id=display_id)
+    sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
+
     payload, metadata = generate_dataresource_body(df, display_id=display_id)
     metadata["datalink"].update(
         {
-            "dataframe_info": dataframe_info,
-            "applied_filters": filters,
+            "dataframe_info": {
+                "default_index_used": has_default_index,
+                **orig_df_dimensions,
+                **sampled_df_dimensions,
+            },
+            "applied_filters": filters or [],
+            "sample_history": [],
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
         }
     )
+
+    if display_id not in DISPLAY_ID_TO_ORIG_METADATA:
+        DISPLAY_ID_TO_ORIG_METADATA[display_id] = metadata
 
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload}
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata}
