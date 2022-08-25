@@ -178,6 +178,13 @@ def handle_sequence_series(s: pd.Series) -> pd.Series:
     return s
 
 
+def handle_unk_type_series(s: pd.Series) -> pd.Series:
+    if not is_json_serializable(s):
+        logger.debug(f"series `{s.name}` has non-JSON-serializable types; converting to string")
+        s = s.astype(str)
+    return s
+
+
 def quick_random_dataframe(
     num_rows: int = 5,
     num_cols: int = 2,
@@ -276,3 +283,14 @@ def to_dataframe(obj) -> pd.DataFrame:
     # TODO: support custom converters
     df = pd.DataFrame(obj)
     return df
+
+
+def is_json_serializable(s: pd.Series) -> bool:
+    """
+    Returns True if the object can be serialized to JSON.
+    """
+    try:
+        s.to_json()
+        return True
+    except (TypeError, OverflowError, UnicodeDecodeError):
+        return False
