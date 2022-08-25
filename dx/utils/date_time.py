@@ -68,3 +68,17 @@ def handle_time_delta_series(s: pd.Series) -> pd.Series:
         logger.debug(f"series `{s.name}` has pd.TimeDelta values; converting to total seconds")
         s = s.apply(lambda x: x.total_seconds() if isinstance(x, types) else x)
     return s
+
+
+def is_datetime_series(s: pd.Series) -> bool:
+    if str(s.dtype) in ("int", "float", "bool", "category", "period", "interval"):
+        return False
+    if str(s.dtype) in ("datetime64"):
+        return True
+
+    try:
+        s = s.apply(lambda x: pd.Timestamp(x))
+        return True
+    except Exception as e:
+        logger.debug(f"series `{s.name}` is not a datetime series: {e}")
+        return False
