@@ -172,10 +172,22 @@ def handle_ip_address_series(s: pd.Series) -> pd.Series:
 
 def handle_sequence_series(s: pd.Series) -> pd.Series:
     types = (list, tuple, set, np.ndarray)
-    if any(isinstance(v, types) for v in s.values):
+    if is_sequence_series(s):
         logger.debug(f"series `{s.name}` has sequences; converting to comma-separated string")
         s = s.apply(lambda x: ", ".join([str(val) for val in x] if isinstance(x, types) else x))
     return s
+
+
+def is_sequence_series(s: pd.Series) -> bool:
+    """
+    Returns True if the series has any list/tuple/set/array values.
+    """
+    if str(s.dtype) != "object":
+        return False
+
+    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
+        return True
+    return False
 
 
 def handle_unk_type_series(s: pd.Series) -> pd.Series:
@@ -183,6 +195,17 @@ def handle_unk_type_series(s: pd.Series) -> pd.Series:
         logger.debug(f"series `{s.name}` has non-JSON-serializable types; converting to string")
         s = s.astype(str)
     return s
+
+
+def is_json_serializable(s: pd.Series) -> bool:
+    """
+    Returns True if the object can be serialized to JSON.
+    """
+    try:
+        s.to_json()
+        return True
+    except (TypeError, OverflowError, UnicodeDecodeError):
+        return False
 
 
 def quick_random_dataframe(
@@ -283,23 +306,3 @@ def to_dataframe(obj) -> pd.DataFrame:
     # TODO: support custom converters
     df = pd.DataFrame(obj)
     return df
-
-
-def is_json_serializable(s: pd.Series) -> bool:
-    """
-    Returns True if the object can be serialized to JSON.
-    """
-    try:
-        s.to_json()
-        return True
-    except (TypeError, OverflowError, UnicodeDecodeError):
-        return False
-
-
-def is_sequence_series(s: pd.Series) -> bool:
-    if str(s.dtype) != "object":
-        return False
-
-    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
-        return True
-    return False
