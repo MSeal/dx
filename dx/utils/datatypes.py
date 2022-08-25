@@ -294,3 +294,12 @@ def is_json_serializable(s: pd.Series) -> bool:
         return True
     except (TypeError, OverflowError, UnicodeDecodeError):
         return False
+
+
+def is_sequence_series(s: pd.Series) -> bool:
+    if str(s.dtype) != "object":
+        return False
+
+    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
+        return True
+    return False
