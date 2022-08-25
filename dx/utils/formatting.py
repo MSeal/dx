@@ -61,21 +61,17 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 
     # if index or column values are numeric, we need to convert to strings
     # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
-    logger.debug(f"before: {df.index[:5]=}")
-
     index_name = getattr(df.index, "names", None)
     # may be `FrozenList([None, None ...])`
     if not any(index_name):
         index_name = getattr(df.index, "name")
     index_name = index_name or "index"
-    logger.debug(f"{index_name=}")
     # build_table_schema() doesn't like non-string index names
     if not isinstance(index_name, str):
         if is_multiindex:
             index_name = list(map(str, index_name))
         else:
             index_name = str(index_name)
-    logger.debug(f"{index_name=}")
 
     if settings.FLATTEN_INDEX_VALUES and is_multiindex:
         df.index = df.index.to_flat_index()
@@ -86,7 +82,6 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             df.index = pd.MultiIndex.from_tuples(stringify_index(df.index), names=index_name)
         else:
             df.index = pd.Index(stringify_index(df.index), name=index_name)
-    logger.debug(f"after: {df.index[:5]=}")
     return df
 
 
@@ -95,8 +90,6 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     Any additional formatting that needs to happen to the columns,
     or the data itself should be done here.
     """
-    logger.debug(f"before: {df.columns[:5]=}")
-
     if settings.FLATTEN_COLUMN_VALUES and isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.to_flat_index()
         df.columns = [", ".join([str(val) for val in column_vals]) for column_vals in df.columns]
@@ -104,10 +97,10 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if settings.STRINGIFY_COLUMN_VALUES:
         df.columns = pd.Index(stringify_index(df.columns))
 
+    logger.debug("-- cleaning before display --")
     for column in df.columns:
         df[column] = clean_column_values_for_display(df[column])
 
-    logger.debug(f"after: {df.columns[:5]=}")
     return df
 
 
@@ -136,6 +129,7 @@ def clean_column_values_for_display(s: pd.Series) -> pd.Series:
     s = datatypes.handle_complex_number_series(s)
 
     s = geometry.handle_geometry_series(s)
+    s = datatypes.handle_unk_type_series(s)
     return s
 
 
@@ -168,18 +162,3 @@ def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
     s = datatypes.handle_dict_series(s)
     s = datatypes.handle_sequence_series(s)
     return s
-
-
-# TODO: clean this up
-def expand_sequences(val, separator: str = ", "):
-    if separator not in str(val):
-        return val
-
-    vals = []
-    for val in val.split(separator):
-        try:
-            val = eval(val)
-        except Exception as e:
-            logger.debug(f"can't eval({val}): {e}")
-        vals.append(val)
-    return vals
