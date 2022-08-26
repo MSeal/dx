@@ -162,3 +162,30 @@ def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
     s = datatypes.handle_dict_series(s)
     s = datatypes.handle_sequence_series(s)
     return s
+
+
+def generate_metadata(display_id: str):
+    from dx.utils.tracking import DISPLAY_ID_TO_FILTERS, DISPLAY_ID_TO_METADATA
+
+    # these are set whenever store_sample_to_history() is called after a filter action from the frontend
+    filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
+    sample_history = DISPLAY_ID_TO_METADATA.get(display_id, {}).get("sample_history", [])
+    metadata = {
+        "datalink": {
+            "dataframe_info": {},
+            "dx_settings": settings.dict(
+                exclude={
+                    "RENDERABLE_OBJECTS": True,
+                    "DATETIME_STRING_FORMAT": True,
+                    "MEDIA_TYPE": True,
+                }
+            ),
+            "display_id": display_id,
+            "applied_filters": filters,
+            "sample_history": sample_history,
+            "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
+        },
+        "display_id": display_id,
+    }
+    logger.debug(f"{metadata=}")
+    return metadata

@@ -11,14 +11,13 @@ from IPython.display import HTML, display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
-from dx.filtering import SUBSET_FILTERS
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
 from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.utils.datatypes import to_dataframe
-from dx.utils.formatting import is_default_index, normalize_index_and_columns
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
-    DISPLAY_ID_TO_ORIG_METADATA,
+    DISPLAY_ID_TO_METADATA,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
     get_display_id,
@@ -77,8 +76,8 @@ def handle_dx_format(
     obj = normalize_index_and_columns(obj)
     obj_hash = generate_df_hash(obj)
     update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
-    applied_filters = SUBSET_FILTERS.get(obj_hash)
     display_id = get_display_id(obj_hash)
+
     if not update_existing_display:
         sqlite_df_table = register_display_id(
             obj,
@@ -98,7 +97,6 @@ def handle_dx_format(
         obj.copy(),
         update=update_existing_display,
         display_id=display_id,
-        filters=applied_filters,
         has_default_index=default_index_used,
     )
 
@@ -136,24 +134,7 @@ def generate_dx_body(
         "data": df.reset_index().transpose().values.tolist(),
         "datalink": {"display_id": display_id},
     }
-
-    metadata = {
-        "datalink": {
-            "applied_filters": [],
-            "dataframe_info": {},
-            "display_id": display_id,
-            "dx_settings": settings.dict(
-                exclude={
-                    "RENDERABLE_OBJECTS": True,
-                    "DATETIME_STRING_FORMAT": True,
-                    "MEDIA_TYPE": True,
-                }
-            ),
-            "sample_history": [],
-        },
-        "display_id": display_id,
-    }
-    return (payload, metadata)
+    return payload
 
 
 def format_dx(
@@ -170,22 +151,19 @@ def format_dx(
     df = sample_if_too_big(df, display_id=display_id)
     sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
 
-    payload, metadata = generate_dx_body(df, display_id=display_id)
-    metadata["datalink"].update(
+    payload = generate_dx_body(df, display_id=display_id)
+
+    metadata = generate_metadata(display_id=display_id)
+    metadata["datalink"]["dataframe_info"].update(
         {
-            "dataframe_info": {
-                "default_index_used": has_default_index,
-                **orig_df_dimensions,
-                **sampled_df_dimensions,
-            },
-            "applied_filters": filters or [],
-            "sample_history": [],
-            "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
+            "default_index_used": has_default_index,
+            **orig_df_dimensions,
+            **sampled_df_dimensions,
         }
     )
 
-    if display_id not in DISPLAY_ID_TO_ORIG_METADATA:
-        DISPLAY_ID_TO_ORIG_METADATA[display_id] = metadata
+    if display_id not in DISPLAY_ID_TO_METADATA:
+        DISPLAY_ID_TO_METADATA[display_id] = metadata
 
     payload = {dx_settings.DX_MEDIA_TYPE: payload}
     metadata = {dx_settings.DX_MEDIA_TYPE: metadata}
