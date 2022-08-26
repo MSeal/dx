@@ -11,8 +11,10 @@ from dx.settings import get_settings, settings_context
 from dx.utils.tracking import (
     DATAFRAME_HASH_TO_VAR_NAME,
     DISPLAY_ID_TO_DATAFRAME_HASH,
-    DISPLAY_ID_TO_DATETIME_COLUMNS,
+    DISPLAY_ID_TO_FILTERS,
     DISPLAY_ID_TO_INDEX,
+    DISPLAY_ID_TO_METADATA,
+    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
     DISPLAY_ID_TO_SEQUENCE_COLUMNS,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
@@ -27,8 +29,6 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     """
     Updates the metadata cache to include past filters, times, and dataframe info.
     """
-    global DISPLAY_ID_TO_METADATA
-
     # apply new metadata for resampled dataset
     metadata = DISPLAY_ID_TO_METADATA[display_id]
     datalink_metadata = metadata["datalink"]
@@ -68,8 +68,6 @@ def update_display_id(
     """
     from dx.utils.tracking import sql_engine
 
-    global DISPLAY_ID_TO_FILTERS
-
     row_limit = limit or settings.DISPLAY_MAX_ROWS
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
     df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
@@ -95,9 +93,10 @@ def update_display_id(
     if display_id in DISPLAY_ID_TO_INDEX:
         index_col = DISPLAY_ID_TO_INDEX[display_id] or "index"
         new_df.set_index(index_col, inplace=True)
-    if display_id in DISPLAY_ID_TO_DATETIME_COLUMNS:
-        for col in DISPLAY_ID_TO_DATETIME_COLUMNS[display_id]:
-            new_df[col] = pd.to_datetime(new_df[col])
+    # convert back to original dtypes
+    if display_id in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
+        for col, dtype in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id].items():
+            new_df[col] = new_df[col].astype(dtype)
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called

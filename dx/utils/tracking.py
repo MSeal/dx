@@ -9,7 +9,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
-from dx.utils.datatypes import is_sequence_series
+from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import (
     clean_column_values_for_hash,
@@ -38,6 +38,7 @@ DISPLAY_ID_TO_METADATA = {}
 DISPLAY_ID_TO_FILTERS = {}
 
 DISPLAY_ID_TO_INDEX = {}
+DISPLAY_ID_TO_ORIG_COLUMN_DTYPES = {}
 DISPLAY_ID_TO_DATETIME_COLUMNS = {}
 DISPLAY_ID_TO_CONVERTED_COLUMNS = {}
 DISPLAY_ID_TO_SEQUENCE_COLUMNS = {}
@@ -150,11 +151,6 @@ def register_display_id(
     Hashes the dataframe object and tracks display_id for future references in other function calls,
     and writes the data to a local sqlite table for follow-on SQL querying.
     """
-    global DATAFRAME_HASH_TO_DISPLAY_ID
-    global DATAFRAME_HASH_TO_VAR_NAME
-    global DISPLAY_ID_TO_DATAFRAME_HASH
-    global DISPLAY_ID_TO_COLUMNS
-
     DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
     DATAFRAME_HASH_TO_DISPLAY_ID[df_hash] = display_id
 
@@ -219,7 +215,7 @@ def track_column_conversions(
 
     DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
-        c for c in orig_df.columns if is_datetime_series(df[c])
+        c for c in orig_df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
     ]
     DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id] = [
         c for c in orig_df.columns if is_sequence_series(df[c])

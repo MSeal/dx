@@ -208,6 +208,15 @@ def is_json_serializable(s: pd.Series) -> bool:
         return False
 
 
+def has_numeric_strings(s: pd.Series) -> bool:
+    if not str(s.dtype) == "object":
+        return False
+    for v in s.values:
+        if str(v).isnumeric() or str(v).isdigit() or str(v).isdecimal():
+            return True
+    return False
+
+
 def quick_random_dataframe(
     num_rows: int = 5,
     num_cols: int = 2,

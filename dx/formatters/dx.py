@@ -18,6 +18,7 @@ from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
     DISPLAY_ID_TO_METADATA,
+    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
     get_display_id,
@@ -73,10 +74,17 @@ def handle_dx_format(
         return payload, metadata
 
     orig_obj = obj.copy()
+    orig_dtypes = orig_obj.dtypes.to_dict()
     obj = normalize_index_and_columns(obj)
     obj_hash = generate_df_hash(obj)
     update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
     display_id = get_display_id(obj_hash)
+
+    # to be referenced during update_display_id() after
+    # data is pulled from sqlite in order to put dtypes back
+    # to their original states
+    if display_id not in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
+        DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id] = orig_dtypes
 
     if not update_existing_display:
         sqlite_df_table = register_display_id(

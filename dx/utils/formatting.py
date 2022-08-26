@@ -169,7 +169,8 @@ def generate_metadata(display_id: str):
 
     # these are set whenever store_sample_to_history() is called after a filter action from the frontend
     filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
-    sample_history = DISPLAY_ID_TO_METADATA.get(display_id, {}).get("sample_history", [])
+    existing_metadata = DISPLAY_ID_TO_METADATA.get(display_id, {})
+    sample_history = existing_metadata.get('datalink', {}).get("sample_history", [])
     metadata = {
         "datalink": {
             "dataframe_info": {},

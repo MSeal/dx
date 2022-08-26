@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import structlog
 
-from dx.formatters.callouts import display_callout
 from dx.settings import settings
 from dx.types import DXSamplingMethod
 from dx.utils.formatting import human_readable_size
@@ -56,7 +55,7 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
         size_warning = f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
         warnings.append(size_warning)
 
-    # TODO: replace with custom callout media type
+    # TODO: remove this altogether once frontend uses new metadata to create warning
     if warnings:
         warning_html = "<br/>".join(warnings)
         new_size_html = f"""A truncated version with <strong>{len(df):,}</code> row(s) and
@@ -79,7 +78,7 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
         )
 
         warning_html = f"{warning_html} {user_feedback_collapsed_section}"
-        display_callout(warning_html, level="warning")
+        # display_callout(warning_html, level="warning")
 
     return df
 

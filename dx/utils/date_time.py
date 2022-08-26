@@ -77,7 +77,7 @@ def is_datetime_series(s: pd.Series) -> bool:
         return True
 
     try:
-        s = s.apply(lambda x: pd.Timestamp(x))
+        s = pd.to_datetime(s)
         return True
     except Exception as e:
         logger.debug(f"series `{s.name}` is not a datetime series: {e}")
