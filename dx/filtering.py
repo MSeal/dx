@@ -13,7 +13,6 @@ from dx.utils.tracking import (
     DISPLAY_ID_TO_DATAFRAME_HASH,
     DISPLAY_ID_TO_DATETIME_COLUMNS,
     DISPLAY_ID_TO_INDEX,
-    DISPLAY_ID_TO_ORIG_METADATA,
     DISPLAY_ID_TO_SEQUENCE_COLUMNS,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
@@ -24,16 +23,14 @@ logger = structlog.get_logger(__name__)
 settings = get_settings()
 
 
-SUBSET_FILTERS = {}
-
-
 def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) -> dict:
     """
     Updates the metadata cache to include past filters, times, and dataframe info.
     """
+    global DISPLAY_ID_TO_METADATA
+
     # apply new metadata for resampled dataset
-    metadata = DISPLAY_ID_TO_ORIG_METADATA[display_id]
-    logger.debug(f"before {metadata=}")
+    metadata = DISPLAY_ID_TO_METADATA[display_id]
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
@@ -51,9 +48,11 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata["sampling_time"] = sample_time
 
     metadata["datalink"] = datalink_metadata
-    DISPLAY_ID_TO_ORIG_METADATA[display_id] = metadata
-    logger.debug(f"after {metadata=}")
-    return metadata
+    DISPLAY_ID_TO_METADATA[display_id] = metadata
+
+    # don't return metadata to pass into update_display(), since will
+    # trigger another initial render and will recreate the metadata
+    # inside
 
 
 def update_display_id(
@@ -69,7 +68,7 @@ def update_display_id(
     """
     from dx.utils.tracking import sql_engine
 
-    global SUBSET_FILTERS
+    global DISPLAY_ID_TO_FILTERS
 
     row_limit = limit or settings.DISPLAY_MAX_ROWS
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
@@ -85,7 +84,7 @@ def update_display_id(
         orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
-    df_metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
+    store_sample_to_history(new_df, display_id=display_id, filters=filters)
 
     # in the event there were nested values stored,
     # try to expand them back to their original datatypes
@@ -108,7 +107,7 @@ def update_display_id(
     # store filters to be passed through metadata to the frontend
     logger.debug(f"applying {filters=}")
     filters = filters or []
-    SUBSET_FILTERS[new_df_hash] = filters
+    DISPLAY_ID_TO_FILTERS[display_id] = filters
 
     logger.debug(f"assigning subset {new_df_hash} to parent {df_hash=}")
     SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
@@ -119,7 +118,6 @@ def update_display_id(
         update_display(
             new_df,
             display_id=display_id,
-            metadata=df_metadata,
         )
 
     # we can't reference a variable type to suggest to users to perform a `df.query()`
