@@ -9,6 +9,9 @@ class DXDisplayMode(enum.Enum):
     def __str__(self):
         return str(self.value)
 
+    def __eq__(self, other):
+        return str(other) == self.value
+
 
 class DXSamplingMethod(enum.Enum):
     first = "first"  # df.head(num_rows)
@@ -19,3 +22,6 @@ class DXSamplingMethod(enum.Enum):
 
     def __str__(self):
         return str(self.value)
+
+    def __eq__(self, other):
+        return str(other) == self.value
