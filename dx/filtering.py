@@ -50,9 +50,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     metadata["datalink"] = datalink_metadata
     DISPLAY_ID_TO_METADATA[display_id] = metadata
 
-    # don't return metadata to pass into update_display(), since will
-    # trigger another initial render and will recreate the metadata
-    # inside
+    return metadata
 
 
 def update_display_id(
@@ -68,7 +66,7 @@ def update_display_id(
     """
     from dx.utils.tracking import sql_engine
 
-    row_limit = limit or settings.DISPLAY_MAX_ROWS
+    row_limit = min(limit or settings.DISPLAY_MAX_ROWS, 50_000)  # 50k hard limit
     df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
     df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
     table_name = f"{df_name}__{df_hash}"
@@ -82,7 +80,7 @@ def update_display_id(
         orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
-    store_sample_to_history(new_df, display_id=display_id, filters=filters)
+    metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
 
     # in the event there were nested values stored,
     # try to expand them back to their original datatypes
@@ -117,6 +115,7 @@ def update_display_id(
         update_display(
             new_df,
             display_id=display_id,
+            metadata=metadata,
         )
 
     # we can't reference a variable type to suggest to users to perform a `df.query()`
