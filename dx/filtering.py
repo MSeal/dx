@@ -8,6 +8,7 @@ from IPython.display import update_display
 from dx.formatters.callouts import display_callout
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
+from dx.types import DEXFilterSettings
 from dx.utils.tracking import (
     DATAFRAME_HASH_TO_VAR_NAME,
     DISPLAY_ID_TO_DATAFRAME_HASH,
@@ -140,3 +141,49 @@ def update_display_id(
             display_id=display_id + "-primary",
             update=True,
         )
+
+
+def handle_resample(data: dict) -> None:
+    # TODO: add resample message to types.py
+    # `data` should look like this:
+    # {
+    #     "display_id": "1c1c8b40-f1f4-4205-931d-644a42e8232d",
+    #     "sampling": {
+    #         "filters": [
+    #             {
+    #                 "column": "float_column",
+    #                 "type": "METRIC_FILTER",
+    #                 "predicate": "between",
+    #                 "value": [0.5346270287577823, 0.673002123739554],
+    #             }
+    #         ],
+    #         "sample_size": 10000,
+    #     },
+    #     "status": "submitted",
+    # }
+
+    raw_filters = data["filters"]
+    sample_size = data["limit"]
+
+    update_params = {
+        "display_id": data["display_id"],
+        "sql_query": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
+        "filters": raw_filters,
+        "limit": sample_size,
+    }
+
+    if raw_filters:
+        dex_filters = DEXFilterSettings(filters=raw_filters)
+        # used to give a pandas query string to the user
+        pandas_filter_str = dex_filters.to_pandas_query()
+        # used to actually filter the data
+        sql_filter_str = dex_filters.to_sql_query()
+        update_params.update(
+            {
+                "pandas_filter": pandas_filter_str,
+                "sql_filter": f"SELECT * FROM {{table_name}} WHERE {sql_filter_str} LIMIT {sample_size}",
+                "filters": raw_filters,
+            }
+        )
+
+    update_display_id(**update_params)
