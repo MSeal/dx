@@ -167,7 +167,7 @@ def handle_resample(data: dict) -> None:
 
     update_params = {
         "display_id": data["display_id"],
-        "sql_query": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
+        "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
         "limit": sample_size,
     }
