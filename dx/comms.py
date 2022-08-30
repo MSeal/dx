@@ -1,9 +1,9 @@
 import structlog
 from IPython import get_ipython
+from IPython.core.interactiveshell import InteractiveShell
 
-from dx.settings import get_settings
+from dx.filtering import handle_resample
 
-settings = get_settings()
 logger = structlog.get_logger(__name__)
 
 
@@ -11,27 +11,39 @@ logger = structlog.get_logger(__name__)
 def target_func(comm, open_msg):
     @comm.on_msg
     def _recv(msg):
-        from dx.filtering import update_display_id
+
+        content = msg.get("content", {})
+        if not content:
+            return
+
+        data = content.get("data", {})
+        if not data:
+            return
 
         data = msg["content"]["data"]
-        if "display_id" in data:
-            update_display_id(
-                display_id=data["display_id"],
-                pandas_filter=data.get("pandas_filter"),
-                sql_filter=data.get("sql_filter"),
-                filters=data.get("filters"),
-                output_variable_name=data.get("output_variable_name"),
-                limit=data["limit"],
-            )
+
+        if "display_id" in data and "filters" in data:
+            # TODO: check for explicit resample value?
+            handle_resample(data)
 
     comm.send({"connected": True})
 
 
-ipython_shell = get_ipython()
-if (
-    ipython_shell is not None
-    and getattr(ipython_shell, "kernel", None)
-    and settings.ENABLE_DATALINK
-):
-    COMM_MANAGER = ipython_shell.kernel.comm_manager
-    COMM_MANAGER.register_target("datalink", target_func)
+def register_comm(ipython_shell: InteractiveShell) -> None:
+    """
+    Registers the comm target function with the IPython kernel.
+    """
+    from dx.settings import get_settings
+
+    if not get_settings().ENABLE_DATALINK:
+        return
+
+    if getattr(ipython_shell, "kernel", None) is None:
+        # likely a TerminalInteractiveShell
+        return
+
+    ipython_shell.kernel.comm_manager.register_target("datalink", target_func)
+
+
+if (ipython := get_ipython()) is not None:
+    register_comm(ipython)
