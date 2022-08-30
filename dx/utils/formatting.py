@@ -26,12 +26,22 @@ def human_readable_size(size_bytes: int) -> str:
 
 def is_default_index(index: pd.Index) -> bool:
     """
-    Returns True if the index values are 0-n, where n is the number of items in the series.
+    Returns True if the index have no specified name,
+    are of `int` type, and are a pd.Index (instead of pd.MultiIndex).
     """
-    index_vals = index.values.tolist()
-    default_index = pd.Index(list(range(len(index_vals))))
-    index = pd.Index(sorted(index_vals))
-    return index.equals(default_index)
+    if isinstance(index, pd.MultiIndex):
+        return False
+
+    if index.dtype != "int":
+        return False
+
+    if index.name is not None:
+        return False
+
+    # we aren't checking for 0-n row values because any kind of
+    # filtering or sampling will create gaps and incorrectly
+    # mark this as a non-default index (return False)
+    return True
 
 
 def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
