@@ -35,7 +35,7 @@ def get_default_renderable_types():
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL: Union[int, str] = logging.DEBUG
+    LOG_LEVEL: Union[int, str] = logging.WARNING
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
