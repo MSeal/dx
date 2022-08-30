@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
 
     # controls dataframe variable tracking, hashing, and storing in sqlite
-    ENABLE_DATALINK: bool = True
+    ENABLE_DATALINK: bool = False
     NUM_PAST_SAMPLES_TRACKED: int = 3
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
