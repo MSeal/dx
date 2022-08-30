@@ -164,16 +164,16 @@ def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
     return s
 
 
-def generate_metadata(display_id: str):
+def generate_metadata(display_id: str, **dataframe_info):
     from dx.utils.tracking import DISPLAY_ID_TO_FILTERS, DISPLAY_ID_TO_METADATA
 
     # these are set whenever store_sample_to_history() is called after a filter action from the frontend
     filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
     existing_metadata = DISPLAY_ID_TO_METADATA.get(display_id, {})
-    sample_history = existing_metadata.get('datalink', {}).get("sample_history", [])
+    sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
     metadata = {
         "datalink": {
-            "dataframe_info": {},
+            "dataframe_info": dataframe_info,
             "dx_settings": settings.dict(
                 exclude={
                     "RENDERABLE_OBJECTS": True,

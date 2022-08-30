@@ -161,14 +161,12 @@ def format_dataresource(
 
     payload = generate_dataresource_body(df, display_id=display_id)
 
-    metadata = generate_metadata(display_id=display_id)
-    metadata["datalink"]["dataframe_info"].update(
-        {
-            "default_index_used": has_default_index,
-            **orig_df_dimensions,
-            **sampled_df_dimensions,
-        }
-    )
+    dataframe_info = {
+        "default_index_used": has_default_index,
+        **orig_df_dimensions,
+        **sampled_df_dimensions,
+    }
+    metadata = generate_metadata(display_id=display_id, **dataframe_info)
 
     if display_id not in DISPLAY_ID_TO_METADATA:
         DISPLAY_ID_TO_METADATA[display_id] = metadata
