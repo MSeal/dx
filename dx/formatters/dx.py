@@ -149,7 +149,6 @@ def format_dx(
     df: pd.DataFrame,
     update: bool = False,
     display_id: Optional[str] = None,
-    filters: Optional[list] = None,
     has_default_index: bool = True,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
@@ -161,14 +160,12 @@ def format_dx(
 
     payload = generate_dx_body(df, display_id=display_id)
 
-    metadata = generate_metadata(display_id=display_id)
-    metadata["datalink"]["dataframe_info"].update(
-        {
-            "default_index_used": has_default_index,
-            **orig_df_dimensions,
-            **sampled_df_dimensions,
-        }
-    )
+    dataframe_info = {
+        "default_index_used": has_default_index,
+        **orig_df_dimensions,
+        **sampled_df_dimensions,
+    }
+    metadata = generate_metadata(display_id=display_id, **dataframe_info)
 
     if display_id not in DISPLAY_ID_TO_METADATA:
         DISPLAY_ID_TO_METADATA[display_id] = metadata
@@ -178,6 +175,7 @@ def format_dx(
 
     # this needs to happen so we can update by display_id as needed
     with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
+        logger.debug(f"displaying DEX payload in {display_id=}")
         display(
             payload,
             raw=True,
