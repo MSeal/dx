@@ -96,6 +96,8 @@ class Settings(BaseSettings):
     def validate_display_max_columns(cls, val):
         if val < 0:
             raise ValueError("DISPLAY_MAX_COLUMNS must be >= 0")
+        if val > 50_000:
+            raise ValueError("DISPLAY_MAX_COLUMNS must be <= 50000")
         pd.set_option("display.max_columns", val)
         return val
 
