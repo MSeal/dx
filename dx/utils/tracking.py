@@ -25,9 +25,12 @@ sql_engine = create_engine("sqlite://", echo=False)
 # - an original uuid for each dataframe
 # - the hash of each dataframe so we aren't storing them multiple times
 # - the display ID associated with each *cleaned* dataframe
+# - the cell ID associated with the display ID, when passed during an update over comms
 # - before/after cleaning associations per dataframe
 # - any special column treatment (e.g. datetime columns)
 # TODO: create new classes to handle this instead of abusing globals.
+
+CELL_ID_TO_DISPLAY_ID = {}
 
 DATAFRAME_HASH_TO_DISPLAY_ID = {}
 DATAFRAME_HASH_TO_VAR_NAME = {}

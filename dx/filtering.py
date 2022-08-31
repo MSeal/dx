@@ -61,9 +61,16 @@ def update_display_id(
     filters: Optional[list] = None,
     output_variable_name: Optional[str] = None,
     limit: Optional[int] = None,
+    cell_id: Optional[str] = None,
 ) -> None:
     """
     Filters the dataframe in the cell with the given display_id.
+    This is done by executing the SQL filter on the table
+    associated with the given display ID.
+
+    This also associates the queried subset to the original dataset
+    (based on the display ID) so as to avoid re-registering a new
+    display handler.
     """
     from dx.utils.tracking import sql_engine
 
@@ -170,6 +177,7 @@ def handle_resample(data: dict) -> None:
         "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
         "limit": sample_size,
+        "cell_id": data["cell_id"],
     }
 
     if raw_filters:

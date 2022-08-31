@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
 
     # controls dataframe variable tracking, hashing, and storing in sqlite
-    ENABLE_DATALINK: bool = False
+    ENABLE_DATALINK: bool = True
     NUM_PAST_SAMPLES_TRACKED: int = 3
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
@@ -96,6 +96,8 @@ class Settings(BaseSettings):
     def validate_display_max_columns(cls, val):
         if val < 0:
             raise ValueError("DISPLAY_MAX_COLUMNS must be >= 0")
+        if val > 50_000:
+            raise ValueError("DISPLAY_MAX_COLUMNS must be <= 50000")
         pd.set_option("display.max_columns", val)
         return val
 
