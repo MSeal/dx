@@ -115,7 +115,7 @@ def update_display_id(
             display_id=display_id,
             metadata=metadata,
         )
-
+        
 
 def handle_resample(data: dict) -> None:
     # TODO: add resample message to types.py
