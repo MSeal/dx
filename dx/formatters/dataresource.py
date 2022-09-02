@@ -18,14 +18,12 @@ from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
     DISPLAY_ID_TO_METADATA,
-    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
     SUBSET_TO_DATAFRAME_HASH,
-    generate_df_hash,
-    get_display_id,
-    register_display_id,
+    DXDataFrameCache,
     store_in_sqlite,
-    track_column_conversions,
 )
+
+LAST_DATARESOURCE_SENT = {}
 
 
 class DataResourceSettings(BaseSettings):
@@ -55,12 +53,7 @@ dataresource_settings = get_dataresource_settings()
 logger = structlog.get_logger(__name__)
 
 
-def handle_dataresource_format(
-    obj,
-    ipython_shell: Optional[InteractiveShell] = None,
-):
-    ipython = ipython_shell or get_ipython()
-
+def handle_dataresource_format(obj):
     logger.debug(f"*** handling dataresource format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
@@ -75,45 +68,22 @@ def handle_dataresource_format(
         )
         return payload, metadata
 
-    orig_obj = obj.copy()
-    orig_dtypes = orig_obj.dtypes.to_dict()
-    obj = normalize_index_and_columns(obj)
-    obj_hash = generate_df_hash(obj)
-    update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
-    display_id = get_display_id(obj_hash)
+    dfc = DXDataFrameCache(obj)
+    logger.debug(f"{dfc=}")
 
-    # to be referenced during update_display_id() after
-    # data is pulled from sqlite in order to put dtypes back
-    # to their original states
-    if display_id not in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
-        DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id] = orig_dtypes
-
-    if not update_existing_display:
-        sqlite_df_table = register_display_id(
-            obj,
-            display_id=display_id,
-            df_hash=obj_hash,
-            ipython_shell=ipython,
-        )
-
-    track_column_conversions(
-        orig_df=orig_obj,
-        df=obj,
-        display_id=display_id,
-    )
-    del orig_obj
+    update_existing_display = dfc.hash in SUBSET_TO_DATAFRAME_HASH
 
     payload, metadata = format_dataresource(
-        obj,
+        dfc.df,
         update=update_existing_display,
-        display_id=display_id,
+        display_id=dfc.display_id,
         has_default_index=default_index_used,
     )
 
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
     if not update_existing_display:
-        store_in_sqlite(sqlite_df_table, obj)
+        store_in_sqlite(dfc.sql_table, dfc.df)
 
     return payload, metadata
 
@@ -174,11 +144,20 @@ def format_dataresource(
     payload = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: payload}
     metadata = {dataresource_settings.DATARESOURCE_MEDIA_TYPE: metadata}
 
+    global LAST_DATARESOURCE_SENT
+    LAST_DATARESOURCE_SENT[display_id] = {
+        "payload": payload,
+        "metadata": metadata,
+        "update": update,
+        "display_id": display_id,
+    }
+
     # this needs to happen so we can update by display_id as needed
     with pd.option_context(
         "html.table_schema", dataresource_settings.DATARESOURCE_HTML_TABLE_SCHEMA
     ):
         logger.debug(f"displaying dataresource payload in {display_id=}")
+        logger.debug(f"{metadata=}")
         display(
             payload,
             raw=True,
