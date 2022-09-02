@@ -1,6 +1,6 @@
 import hashlib
 import uuid
-from typing import Optional
+from typing import Dict, List, Optional
 
 import pandas as pd
 import structlog
@@ -11,24 +11,86 @@ from sqlalchemy import create_engine
 
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
-from dx.utils.formatting import (
-    clean_column_values_for_hash,
-    clean_column_values_for_sqlite,
-    normalize_index_and_columns,
-)
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
 
 
-# we need to keep track of some things here:
-# - an original uuid for each dataframe
-# - the hash of each dataframe so we aren't storing them multiple times
-# - the display ID associated with each *cleaned* dataframe
-# - the cell ID associated with the display ID, when passed during an update over comms
-# - before/after cleaning associations per dataframe
-# - any special column treatment (e.g. datetime columns)
-# TODO: create new classes to handle this instead of abusing globals.
+class DXDataFrameCache:
+    """
+    Convenience class to store information about dataframes,
+    including original size, series data types, and other
+    dx-generated information such as display_id and hash.
+    """
+
+    df: pd.DataFrame = None
+    original_column_dtypes: dict = {}
+    index: List[str] = []
+
+    id: uuid.UUID = None
+    parent_id: uuid.UUID = None
+
+    hash: str = None
+    display_id: uuid.UUID = None
+    variable_name: str = None
+
+    metadata: dict = {}
+    filters: List[dict] = []
+
+    def __init__(self, df: pd.DataFrame):
+        from dx.sampling import get_df_dimensions
+
+        self.original_column_dtypes = df.dtypes.to_dict()
+        self.sequence_columns = [column for column in df.columns if is_sequence_series(df[column])]
+        self.datetime_columns = [
+            c for c in df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
+        ]
+
+        self.default_index_used = is_default_index(df.index)
+        self.index_name = df.index.name or "index"
+
+        self.id = uuid.uuid4()
+        self.df = normalize_index_and_columns(df)
+
+        self.hash = generate_df_hash(self.df)
+        self.variable_name = get_df_variable_name(self.df, df_hash=self.hash)
+        self.sql_table = f"{self.variable_name}_{self.hash}"
+        self.display_id = get_display_id(self.hash)
+
+        self.metadata = generate_metadata(self.display_id)
+        self.metadata["datalink"]["dataframe_info"] = get_df_dimensions(self.df, prefix="orig")
+
+    def __repr__(self):
+        attr_str = " ".join(
+            f"{k}={v}" for k, v in self.__dict__.items() if not isinstance(v, (pd.DataFrame))
+        )
+        return f"<DXDataFrameCache {attr_str}>"
+
+
+class DXCacheManager:
+    """
+    Convenience class for keeping track of DXDataFrameCache
+    objects, to include convenience methods for getting a DXDataFrameCache
+    by display_id or by variable name.
+    """
+
+    dataframe_caches: List[DXDataFrameCache] = []
+    filter_subsets: Dict[str, DXDataFrameCache] = {}
+
+    def __repr__(self):
+        return f"<DXCacheManager {len(self.dataframe_caches)} cache(s)>"
+
+    def add(self, df: pd.DataFrame):
+        dfc = DXDataFrameCache(df)
+        self.dataframe_caches.append(dfc)
+
+    def get_by_display_id(self, display_id: str) -> DXDataFrameCache:
+        return next(dfc for dfc in self.dataframe_caches if dfc.display_id == display_id)
+
+
+cache_manager = DXCacheManager()
+
 
 CELL_ID_TO_DISPLAY_ID = {}
 
@@ -84,9 +146,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     """
     hash_df = df.copy()
 
-    for col in hash_df.columns:
-        hash_df[col] = clean_column_values_for_hash(hash_df[col])
-
     # this will be a series of hash values the length of df
     df_hash_series = hash_pandas_object(hash_df)
     # then string-concatenate all the hashed values, which could be very large
@@ -131,7 +190,7 @@ def get_df_variable_name(
     named_df_vars_with_same_hash = [name for name in matching_df_vars if not name.startswith("_")]
     if named_df_vars_with_same_hash:
         logger.debug(f"{named_df_vars_with_same_hash=}")
-        return named_df_vars_with_same_hash[0]
+        return named_df_vars_with_same_hash[-1]
 
     if matching_df_vars:
         # dataframe rendered without variable assignment
@@ -142,29 +201,6 @@ def get_df_variable_name(
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
-
-
-def register_display_id(
-    df: pd.DataFrame,
-    display_id: str,
-    df_hash: str,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> str:
-    """
-    Hashes the dataframe object and tracks display_id for future references in other function calls,
-    and writes the data to a local sqlite table for follow-on SQL querying.
-    """
-    DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
-    DATAFRAME_HASH_TO_DISPLAY_ID[df_hash] = display_id
-
-    df_name = get_df_variable_name(
-        df,
-        ipython_shell=ipython_shell,
-        df_hash=df_hash,
-    )
-    DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
-    logger.debug(f"registering display_id {display_id=} for `{df_name}`")
-    return f"{df_name}__{df_hash}"
 
 
 def get_display_id(df_hash: str) -> str:
@@ -183,10 +219,6 @@ def get_display_id(df_hash: str) -> str:
 def store_in_sqlite(table_name: str, df: pd.DataFrame):
     logger.debug(f"{df.columns=}")
     tracking_df = df.copy()
-
-    logger.debug("-- cleaning before sqlite --")
-    for col in tracking_df.columns:
-        tracking_df[col] = clean_column_values_for_sqlite(tracking_df[col])
 
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:
@@ -216,7 +248,6 @@ def track_column_conversions(
     logger.debug(f"{orig_df.columns=}")
     logger.debug(f"{df.columns=}")
 
-    DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
         c for c in orig_df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
     ]
