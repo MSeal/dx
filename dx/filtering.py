@@ -1,24 +1,18 @@
-import html
 from typing import Optional
 
 import pandas as pd
 import structlog
 from IPython.display import update_display
 
-from dx.formatters.callouts import display_callout
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types import DEXFilterSettings
 from dx.utils.tracking import (
-    DATAFRAME_HASH_TO_VAR_NAME,
-    DISPLAY_ID_TO_DATAFRAME_HASH,
     DISPLAY_ID_TO_FILTERS,
-    DISPLAY_ID_TO_INDEX,
-    DISPLAY_ID_TO_METADATA,
-    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
-    DISPLAY_ID_TO_SEQUENCE_COLUMNS,
-    SUBSET_TO_DATAFRAME_HASH,
+    DXDataFrameCache,
+    cache_manager,
     generate_df_hash,
+    sql_engine,
 )
 
 logger = structlog.get_logger(__name__)
@@ -31,7 +25,8 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     Updates the metadata cache to include past filters, times, and dataframe info.
     """
     # apply new metadata for resampled dataset
-    metadata = DISPLAY_ID_TO_METADATA[display_id]
+    dfc: DXDataFrameCache = cache_manager.get_by_display_id(display_id)
+    metadata = dfc.metadata
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
@@ -49,7 +44,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata["sampling_time"] = sample_time
 
     metadata["datalink"] = datalink_metadata
-    DISPLAY_ID_TO_METADATA[display_id] = metadata
+    dfc.metadata = metadata
 
     return metadata
 
@@ -72,20 +67,16 @@ def update_display_id(
     (based on the display ID) so as to avoid re-registering a new
     display handler.
     """
-    from dx.utils.tracking import sql_engine
-
     row_limit = limit or settings.DISPLAY_MAX_ROWS
-    df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
-    df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
-    table_name = f"{df_name}__{df_hash}"
+    dfc: DXDataFrameCache = cache_manager.get_by_display_id(display_id)
 
-    query_string = sql_filter.format(table_name=table_name)
+    query_string = sql_filter.format(table_name=dfc.sql_table)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
     logger.debug(f"{new_df.columns=}")
 
     with sql_engine.connect() as conn:
-        orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
+        orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {dfc.sql_table}").scalar()
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
     metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
@@ -93,16 +84,15 @@ def update_display_id(
     # in the event there were nested values stored,
     # try to expand them back to their original datatypes
     for col in new_df.columns:
-        if col in DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id]:
+        if col in dfc.sequence_columns:
             new_df[col] = new_df[col].apply(lambda x: x.split(", "))
-    # resetting original formatting
-    if display_id in DISPLAY_ID_TO_INDEX:
-        index_col = DISPLAY_ID_TO_INDEX[display_id] or "index"
-        new_df.set_index(index_col, inplace=True)
+
+    # resetting original index
+    new_df.set_index(dfc.index_name, inplace=True)
+
     # convert back to original dtypes
-    if display_id in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
-        for col, dtype in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id].items():
-            new_df[col] = new_df[col].astype(dtype)
+    for col, dtype in dfc.original_column_dtypes.items():
+        new_df[col] = new_df[col].astype(dtype)
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
@@ -114,8 +104,8 @@ def update_display_id(
     filters = filters or []
     DISPLAY_ID_TO_FILTERS[display_id] = filters
 
-    logger.debug(f"assigning subset {new_df_hash} to parent {df_hash=}")
-    SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
+    logger.debug(f"assigning subset {new_df_hash} to parent {dfc.hash=}")
+    cache_manager.filter_subsets[new_df_hash] = dfc.hash
 
     # allow temporary override of the display limit
     with settings_context(DISPLAY_MAX_ROWS=row_limit):
@@ -124,29 +114,6 @@ def update_display_id(
             new_df,
             display_id=display_id,
             metadata=metadata,
-        )
-
-    # we can't reference a variable type to suggest to users to perform a `df.query()`
-    # type operation since it was never declared in the first place
-    if not df_name.startswith("unk_dataframe_"):
-        # TODO: replace with custom callout media type
-        output_variable_name = output_variable_name or "new_df"
-        # wrapping the triple quotes internally so the user can copy/paste directly
-        # without worry of double/single quotes in their data not being handled
-        pandas_query_str = f'"""{pandas_filter.format(df_name=df_name)}"""'
-        filter_code = (
-            f"""{output_variable_name} = {df_name}.query({pandas_query_str}, engine="python")"""
-        )
-        filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
-        <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{html.escape(filter_code, quote=True)}</pre>
-        """
-        display_callout(
-            filter_msg,
-            header=False,
-            icon="info",
-            level="success",
-            display_id=display_id + "-primary",
-            update=True,
         )
 
 
@@ -167,6 +134,7 @@ def handle_resample(data: dict) -> None:
     #         "sample_size": 10000,
     #     },
     #     "status": "submitted",
+    #     "cell_id": "cell1",   # <-- not currently used
     # }
 
     raw_filters = data["filters"]
