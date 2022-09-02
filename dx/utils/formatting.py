@@ -109,7 +109,7 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.debug("-- cleaning before display --")
     for column in df.columns:
-        df[column] = clean_column_values_for_display(df[column])
+        df[column] = clean_column_values(df[column])
 
     return df
 
@@ -125,7 +125,7 @@ def stringify_index(index: pd.Index):
     return tuple(map(str, index))
 
 
-def clean_column_values_for_display(s: pd.Series) -> pd.Series:
+def clean_column_values(s: pd.Series) -> pd.Series:
     """
     Cleaning/conversion for values in a series to prevent
     build_table_schema() or frontend rendering errors.
@@ -140,37 +140,6 @@ def clean_column_values_for_display(s: pd.Series) -> pd.Series:
 
     s = geometry.handle_geometry_series(s)
     s = datatypes.handle_unk_type_series(s)
-    return s
-
-
-def clean_column_values_for_hash(s: pd.Series) -> pd.Series:
-    """
-    Cleaning/conversion for values in a series to prevent
-    hash_pandas_object() errors.
-    """
-    s = geometry.handle_geometry_series(s)
-
-    s = datatypes.handle_dict_series(s)
-    s = datatypes.handle_sequence_series(s)
-    return s
-
-
-def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
-    """
-    Cleaning/conversion for values in a series to prevent
-    errors writing to sqlite.
-    """
-    s = datatypes.handle_dtype_series(s)
-    s = datatypes.handle_interval_series(s)
-    s = datatypes.handle_complex_number_series(s)
-    s = datatypes.handle_ip_address_series(s)
-
-    s = date_time.handle_time_period_series(s)
-
-    s = geometry.handle_geometry_series(s)
-
-    s = datatypes.handle_dict_series(s)
-    s = datatypes.handle_sequence_series(s)
     return s
 
 
