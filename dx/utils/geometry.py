@@ -5,14 +5,12 @@ import numpy as np
 import pandas as pd
 import structlog
 
-try:
+from dx.settings import GEOPANDAS_INSTALLED
+
+if GEOPANDAS_INSTALLED:
     import geopandas as gpd
     import shapely.geometry.base
     from shapely.geometry import mapping
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
 
 logger = structlog.get_logger(__name__)
 

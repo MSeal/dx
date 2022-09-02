@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
+import numpy as np
 import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
@@ -16,8 +17,25 @@ MB = 1024 * 1024
 logger = structlog.get_logger(__name__)
 
 
+try:
+    import geopandas as gpd
+
+    GEOPANDAS_INSTALLED = True
+except ImportError:
+    GEOPANDAS_INSTALLED = False
+
+
+@lru_cache
+def get_default_renderable_types():
+    types = {pd.Series, pd.DataFrame, np.ndarray}
+    if GEOPANDAS_INSTALLED:
+        gpd_types = {gpd.GeoDataFrame, gpd.GeoSeries}
+        types.update(gpd_types)
+    return types
+
+
 class Settings(BaseSettings):
-    LOG_LEVEL = logging.WARNING
+    LOG_LEVEL: Union[int, str] = logging.WARNING
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -25,7 +43,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    RENDERABLE_OBJECTS: Set[type] = set()
+    RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -50,7 +68,8 @@ class Settings(BaseSettings):
     DATETIME_STRING_FORMAT: str = "%Y-%m-%dT%H:%M:%S.%f"
 
     # controls dataframe variable tracking, hashing, and storing in sqlite
-    ENABLE_DATALINK: bool = False
+    ENABLE_DATALINK: bool = True
+    NUM_PAST_SAMPLES_TRACKED: int = 3
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
@@ -77,6 +96,8 @@ class Settings(BaseSettings):
     def validate_display_max_columns(cls, val):
         if val < 0:
             raise ValueError("DISPLAY_MAX_COLUMNS must be >= 0")
+        if val > 50_000:
+            raise ValueError("DISPLAY_MAX_COLUMNS must be <= 50000")
         pd.set_option("display.max_columns", val)
         return val
 
@@ -94,6 +115,7 @@ class Settings(BaseSettings):
 
     class Config:
         validate_assignment = True
+        use_enum_values = True
 
 
 @lru_cache
@@ -185,8 +207,12 @@ def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_
             set_option(setting, value, ipython_shell=ipython_shell)
         yield settings
     finally:
+        if display_mode is not None:
+            set_display_mode(orig_settings["DISPLAY_MODE"], ipython_shell=ipython_shell)
         for setting, value in orig_settings.items():
-            set_option(setting, value, ipython_shell=ipython_shell)
+            # only reset it if it was adjusted originally; don't reset everything
+            if setting in option_kwargs:
+                set_option(setting, value, ipython_shell=ipython_shell)
 
 
 def add_renderable_type(renderable_type: Union[type, list]):

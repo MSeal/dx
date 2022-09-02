@@ -26,12 +26,22 @@ def human_readable_size(size_bytes: int) -> str:
 
 def is_default_index(index: pd.Index) -> bool:
     """
-    Returns True if the index values are 0-n, where n is the number of items in the series.
+    Returns True if the index have no specified name,
+    are of `int` type, and are a pd.Index (instead of pd.MultiIndex).
     """
-    index_vals = index.values.tolist()
-    default_index = pd.Index(list(range(len(index_vals))))
-    index = pd.Index(sorted(index_vals))
-    return index.equals(default_index)
+    if isinstance(index, pd.MultiIndex):
+        return False
+
+    if index.dtype != "int":
+        return False
+
+    if index.name is not None:
+        return False
+
+    # we aren't checking for 0-n row values because any kind of
+    # filtering or sampling will create gaps and incorrectly
+    # mark this as a non-default index (return False)
+    return True
 
 
 def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -61,21 +71,17 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
 
     # if index or column values are numeric, we need to convert to strings
     # (whether pd.Index or pd.MultiIndex) to avoid build_table_schema() errors
-    logger.debug(f"before: {df.index[:5]=}")
-
     index_name = getattr(df.index, "names", None)
     # may be `FrozenList([None, None ...])`
     if not any(index_name):
         index_name = getattr(df.index, "name")
     index_name = index_name or "index"
-    logger.debug(f"{index_name=}")
     # build_table_schema() doesn't like non-string index names
     if not isinstance(index_name, str):
         if is_multiindex:
             index_name = list(map(str, index_name))
         else:
             index_name = str(index_name)
-    logger.debug(f"{index_name=}")
 
     if settings.FLATTEN_INDEX_VALUES and is_multiindex:
         df.index = df.index.to_flat_index()
@@ -86,7 +92,6 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             df.index = pd.MultiIndex.from_tuples(stringify_index(df.index), names=index_name)
         else:
             df.index = pd.Index(stringify_index(df.index), name=index_name)
-    logger.debug(f"after: {df.index[:5]=}")
     return df
 
 
@@ -95,8 +100,6 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     Any additional formatting that needs to happen to the columns,
     or the data itself should be done here.
     """
-    logger.debug(f"before: {df.columns[:5]=}")
-
     if settings.FLATTEN_COLUMN_VALUES and isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.to_flat_index()
         df.columns = [", ".join([str(val) for val in column_vals]) for column_vals in df.columns]
@@ -104,10 +107,10 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if settings.STRINGIFY_COLUMN_VALUES:
         df.columns = pd.Index(stringify_index(df.columns))
 
+    logger.debug("-- cleaning before display --")
     for column in df.columns:
         df[column] = clean_column_values_for_display(df[column])
 
-    logger.debug(f"after: {df.columns[:5]=}")
     return df
 
 
@@ -136,6 +139,7 @@ def clean_column_values_for_display(s: pd.Series) -> pd.Series:
     s = datatypes.handle_complex_number_series(s)
 
     s = geometry.handle_geometry_series(s)
+    s = datatypes.handle_unk_type_series(s)
     return s
 
 
@@ -170,16 +174,29 @@ def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
     return s
 
 
-# TODO: clean this up
-def expand_sequences(val, separator: str = ", "):
-    if separator not in str(val):
-        return val
+def generate_metadata(display_id: str, **dataframe_info):
+    from dx.utils.tracking import DISPLAY_ID_TO_FILTERS, DISPLAY_ID_TO_METADATA
 
-    vals = []
-    for val in val.split(separator):
-        try:
-            val = eval(val)
-        except Exception as e:
-            logger.debug(f"can't eval({val}): {e}")
-        vals.append(val)
-    return vals
+    # these are set whenever store_sample_to_history() is called after a filter action from the frontend
+    filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
+    existing_metadata = DISPLAY_ID_TO_METADATA.get(display_id, {})
+    sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
+    metadata = {
+        "datalink": {
+            "dataframe_info": dataframe_info,
+            "dx_settings": settings.dict(
+                exclude={
+                    "RENDERABLE_OBJECTS": True,
+                    "DATETIME_STRING_FORMAT": True,
+                    "MEDIA_TYPE": True,
+                }
+            ),
+            "display_id": display_id,
+            "applied_filters": filters,
+            "sample_history": sample_history,
+            "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
+        },
+        "display_id": display_id,
+    }
+    logger.debug(f"{metadata=}")
+    return metadata

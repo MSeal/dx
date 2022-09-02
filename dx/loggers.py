@@ -81,7 +81,7 @@ def configure_logging(app_level: Optional[int] = None):
                 },
             },
             "loggers": {
-                "": {
+                "dx": {
                     "handlers": ["default"],
                     "level": "WARNING",
                     "propagate": True,

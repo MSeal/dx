@@ -74,11 +74,10 @@ def test_generate_dataresource_body(dtype: str):
     params[dtype] = True
     df = random_dataframe(**params)
     try:
-        payload, metadata = dataresource.generate_dataresource_body(df)
+        payload = dataresource.generate_dataresource_body(df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
     assert isinstance(payload, dict)
-    assert isinstance(metadata, dict)
 
 
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
@@ -91,11 +90,10 @@ def test_generate_dx_body(dtype: str):
     params[dtype] = True
     df = random_dataframe(**params)
     try:
-        payload, metadata = dx.generate_dx_body(df)
+        payload = dx.generate_dx_body(df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
     assert isinstance(payload, dict)
-    assert isinstance(metadata, dict)
 
 
 @pytest.mark.xfail(reason="only for dev")
