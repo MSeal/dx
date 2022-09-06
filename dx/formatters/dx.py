@@ -7,7 +7,7 @@ import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import HTML, display
+from IPython.display import display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
@@ -181,14 +181,6 @@ def format_dx(
             raw=True,
             metadata=metadata,
             display_id=display_id,
-            update=update,
-        )
-
-    # temporary placeholder for copy/paste user messaging
-    if settings.ENABLE_DATALINK:
-        display(
-            HTML("<div></div>"),
-            display_id=display_id + "-primary",
             update=update,
         )
 

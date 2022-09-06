@@ -7,7 +7,7 @@ import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import HTML, display
+from IPython.display import display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
@@ -138,9 +138,10 @@ def generate_dataresource_body(
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    fake_none = None
     payload = {
         "schema": build_table_schema(df),
-        "data": df.reset_index().to_dict("records"),
+        "data": df.reset_index().fillna(fake_none).to_dict("records"),
         "datalink": {"display_id": display_id},
     }
     return payload
@@ -186,12 +187,6 @@ def format_dataresource(
             display_id=display_id,
             update=update,
         )
-    # temporary placeholder for copy/paste user messaging
-    display(
-        HTML("<div></div>"),
-        display_id=display_id + "-primary",
-        update=update,
-    )
 
     return (payload, metadata)
 
