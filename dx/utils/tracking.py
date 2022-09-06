@@ -11,11 +11,7 @@ from sqlalchemy import create_engine
 
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
-from dx.utils.formatting import (
-    clean_column_values_for_hash,
-    clean_column_values_for_sqlite,
-    normalize_index_and_columns,
-)
+from dx.utils.formatting import normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
@@ -84,9 +80,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     """
     hash_df = df.copy()
 
-    for col in hash_df.columns:
-        hash_df[col] = clean_column_values_for_hash(hash_df[col])
-
     # this will be a series of hash values the length of df
     df_hash_series = hash_pandas_object(hash_df)
     # then string-concatenate all the hashed values, which could be very large
@@ -104,7 +97,6 @@ def is_equal(df: pd.DataFrame, other_df: pd.DataFrame, df_hash: str):
 
     # this could be expensive, so we only want to do it if we're
     # pretty sure two dataframes could be equal
-    logger.debug("-- cleaning before hashing --")
     other_hash = generate_df_hash(normalize_index_and_columns(other_df))
     if df_hash != other_hash:
         return False
@@ -184,10 +176,6 @@ def store_in_sqlite(table_name: str, df: pd.DataFrame):
     logger.debug(f"{df.columns=}")
     tracking_df = df.copy()
 
-    logger.debug("-- cleaning before sqlite --")
-    for col in tracking_df.columns:
-        tracking_df[col] = clean_column_values_for_sqlite(tracking_df[col])
-
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:
         num_written_rows = tracking_df.to_sql(
@@ -213,8 +201,6 @@ def track_column_conversions(
     # to the cleaned version of the dataframe, pull the index values
     # of the resulting row(s), then swap out the results with the
     # index positions of the original data
-    logger.debug(f"{orig_df.columns=}")
-    logger.debug(f"{df.columns=}")
 
     DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
