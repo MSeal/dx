@@ -1,14 +1,12 @@
 import sys
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 import structlog
 
 from dx.settings import settings
 from dx.types import DXSamplingMethod
 from dx.utils.formatting import human_readable_size
-from dx.utils.tracking import get_display_id_for_df
 
 logger = structlog.get_logger(__name__)
 
@@ -185,14 +183,17 @@ def sample_random(df: pd.DataFrame, num: int, display_id: Optional[str] = None) 
     Example: sampling random 8 of 20 rows:
     [XX...XX.X..X...X.XX.]
     """
-    if settings.ENABLE_DATALINK:
-        # TODO: use hash for seed instead?
-        display_id = display_id or get_display_id_for_df(df)
-        display_id_array = [ord(v) for v in str(display_id)]
-        random_state = np.random.RandomState(seed=display_id_array)
-        logger.debug(f"using random seed {random_state} from {display_id=}")
-    else:
-        random_state = settings.RANDOM_STATE
+    # NOTE: this needs to be handled better once DXDataframeCache is implemented
+    # so we aren't looking up and re-cleaning the dataframe columns every time,
+    # since that causes unnecessary performance issues.
+
+    # if settings.ENABLE_DATALINK:
+    #     display_id = display_id or get_display_id_for_df(df)
+    #     display_id_array = [ord(v) for v in str(display_id)]
+    #     random_state = np.random.RandomState(seed=display_id_array)
+    #     logger.debug(f"using random seed {random_state} from {display_id=}")
+
+    random_state = settings.RANDOM_STATE
     return df.sample(num, random_state=random_state)
 
 
