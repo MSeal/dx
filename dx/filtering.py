@@ -80,7 +80,6 @@ def update_display_id(
     query_string = sql_filter.format(table_name=table_name)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
-    logger.debug(f"{new_df.columns=}")
 
     with sql_engine.connect() as conn:
         orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
