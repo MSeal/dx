@@ -205,6 +205,12 @@ def is_json_serializable(s: pd.Series) -> bool:
         s.to_json()
         return True
     except (TypeError, OverflowError, UnicodeDecodeError):
+        # these are the main serialization errors we expect
+        return False
+    except ValueError as ve:
+        # ...but we may get here if we have a series with duplicate index values
+        # "ValueError: Series index must be unique for orient='index'"
+        logger.debug(ve)
         return False
 
 

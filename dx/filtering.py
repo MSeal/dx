@@ -1,11 +1,9 @@
-import html
 from typing import Optional
 
 import pandas as pd
 import structlog
 from IPython.display import update_display
 
-from dx.formatters.callouts import display_callout
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types import DEXFilterSettings
@@ -82,7 +80,6 @@ def update_display_id(
     query_string = sql_filter.format(table_name=table_name)
     logger.debug(f"sql query string: {query_string}")
     new_df = pd.read_sql(query_string, sql_engine)
-    logger.debug(f"{new_df.columns=}")
 
     with sql_engine.connect() as conn:
         orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
@@ -126,28 +123,28 @@ def update_display_id(
             metadata=metadata,
         )
 
+    # TODO: replace with custom callout media type or remove altogether
     # we can't reference a variable type to suggest to users to perform a `df.query()`
     # type operation since it was never declared in the first place
-    if not df_name.startswith("unk_dataframe_"):
-        # TODO: replace with custom callout media type
-        output_variable_name = output_variable_name or "new_df"
-        # wrapping the triple quotes internally so the user can copy/paste directly
-        # without worry of double/single quotes in their data not being handled
-        pandas_query_str = f'"""{pandas_filter.format(df_name=df_name)}"""'
-        filter_code = (
-            f"""{output_variable_name} = {df_name}.query({pandas_query_str}, engine="python")"""
-        )
-        filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
-        <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{html.escape(filter_code, quote=True)}</pre>
-        """
-        display_callout(
-            filter_msg,
-            header=False,
-            icon="info",
-            level="success",
-            display_id=display_id + "-primary",
-            update=True,
-        )
+    # if not df_name.startswith("unk_dataframe_"):
+    #     output_variable_name = output_variable_name or "new_df"
+    #     # wrapping the triple quotes internally so the user can copy/paste directly
+    #     # without worry of double/single quotes in their data not being handled
+    #     pandas_query_str = f'"""{pandas_filter.format(df_name=df_name)}"""'
+    #     filter_code = (
+    #         f"""{output_variable_name} = {df_name}.query({pandas_query_str}, engine="python")"""
+    #     )
+    #     filter_msg = f"""Copy the following snippet into a cell below to save this subset to a new dataframe:
+    #     <pre style="background-color:white; padding:0.5rem; border-radius:5px;">{html.escape(filter_code, quote=True)}</pre>
+    #     """
+    #     display_callout(
+    #         filter_msg,
+    #         header=False,
+    #         icon="info",
+    #         level="success",
+    #         display_id=display_id + "-primary",
+    #         update=True,
+    #     )
 
 
 def handle_resample(data: dict) -> None:

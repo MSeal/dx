@@ -4,6 +4,9 @@ name: DX Tests
 # Trigger the workflow on all pull requests and only pushes to the main branch
 # yamllint disable-line rule:truthy
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main

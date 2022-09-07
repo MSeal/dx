@@ -11,11 +11,6 @@ from sqlalchemy import create_engine
 
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
-from dx.utils.formatting import (
-    clean_column_values_for_hash,
-    clean_column_values_for_sqlite,
-    normalize_index_and_columns,
-)
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
@@ -84,9 +79,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     """
     hash_df = df.copy()
 
-    for col in hash_df.columns:
-        hash_df[col] = clean_column_values_for_hash(hash_df[col])
-
     # this will be a series of hash values the length of df
     df_hash_series = hash_pandas_object(hash_df)
     # then string-concatenate all the hashed values, which could be very large
@@ -94,22 +86,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     # then hash the resulting (potentially large) string
     hash_str = hashlib.sha256(df_hash_str.encode()).hexdigest()
     return hash_str
-
-
-def is_equal(df: pd.DataFrame, other_df: pd.DataFrame, df_hash: str):
-    if df.shape != other_df.shape:
-        return False
-    if sorted(list(df.columns)) != sorted(list(other_df.columns)):
-        return False
-
-    # this could be expensive, so we only want to do it if we're
-    # pretty sure two dataframes could be equal
-    logger.debug("-- cleaning before hashing --")
-    other_hash = generate_df_hash(normalize_index_and_columns(other_df))
-    if df_hash != other_hash:
-        return False
-
-    return True
 
 
 def get_df_variable_name(
@@ -120,15 +96,28 @@ def get_df_variable_name(
     """
     Returns the variable name of the DataFrame object.
     """
+    logger.debug("looking for matching variables for dataframe")
+
     ipython = ipython_shell or get_ipython()
     df_vars = {k: v for k, v in ipython.user_ns.items() if isinstance(v, pd.DataFrame)}
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
 
     df_hash = df_hash or generate_df_hash(df)
-    matching_df_vars = [k for k, v in df_vars.items() if is_equal(df, v, df_hash)]
+    matching_df_vars = []
+    for k, v in df_vars.items():
+        logger.debug(f"checking if `{k}` is equal to this dataframe")
+        # we previously checked columns, dtypes, shape, etc between both dataframes,
+        # to avoid having to normalize and hash the other dataframe (v here),
+        # but that was too slow, and ultimately we shouldn't be checking raw data vs cleaned data
+        # so <df>.equals(<other_df>) should be the most performant
+        if df.equals(v):
+            logger.debug(f"`{k}` matches this dataframe")
+            matching_df_vars.append(k)
+    logger.debug(f"dataframe variables with same hash: {matching_df_vars}")
 
     # we might get a mix of references here like ['_', '__', 'df']
     named_df_vars_with_same_hash = [name for name in matching_df_vars if not name.startswith("_")]
+    logger.debug(f"named dataframe variables with same hash: {named_df_vars_with_same_hash}")
     if named_df_vars_with_same_hash:
         logger.debug(f"{named_df_vars_with_same_hash=}")
         return named_df_vars_with_same_hash[0]
@@ -184,10 +173,6 @@ def store_in_sqlite(table_name: str, df: pd.DataFrame):
     logger.debug(f"{df.columns=}")
     tracking_df = df.copy()
 
-    logger.debug("-- cleaning before sqlite --")
-    for col in tracking_df.columns:
-        tracking_df[col] = clean_column_values_for_sqlite(tracking_df[col])
-
     logger.debug(f"writing to `{table_name}` table in sqlite")
     with sql_engine.begin() as conn:
         num_written_rows = tracking_df.to_sql(
@@ -213,8 +198,6 @@ def track_column_conversions(
     # to the cleaned version of the dataframe, pull the index values
     # of the resulting row(s), then swap out the results with the
     # index positions of the original data
-    logger.debug(f"{orig_df.columns=}")
-    logger.debug(f"{df.columns=}")
 
     DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
