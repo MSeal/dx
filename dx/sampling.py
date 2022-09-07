@@ -47,7 +47,9 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
                 # this is a column that was dropped during sampling
                 logger.debug(f"`{column}` no longer in df, skipping dtype conversion")
                 continue
-            logger.debug(f"converting `{column}` from `{df[column].dtype}` to `{dtype}`")
+            if str(df[column].dtype) == str(dtype):
+                continue
+            logger.debug(f"converting `{column}` from `{df[column].dtype!r}` to `{dtype!r}`")
             df[column] = df[column].astype(dtype)
 
     return df
