@@ -105,6 +105,11 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.debug("-- cleaning columns before display --")
     for column in df.columns:
+        standard_dtypes = ["float", "int", "bool"]
+        if df[column].dtype in standard_dtypes or str(df[column].dtype).startswith("datetime"):
+            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
+            continue
+        logger.debug(f"--> cleaning `{column=}` with dtype `{df[column].dtype}`")
         df[column] = clean_column_values(df[column])
     return df
 
