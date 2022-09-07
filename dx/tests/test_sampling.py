@@ -24,7 +24,11 @@ def test_large_dataframe_is_sampled(sample_large_dataframe: pd.DataFrame):
     Test that a large dataframe is sampled to below the size of
     MAX_RENDER_SIZE_BYTES.
     """
-    with settings_context(MAX_RENDER_SIZE_BYTES=1024 * 1024):
+    with settings_context(
+        MAX_RENDER_SIZE_BYTES=1024 * 1024,
+        DISPLAY_MAX_ROWS=100,
+        DISPLAY_MAX_COLUMNS=100,
+    ):
         original_size_bytes = sys.getsizeof(sample_large_dataframe)
         sampled_df = sample_if_too_big(sample_large_dataframe)
         sampled_size_bytes = sys.getsizeof(sampled_df)
@@ -36,9 +40,14 @@ def test_sampled_dataframe_keeps_dtypes(sample_large_dataframe: pd.DataFrame):
     """
     Test that a sampled dataframe doesn't alter column datatypes.
     """
-    orig_dtypes = sample_large_dataframe.dtypes
-    sampled_df = sample_if_too_big(sample_large_dataframe)
-    assert (sampled_df.dtypes == orig_dtypes).all()
+    with settings_context(
+        MAX_RENDER_SIZE_BYTES=1024 * 1024,
+        DISPLAY_MAX_ROWS=100,
+        DISPLAY_MAX_COLUMNS=100,
+    ):
+        orig_dtypes = sample_large_dataframe.dtypes
+        sampled_df = sample_if_too_big(sample_large_dataframe)
+        assert (sampled_df.dtypes == orig_dtypes).all()
 
 
 def test_wide_dataframe_is_narrowed(sample_wide_dataframe: pd.DataFrame):

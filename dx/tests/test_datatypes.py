@@ -17,6 +17,7 @@ from dx.utils.datatypes import (
     quick_random_dataframe,
     random_dataframe,
 )
+from dx.utils.formatting import clean_column_values
 from dx.utils.tracking import generate_df_hash, sql_engine, store_in_sqlite
 
 
@@ -74,11 +75,10 @@ def test_generate_dataresource_body(dtype: str):
     params[dtype] = True
     df = random_dataframe(**params)
     try:
-        payload, metadata = dataresource.generate_dataresource_body(df)
+        payload = dataresource.generate_dataresource_body(df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
     assert isinstance(payload, dict)
-    assert isinstance(metadata, dict)
 
 
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
@@ -91,11 +91,10 @@ def test_generate_dx_body(dtype: str):
     params[dtype] = True
     df = random_dataframe(**params)
     try:
-        payload, metadata = dx.generate_dx_body(df)
+        payload = dx.generate_dx_body(df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
     assert isinstance(payload, dict)
-    assert isinstance(metadata, dict)
 
 
 @pytest.mark.xfail(reason="only for dev")
@@ -122,6 +121,8 @@ def test_generate_df_hash(dtype: str):
     params = {dt: False for dt in SORTED_DX_DATATYPES}
     params[dtype] = True
     df = random_dataframe(**params)
+    for col in df.columns:
+        df[col] = clean_column_values(df[col])
     try:
         hash_str = generate_df_hash(df)
     except Exception as e:
@@ -155,6 +156,8 @@ def test_store_in_sqlite(dtype: str):
     params = {dt: False for dt in SORTED_DX_DATATYPES}
     params[dtype] = True
     df = random_dataframe(**params)
+    for col in df.columns:
+        df[col] = clean_column_values(df[col])
     try:
         num_rows = store_in_sqlite(f"{dtype}_test", df)
     except Exception as e:

@@ -172,10 +172,55 @@ def handle_ip_address_series(s: pd.Series) -> pd.Series:
 
 def handle_sequence_series(s: pd.Series) -> pd.Series:
     types = (list, tuple, set, np.ndarray)
-    if any(isinstance(v, types) for v in s.values):
+    if is_sequence_series(s):
         logger.debug(f"series `{s.name}` has sequences; converting to comma-separated string")
         s = s.apply(lambda x: ", ".join([str(val) for val in x] if isinstance(x, types) else x))
     return s
+
+
+def is_sequence_series(s: pd.Series) -> bool:
+    """
+    Returns True if the series has any list/tuple/set/array values.
+    """
+    if str(s.dtype) != "object":
+        return False
+
+    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
+        return True
+    return False
+
+
+def handle_unk_type_series(s: pd.Series) -> pd.Series:
+    if not is_json_serializable(s):
+        logger.debug(f"series `{s.name}` has non-JSON-serializable types; converting to string")
+        s = s.astype(str)
+    return s
+
+
+def is_json_serializable(s: pd.Series) -> bool:
+    """
+    Returns True if the object can be serialized to JSON.
+    """
+    try:
+        s.to_json()
+        return True
+    except (TypeError, OverflowError, UnicodeDecodeError):
+        # these are the main serialization errors we expect
+        return False
+    except ValueError as ve:
+        # ...but we may get here if we have a series with duplicate index values
+        # "ValueError: Series index must be unique for orient='index'"
+        logger.debug(ve)
+        return False
+
+
+def has_numeric_strings(s: pd.Series) -> bool:
+    if not str(s.dtype) == "object":
+        return False
+    for v in s.values:
+        if str(v).isnumeric() or str(v).isdigit() or str(v).isdecimal():
+            return True
+    return False
 
 
 def quick_random_dataframe(

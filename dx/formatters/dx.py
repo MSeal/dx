@@ -1,27 +1,31 @@
 import uuid
 from functools import lru_cache
-from typing import Optional, Set
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 import structlog
 from IPython import get_ipython
-from IPython.core.formatters import BaseFormatter
+from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.display import display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
-from dx.filtering import SUBSET_FILTERS
-from dx.sampling import sample_and_describe
+from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
+from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.utils.datatypes import to_dataframe
-from dx.utils.formatting import is_default_index, normalize_index_and_columns
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
+    DISPLAY_ID_TO_METADATA,
+    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
     SUBSET_TO_DATAFRAME_HASH,
     generate_df_hash,
     get_display_id,
     register_display_id,
     store_in_sqlite,
+    track_column_conversions,
 )
 
 
@@ -30,11 +34,10 @@ class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_COLUMNS: int = 50
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
-    DX_RENDERABLE_OBJECTS: Set[type] = {pd.Series, pd.DataFrame, np.ndarray}
 
     DX_FLATTEN_INDEX_VALUES: bool = False
     DX_FLATTEN_COLUMN_VALUES: bool = True
-    DX_STRINGIFY_INDEX_VALUES: bool = True
+    DX_STRINGIFY_INDEX_VALUES: bool = False
     DX_STRINGIFY_COLUMN_VALUES: bool = True
 
     class Config:
@@ -52,48 +55,80 @@ dx_settings = get_dx_settings()
 logger = structlog.get_logger(__name__)
 
 
-def handle_dx_format(obj):
+def handle_dx_format(
+    obj,
+    ipython_shell: Optional[InteractiveShell] = None,
+):
+    ipython = ipython_shell or get_ipython()
+
+    logger.debug(f"*** handling DEX format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
+    logger.debug(f"{obj.shape=}")
 
     default_index_used = is_default_index(obj.index)
-    obj = normalize_index_and_columns(obj)
 
     if not settings.ENABLE_DATALINK:
+        obj = normalize_index_and_columns(obj)
         payload, metadata = format_dx(
             obj,
             has_default_index=default_index_used,
         )
         return payload, metadata
 
+    orig_obj = obj.copy()
+    orig_dtypes = orig_obj.dtypes.to_dict()
+    obj = normalize_index_and_columns(obj)
     obj_hash = generate_df_hash(obj)
     update_existing_display = obj_hash in SUBSET_TO_DATAFRAME_HASH
-    applied_filters = SUBSET_FILTERS.get(obj_hash)
     display_id = get_display_id(obj_hash)
-    sqlite_df_table = register_display_id(
-        obj,
+
+    # to be referenced during update_display_id() after
+    # data is pulled from sqlite in order to put dtypes back
+    # to their original states
+    if display_id not in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
+        DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id] = orig_dtypes
+
+    if not update_existing_display:
+        sqlite_df_table = register_display_id(
+            obj,
+            display_id=display_id,
+            df_hash=obj_hash,
+            ipython_shell=ipython,
+        )
+
+    track_column_conversions(
+        orig_df=orig_obj,
+        df=obj,
         display_id=display_id,
-        df_hash=obj_hash,
-        is_subset=update_existing_display,
     )
+    del orig_obj
 
     payload, metadata = format_dx(
         obj.copy(),
         update=update_existing_display,
         display_id=display_id,
-        filters=applied_filters,
         has_default_index=default_index_used,
     )
 
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
-    store_in_sqlite(sqlite_df_table, obj)
+    if not update_existing_display:
+        store_in_sqlite(sqlite_df_table, obj)
+
     return payload, metadata
 
 
-class DXDisplayFormatter(BaseFormatter):
-    print_method = "_repr_data_resource_"
-    _return_type = (dict,)
+class DXDisplayFormatter(DisplayFormatter):
+    formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
+
+    def format(self, obj, **kwargs):
+
+        if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+            handle_dx_format(obj)
+            return ({}, {})
+
+        return DEFAULT_IPYTHON_DISPLAY_FORMATTER.format(obj, **kwargs)
 
 
 def generate_dx_body(
@@ -104,63 +139,59 @@ def generate_dx_body(
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    schema = build_table_schema(df)
+    logger.debug(f"{schema=}")
+
+    # fillna(np.nan) to handle pd.NA values
+    data = df.fillna(np.nan).reset_index().transpose().values.tolist()
+
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload = {
-        "schema": build_table_schema(df),
-        "data": df.reset_index().transpose().values.tolist(),
+        "schema": schema,
+        "data": data,
         "datalink": {"display_id": display_id},
     }
-
-    metadata = {
-        "datalink": {
-            "dataframe_info": {},
-            "dx_settings": settings.json(exclude={"RENDERABLE_OBJECTS": True}),
-            "applied_filters": [],
-            "display_id": display_id,
-        },
-        "display_id": display_id,
-    }
-    return (payload, metadata)
+    return payload
 
 
 def format_dx(
     df: pd.DataFrame,
     update: bool = False,
     display_id: Optional[str] = None,
-    filters: Optional[list] = None,
     has_default_index: bool = True,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
-    df, dataframe_info = sample_and_describe(df, display_id=display_id)
-    dataframe_info["default_index_used"] = has_default_index
-    payload, metadata = generate_dx_body(df, display_id=display_id)
-    metadata["datalink"].update(
-        {
-            "dataframe_info": dataframe_info,
-            "applied_filters": filters,
-        }
-    )
 
-    # TODO: figure out a way to mimic this behavior since it was helpful
-    # having a display handle that we could update in place,
-    # but that went through as a display_data message, instead of execute_result
-    # and we can't do it with BaseFormatter, otherwise we'll double-render
-    # with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
-    #     ipydisplay(
-    #         payload,
-    #         raw=True,
-    #         metadata=metadata,
-    #         display_id=display_id,
-    #         update=update,
-    #     )
+    # determine original dataset size, and truncated/sampled size if it's beyond the limits
+    orig_df_dimensions = get_df_dimensions(df, prefix="orig")
+    df = sample_if_too_big(df, display_id=display_id)
+    sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
 
-    # # temporary placeholder for copy/paste user messaging
-    # if settings.ENABLE_DATALINK:
-    #     ipydisplay(
-    #         HTML("<div></div>"),
-    #         display_id=display_id + "-primary",
-    #         update=update,
-    #     )
+    payload = generate_dx_body(df, display_id=display_id)
+
+    dataframe_info = {
+        "default_index_used": has_default_index,
+        **orig_df_dimensions,
+        **sampled_df_dimensions,
+    }
+    metadata = generate_metadata(display_id=display_id, **dataframe_info)
+
+    if display_id not in DISPLAY_ID_TO_METADATA:
+        DISPLAY_ID_TO_METADATA[display_id] = metadata
+
+    payload = {dx_settings.DX_MEDIA_TYPE: payload}
+    metadata = {dx_settings.DX_MEDIA_TYPE: metadata}
+
+    # this needs to happen so we can update by display_id as needed
+    with pd.option_context("html.table_schema", dx_settings.DX_HTML_TABLE_SCHEMA):
+        logger.debug(f"displaying DEX payload in {display_id=}")
+        display(
+            payload,
+            raw=True,
+            metadata=metadata,
+            display_id=display_id,
+            update=update,
+        )
 
     return (payload, metadata)
 
@@ -170,9 +201,6 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     Enables the DEX media type output display formatting and
     updates global dx & pandas settings with DX settings.
     """
-
-    from dx.formatters.dataresource import get_dataresource_settings
-
     if get_ipython() is None and ipython_shell is None:
         return
 
@@ -182,9 +210,7 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
     settings_to_apply = {
         "DISPLAY_MAX_COLUMNS",
         "DISPLAY_MAX_ROWS",
-        "HTML_TABLE_SCHEMA",
         "MEDIA_TYPE",
-        "RENDERABLE_OBJECTS",
         "FLATTEN_INDEX_VALUES",
         "FLATTEN_COLUMN_VALUES",
         "STRINGIFY_INDEX_VALUES",
@@ -195,19 +221,6 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
         setattr(settings, setting, val)
 
     ipython = ipython_shell or get_ipython()
-
-    # https://github.com/pandas-dev/pandas/blob/ad190575aa75962d2d0eade2de81a5fe5a2e285b/pandas/io/formats/printing.py#L244
-    # https://github.com/pandas-dev/pandas/blob/926b9ceff10d9b7a957811f0a4de3167332196de/pandas/io/formats/printing.py?q=_repr_data_resource_#L268
-    # https://ipython.readthedocs.io/en/stable/config/integrating.html#formatters-for-third-party-types
-    # https://ipython.readthedocs.io/en/stable/api/generated/IPython.display.html#:~:text=plain.for_type(int%2C%20int_formatter)
-    formatters = ipython.display_formatter.formatters
-    media_type = dx_settings.DX_MEDIA_TYPE
-
-    formatters[media_type] = DXDisplayFormatter()
-    for obj in settings.RENDERABLE_OBJECTS:
-        formatters[media_type].for_type(obj, handle_dx_format)
-    formatters[media_type].enabled = True
-
-    for other_media_type in [get_dataresource_settings().DATARESOURCE_MEDIA_TYPE]:
-        if other_media_type in formatters:
-            del formatters[other_media_type]
+    custom_formatter = DXDisplayFormatter()
+    custom_formatter.formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
+    ipython.display_formatter = custom_formatter
