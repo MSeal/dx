@@ -11,7 +11,6 @@ from sqlalchemy import create_engine
 
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
-from dx.utils.formatting import normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
@@ -89,21 +88,6 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     return hash_str
 
 
-def is_equal(df: pd.DataFrame, other_df: pd.DataFrame, df_hash: str):
-    if df.shape != other_df.shape:
-        return False
-    if sorted(list(df.columns)) != sorted(list(other_df.columns)):
-        return False
-
-    # this could be expensive, so we only want to do it if we're
-    # pretty sure two dataframes could be equal
-    other_hash = generate_df_hash(normalize_index_and_columns(other_df))
-    if df_hash != other_hash:
-        return False
-
-    return True
-
-
 def get_df_variable_name(
     df: pd.DataFrame,
     ipython_shell: Optional[InteractiveShell] = None,
@@ -112,15 +96,28 @@ def get_df_variable_name(
     """
     Returns the variable name of the DataFrame object.
     """
+    logger.debug("looking for matching variables for dataframe")
+
     ipython = ipython_shell or get_ipython()
     df_vars = {k: v for k, v in ipython.user_ns.items() if isinstance(v, pd.DataFrame)}
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
 
     df_hash = df_hash or generate_df_hash(df)
-    matching_df_vars = [k for k, v in df_vars.items() if is_equal(df, v, df_hash)]
+    matching_df_vars = []
+    for k, v in df_vars.items():
+        logger.debug(f"checking if `{k}` is equal to this dataframe")
+        # we previously checked columns, dtypes, shape, etc between both dataframes,
+        # to avoid having to normalize and hash the other dataframe (v here),
+        # but that was too slow, and ultimately we shouldn't be checking raw data vs cleaned data
+        # so <df>.equals(<other_df>) should be the most performant
+        if df.equals(v):
+            logger.debug(f"`{k}` matches this dataframe")
+            matching_df_vars.append(k)
+    logger.debug(f"dataframe variables with same hash: {matching_df_vars}")
 
     # we might get a mix of references here like ['_', '__', 'df']
     named_df_vars_with_same_hash = [name for name in matching_df_vars if not name.startswith("_")]
+    logger.debug(f"named dataframe variables with same hash: {named_df_vars_with_same_hash}")
     if named_df_vars_with_same_hash:
         logger.debug(f"{named_df_vars_with_same_hash=}")
         return named_df_vars_with_same_hash[0]
