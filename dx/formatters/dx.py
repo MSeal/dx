@@ -2,12 +2,13 @@ import uuid
 from functools import lru_cache
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import HTML, display
+from IPython.display import display
 from pandas.io.json import build_table_schema
 from pydantic import BaseSettings, Field
 
@@ -60,8 +61,10 @@ def handle_dx_format(
 ):
     ipython = ipython_shell or get_ipython()
 
+    logger.debug(f"*** handling DEX format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
+    logger.debug(f"{obj.shape=}")
 
     default_index_used = is_default_index(obj.index)
 
@@ -136,10 +139,16 @@ def generate_dx_body(
     Transforms the dataframe to a payload dictionary containing the
     table schema and column values as arrays.
     """
+    schema = build_table_schema(df)
+    logger.debug(f"{schema=}")
+
+    # fillna(np.nan) to handle pd.NA values
+    data = df.fillna(np.nan).reset_index().transpose().values.tolist()
+
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload = {
-        "schema": build_table_schema(df),
-        "data": df.reset_index().transpose().values.tolist(),
+        "schema": schema,
+        "data": data,
         "datalink": {"display_id": display_id},
     }
     return payload
@@ -181,14 +190,6 @@ def format_dx(
             raw=True,
             metadata=metadata,
             display_id=display_id,
-            update=update,
-        )
-
-    # temporary placeholder for copy/paste user messaging
-    if settings.ENABLE_DATALINK:
-        display(
-            HTML("<div></div>"),
-            display_id=display_id + "-primary",
             update=update,
         )
 
