@@ -74,7 +74,7 @@ def test_dataresource_succeeds_with_missing_data(
 ):
     """
     Test dataresource formatting doesn't fail while formatting
-    a dataframe with duplicate series and index values.
+    a dataframe with null values.
     """
     sample_dataframe["missing_data"] = null_value
     try:
@@ -91,7 +91,7 @@ def test_dx_succeeds_with_missing_data(
 ):
     """
     Test dx formatting doesn't fail while formatting
-    a dataframe with duplicate series and index values.
+    a dataframe with null values.
     """
     sample_dataframe["missing_data"] = null_value
     try:
