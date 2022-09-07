@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import structlog
 
@@ -54,9 +53,6 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     display_df = normalize_index(display_df)
     display_df = normalize_columns(display_df)
 
-    # build_table_schema() doesn't like pd.NAs
-    display_df.fillna(np.nan, inplace=True)
-
     return display_df
 
 
@@ -107,10 +103,14 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if settings.STRINGIFY_COLUMN_VALUES:
         df.columns = pd.Index(stringify_index(df.columns))
 
-    logger.debug("-- cleaning before display --")
+    logger.debug("-- cleaning columns before display --")
     for column in df.columns:
-        df[column] = clean_column_values_for_display(df[column])
-
+        standard_dtypes = ["float", "int", "bool"]
+        if df[column].dtype in standard_dtypes or str(df[column].dtype).startswith("datetime"):
+            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
+            continue
+        logger.debug(f"--> cleaning `{column=}` with dtype `{df[column].dtype}`")
+        df[column] = clean_column_values(df[column])
     return df
 
 
@@ -125,7 +125,7 @@ def stringify_index(index: pd.Index):
     return tuple(map(str, index))
 
 
-def clean_column_values_for_display(s: pd.Series) -> pd.Series:
+def clean_column_values(s: pd.Series) -> pd.Series:
     """
     Cleaning/conversion for values in a series to prevent
     build_table_schema() or frontend rendering errors.
@@ -139,38 +139,10 @@ def clean_column_values_for_display(s: pd.Series) -> pd.Series:
     s = datatypes.handle_complex_number_series(s)
 
     s = geometry.handle_geometry_series(s)
+
+    s = datatypes.handle_dict_series(s)
+    s = datatypes.handle_sequence_series(s)
     s = datatypes.handle_unk_type_series(s)
-    return s
-
-
-def clean_column_values_for_hash(s: pd.Series) -> pd.Series:
-    """
-    Cleaning/conversion for values in a series to prevent
-    hash_pandas_object() errors.
-    """
-    s = geometry.handle_geometry_series(s)
-
-    s = datatypes.handle_dict_series(s)
-    s = datatypes.handle_sequence_series(s)
-    return s
-
-
-def clean_column_values_for_sqlite(s: pd.Series) -> pd.Series:
-    """
-    Cleaning/conversion for values in a series to prevent
-    errors writing to sqlite.
-    """
-    s = datatypes.handle_dtype_series(s)
-    s = datatypes.handle_interval_series(s)
-    s = datatypes.handle_complex_number_series(s)
-    s = datatypes.handle_ip_address_series(s)
-
-    s = date_time.handle_time_period_series(s)
-
-    s = geometry.handle_geometry_series(s)
-
-    s = datatypes.handle_dict_series(s)
-    s = datatypes.handle_sequence_series(s)
     return s
 
 

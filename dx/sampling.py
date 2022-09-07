@@ -6,7 +6,6 @@ import structlog
 
 from dx.settings import settings
 from dx.types import DXSamplingMethod
-from dx.utils.formatting import human_readable_size
 
 logger = structlog.get_logger(__name__)
 
@@ -17,66 +16,41 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     to help reduce the amount of data being sent to the
     frontend for non-default media types.
     """
-
-    warnings = []
+    orig_dtypes = set(df.dtypes.to_dict().items())
 
     # check number of columns first, then trim rows if needed
     max_columns = settings.DISPLAY_MAX_COLUMNS
     df_too_wide = len(df.columns) > max_columns
     if df_too_wide:
-        num_orig_columns = len(df.columns)
         df = sample_columns(df, num_cols=max_columns)
-        col_warning = f"""Dataframe has {num_orig_columns:,} column(s),
-         which is more than <code>{settings.DISPLAY_MAX_COLUMNS=}</code>"""
-        warnings.append(col_warning)
 
     # check number of rows next, then start reducing even more
     max_rows = settings.DISPLAY_MAX_ROWS
     df_too_long = len(df) > max_rows
     if df_too_long:
-        num_orig_rows = len(df)
         df = sample_rows(df, num_rows=max_rows, display_id=display_id)
-        row_warning = f"""Dataframe has {num_orig_rows:,} row(s),
-         which is more than <code>{settings.DISPLAY_MAX_ROWS=}</code>"""
-        warnings.append(row_warning)
 
     # in the event that there are nested/large values bloating the dataframe,
     # easiest to reduce rows even further here
     max_size_bytes = settings.MAX_RENDER_SIZE_BYTES
     df_too_big = sys.getsizeof(df) > max_size_bytes
     if df_too_big:
-        orig_size = sys.getsizeof(df)
         df = reduce_df(df)
-        size_str = human_readable_size(orig_size)
-        max_size_str = human_readable_size(max_size_bytes)
-        settings_size_str = f"<code>{settings.MAX_RENDER_SIZE_BYTES=}</code> ({max_size_str})"
-        size_warning = f"""Dataframe is {size_str}, which is more than {settings_size_str}"""
-        warnings.append(size_warning)
 
-    # TODO: remove this altogether once frontend uses new metadata to create warning
-    if warnings:
-        warning_html = "<br/>".join(warnings)
-        new_size_html = f"""A truncated version with <strong>{len(df):,}</code> row(s) and
-         {len(df.reset_index().columns):,} column(s)</strong> will be viewable in DEX."""
-        warning_html = f"{warning_html}<br/>{new_size_html}"
-
-        # give users more information on how to change settings
-        override_snippet = (
-            """<mark><code>dx.set_option({setting name}, {new value})</code></mark>"""
-        )
-        sample_override = """<code>dx.set_option("DISPLAY_MAX_ROWS", 250_000)</code>"""
-        override_warning = "<small><i><sup>*</sup>Be careful; increasing these limits may negatively impact performance.</i></small>"
-        user_feedback = f"""<div style="padding:0.25rem 1rem;">
-            <p>To adjust the settings*, execute {override_snippet} in a new cell.
-            <br/>For example, to change the maximum number of rows to display to 250,000,
-             you could execute the following: {sample_override}</p>
-            {override_warning}</div>"""
-        user_feedback_collapsed_section = (
-            f"""<details><summary>More Information</summary>{user_feedback}</details>"""
-        )
-
-        warning_html = f"{warning_html} {user_feedback_collapsed_section}"
-        # display_callout(warning_html, level="warning")
+    # sampling may convert columns to `object` dtype, so we need to make sure
+    # the original dtypes persist before generating the body for the frontend
+    current_dtypes = set(df.dtypes.to_dict())
+    dtype_conversions = orig_dtypes - current_dtypes
+    if dtype_conversions:
+        for column, dtype in dtype_conversions:
+            if column not in df.columns:
+                # this is a column that was dropped during sampling
+                logger.debug(f"`{column}` no longer in df, skipping dtype conversion")
+                continue
+            if str(df[column].dtype) == str(dtype):
+                continue
+            logger.debug(f"converting `{column}` from `{df[column].dtype!r}` to `{dtype!r}`")
+            df[column] = df[column].astype(dtype)
 
     return df
 
