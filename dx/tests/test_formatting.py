@@ -1,4 +1,6 @@
+import numpy as np
 import pandas as pd
+import pytest
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.dataresource import get_dataresource_settings, handle_dataresource_format
@@ -60,5 +62,39 @@ def test_dx_nonunique_index_succeeds(
     double_df = pd.concat([sample_dataframe, sample_dataframe])
     try:
         handle_dx_format(double_df, ipython_shell=get_ipython)
+    except Exception as e:
+        assert False, f"{e}"
+
+
+@pytest.mark.parametrize("null_value", [None, np.nan, pd.NA])
+def test_dataresource_succeeds_with_missing_data(
+    sample_dataframe: pd.DataFrame,
+    get_ipython: TerminalInteractiveShell,
+    null_value,
+):
+    """
+    Test dataresource formatting doesn't fail while formatting
+    a dataframe with duplicate series and index values.
+    """
+    sample_dataframe["missing_data"] = null_value
+    try:
+        handle_dataresource_format(sample_dataframe, ipython_shell=get_ipython)
+    except Exception as e:
+        assert False, f"{e}"
+
+
+@pytest.mark.parametrize("null_value", [None, np.nan, pd.NA])
+def test_dx_succeeds_with_missing_data(
+    sample_dataframe: pd.DataFrame,
+    get_ipython: TerminalInteractiveShell,
+    null_value,
+):
+    """
+    Test dx formatting doesn't fail while formatting
+    a dataframe with duplicate series and index values.
+    """
+    sample_dataframe["missing_data"] = null_value
+    try:
+        handle_dx_format(sample_dataframe, ipython_shell=get_ipython)
     except Exception as e:
         assert False, f"{e}"
