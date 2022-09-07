@@ -8,7 +8,7 @@ This package provides convenient formatting and IPython display formatter regist
     <img src="https://github.com/noteable-io/dx/actions/workflows/ci.yaml/badge.svg" alt="CI" />
 </a>
 <a href="https://codecov.io/gh/noteable-io/dx" > 
- <img src="https://codecov.io/gh/noteable-io/dx/branch/main/graph/badge.svg?token=RGNWOIPWC0" alt="codecov code coverage"/> 
+ <img src="https://codecov.io/gh/noteable-io/dx/branch/main/graph/badge.svg?token=XGXSTD3GSI" alt="codecov code coverage"/> 
  </a>
 <img alt="PyPI - License" src="https://img.shields.io/pypi/l/dx" />
 <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/dx" />
