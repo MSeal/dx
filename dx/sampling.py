@@ -16,6 +16,7 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     to help reduce the amount of data being sent to the
     frontend for non-default media types.
     """
+    orig_dtypes = set(df.dtypes.to_dict().items())
 
     # check number of columns first, then trim rows if needed
     max_columns = settings.DISPLAY_MAX_COLUMNS
@@ -35,6 +36,19 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     df_too_big = sys.getsizeof(df) > max_size_bytes
     if df_too_big:
         df = reduce_df(df)
+
+    # sampling may convert columns to `object` dtype, so we need to make sure
+    # the original dtypes persist before generating the body for the frontend
+    current_dtypes = set(df.dtypes.to_dict())
+    dtype_conversions = orig_dtypes - current_dtypes
+    if dtype_conversions:
+        for column, dtype in dtype_conversions:
+            if column not in df.columns:
+                # this is a column that was dropped during sampling
+                logger.debug(f"`{column}` no longer in df, skipping dtype conversion")
+                continue
+            logger.debug(f"converting `{column}` to {dtype=}")
+            df[column] = df[column].astype(dtype)
 
     return df
 
