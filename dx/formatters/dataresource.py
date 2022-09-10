@@ -143,8 +143,14 @@ def generate_dataresource_body(
     schema = build_table_schema(df)
     logger.debug(f"{schema=}")
 
-    # fillna(np.nan) to handle pd.NA values
-    data = df.fillna(np.nan).reset_index().to_dict("records")
+    # This is a little odd, but it allows replacing `pd.NA` and np.nan
+    # with `None` values without altering any of the other values.
+    # Without converting to `object`, `NaN`s will persist (but `pd.NA`s
+    # will be converted to `None`).
+    # We build the schema first since, after this, the dtypes will be
+    # changed to `object` for any Series whose values were replaced with `None`s.
+    clean_df = df.astype(object).where(df.notnull(), None)
+    data = clean_df.reset_index().to_dict("records")
 
     payload = {
         "schema": schema,
