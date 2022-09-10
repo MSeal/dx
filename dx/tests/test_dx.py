@@ -1,6 +1,7 @@
 import uuid
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from dx.formatters.dx import format_dx, generate_dx_body, get_dx_settings
