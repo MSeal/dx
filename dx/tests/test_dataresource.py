@@ -65,10 +65,7 @@ def test_datalink_toggle(enabled: bool):
 
 
 @pytest.mark.parametrize("null_value", [np.nan, pd.NA])
-def test_dx_converts_na_to_none(
-    get_ipython: TerminalInteractiveShell,
-    null_value,
-):
+def test_dx_converts_na_to_none(null_value):
     """
     Test dataresource formatting properly converts `pd.NA` and `NaN`
     values to `None` before passing along the payload.
