@@ -71,6 +71,6 @@ def test_dx_converts_na_to_none(null_value):
         "foo": [1, 2, null_value],
         "bar": ["a", null_value, "b"],
     })
-    payload = generate_dx_body(sample_dataframe)
+    payload = generate_dx_body(df)
     assert payload["data"][1] == [1, 2, None]
     assert payload["data"][2] == ["a", None, "b"]

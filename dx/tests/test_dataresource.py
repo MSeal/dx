@@ -74,7 +74,7 @@ def test_dx_converts_na_to_none(null_value):
         "foo": [1, 2, null_value],
         "bar": ["a", null_value, "b"],
     })
-    payload = generate_dataresource_body(sample_dataframe)
+    payload = generate_dataresource_body(df)
     assert payload["data"][0] == {"index": 0, "foo": 1, "bar": "a"}
     assert payload["data"][1] == {"index": 1, "foo": 2, "bar": None}
     assert payload["data"][2] == {"index": 2, "foo": None, "bar": "b"}
