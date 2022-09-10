@@ -149,7 +149,7 @@ def generate_dx_body(
     # We build the schema first since, after this, the dtypes will be
     # changed to `object` for any Series whose values were replaced with `None`s.
     clean_df = df.astype(object).where(df.notnull(), None)
-    data = clean_df.transpose().values.tolist()
+    data = clean_df.reset_index().transpose().values.tolist()
 
     # this will include the `df.index` by default (e.g. slicing/sampling)
     payload = {
