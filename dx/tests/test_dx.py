@@ -57,3 +57,21 @@ def test_datalink_toggle(enabled: bool):
             format_dx(df)
         except Exception as e:
             assert False, f"failed with {e}"
+
+
+@pytest.mark.parametrize("null_value", [np.nan, pd.NA])
+def test_dx_converts_na_to_none(
+    get_ipython: TerminalInteractiveShell,
+    null_value,
+):
+    """
+    Test dx formatting properly converts `pd.NA` and `NaN`
+    values to `None` before passing along the payload.
+    """
+    df = pd.DataFrame({
+        "foo": [1, 2, null_value],
+        "bar": ["a", null_value, "b"],
+    })
+    payload = generate_dx_body(sample_dataframe)
+    assert payload["data"][1] == [1, 2, None]
+    assert payload["data"][2] == ["a", None, "b"]
