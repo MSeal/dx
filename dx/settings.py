@@ -27,7 +27,7 @@ except ImportError:
 
 @lru_cache
 def get_default_renderable_types():
-    types = {pd.Series, pd.DataFrame, np.ndarray}
+    types = {pd.Series, pd.DataFrame}
     if GEOPANDAS_INSTALLED:
         gpd_types = {gpd.GeoDataFrame, gpd.GeoSeries}
         types.update(gpd_types)

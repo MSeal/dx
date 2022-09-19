@@ -149,10 +149,25 @@ def clean_column_values(s: pd.Series) -> pd.Series:
 def generate_metadata(display_id: str, **dataframe_info):
     from dx.utils.tracking import DISPLAY_ID_TO_FILTERS, DISPLAY_ID_TO_METADATA
 
-    # these are set whenever store_sample_to_history() is called after a filter action from the frontend
-    filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
     existing_metadata = DISPLAY_ID_TO_METADATA.get(display_id, {})
+
+    parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
+    if parent_dataframe_info:
+        # if this comes after a resampling operation, we need to make sure the
+        # original dimensions aren't overwritten by this new dataframe_info,
+        # but instead we want to update the previous dataframe_info with the
+        # updated values for the truncated* dimensions
+        # (`truncated_size_bytes`, `truncated_num_rows`, `truncated_num_cols`)
+        truncated_dataframe_info = {
+            k: v for k, v in dataframe_info.items() if k.startswith("truncated")
+        }
+        parent_dataframe_info.update(truncated_dataframe_info)
+        dataframe_info = parent_dataframe_info
+
+    # these are set whenever store_sample_to_history() is called after a filter action from the frontend
+    applied_filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
     sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
+
     metadata = {
         "datalink": {
             "dataframe_info": dataframe_info,
@@ -164,7 +179,7 @@ def generate_metadata(display_id: str, **dataframe_info):
                 }
             ),
             "display_id": display_id,
-            "applied_filters": filters,
+            "applied_filters": applied_filters,
             "sample_history": sample_history,
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
         },
