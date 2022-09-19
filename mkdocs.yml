@@ -9,7 +9,6 @@ edit_uri: edit/main/docs/
 # Material theme config
 theme:
   name: material
-  custom_dir: overrides
   # font:
   #   text: "Lexend Deca"
   palette:
