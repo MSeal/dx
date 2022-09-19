@@ -4,7 +4,7 @@ import pytest
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.enhanced import get_dx_settings
-from dx.formatters.main import handle_format
+from dx.formatters.main import generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import settings_context
 
@@ -112,3 +112,38 @@ class TestMissingValues:
                 handle_format(sample_dataframe, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
+
+    @pytest.mark.parametrize("null_value", [np.nan, pd.NA])
+    def test_simple_converts_na_to_none(self, null_value):
+        """
+        Test "simple" display mode properly converts `pd.NA` and `NaN`
+        values to `None` before passing along the payload.
+        """
+        df = pd.DataFrame(
+            {
+                "foo": [1, 2, null_value],
+                "bar": ["a", null_value, "b"],
+            }
+        )
+        with settings_context(display_mode="simple"):
+            payload = generate_body(df)
+        assert payload["data"][0] == {"index": 0, "foo": 1, "bar": "a"}
+        assert payload["data"][1] == {"index": 1, "foo": 2, "bar": None}
+        assert payload["data"][2] == {"index": 2, "foo": None, "bar": "b"}
+
+    @pytest.mark.parametrize("null_value", [np.nan, pd.NA])
+    def test_enhanced_converts_na_to_none(self, null_value):
+        """
+        Test dx formatting properly converts `pd.NA` and `NaN`
+        values to `None` before passing along the payload.
+        """
+        df = pd.DataFrame(
+            {
+                "foo": [1, 2, null_value],
+                "bar": ["a", null_value, "b"],
+            }
+        )
+        with settings_context(display_mode="enhanced"):
+            payload = generate_body(df)
+        assert payload["data"][1] == [1, 2, None]
+        assert payload["data"][2] == ["a", None, "b"]
