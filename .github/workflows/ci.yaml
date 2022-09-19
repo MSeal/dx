@@ -25,12 +25,6 @@ jobs:
         run: |
           poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
           pip install -r requirements.txt
-      - name: Install Cockroach
-        uses: ./.github/actions/setup-cockroach
-      - name: Install Redis
-        uses: ./.github/actions/setup-redis
-      - name: Install Vault
-        uses: ./.github/actions/setup-vault
       - name: Run tests
         run: nox -s test-${{ matrix.python_version }}
       - name: Generate coverage XML
