@@ -10,8 +10,26 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   custom_dir: overrides
+  # font:
+  #   text: "Lexend Deca"
   palette:
-    scheme: slate
+    # Toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: cyan
+      accent: lime
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+    # Toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: cyan
+      accent: lime
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    
   features:
     # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
     - navigation.instant
