@@ -18,7 +18,7 @@ theme:
       primary: cyan
       accent: lime
       toggle:
-        icon: material/brightness-7 
+        icon: material/brightness-7
         name: Switch to dark mode
     # Toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
@@ -28,7 +28,7 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-    
+
   features:
     # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
     - navigation.instant
