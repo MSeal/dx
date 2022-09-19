@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
-import numpy as np
 import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
@@ -137,9 +136,9 @@ def set_display_mode(
     - "enhanced" (GRID display)
     """
     # circular imports
-    from dx.formatters.dataresource import deregister
-    from dx.formatters.dx import register
-    from dx.formatters.main import reset
+    from dx.formatters.enhanced import register
+    from dx.formatters.plain import reset
+    from dx.formatters.simple import deregister
 
     global settings
     settings.DISPLAY_MODE = mode

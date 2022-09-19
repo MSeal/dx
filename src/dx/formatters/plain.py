@@ -5,21 +5,16 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython import get_ipython
-from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
+from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
 from dx.settings import get_settings
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
 
 warnings.filterwarnings("ignore")
-
-
-DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
-if get_ipython() is not None:
-    DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
 
 
 class PandasSettings(BaseSettings):
