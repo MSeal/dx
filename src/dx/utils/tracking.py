@@ -201,7 +201,9 @@ def track_column_conversions(
 
     DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
-        c for c in orig_df.columns if is_datetime_series(orig_df[c]) and not has_numeric_strings(orig_df[c])
+        c
+        for c in orig_df.columns
+        if is_datetime_series(orig_df[c]) and not has_numeric_strings(orig_df[c])
     ]
     DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id] = [
         c for c in orig_df.columns if is_sequence_series(orig_df[c])
