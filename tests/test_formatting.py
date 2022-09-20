@@ -4,7 +4,7 @@ import pytest
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.enhanced import get_dx_settings
-from dx.formatters.main import generate_body, handle_format
+from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import settings_context
 
@@ -147,3 +147,26 @@ class TestMissingValues:
             payload = generate_body(df)
         assert payload["data"][1] == [1, 2, None]
         assert payload["data"][2] == ["a", None, "b"]
+
+
+class TestDisplayFormatter:
+    def test_text(self):
+        """
+        Test the text formatter returns the right media type.
+        """
+        value = "hello, world!"
+        formatter = DXDisplayFormatter()
+        formatted_value = formatter.format(value)
+        assert formatted_value == ({"text/plain": "'hello, world!'"}, {})
+
+    def test_dataframe(self, sample_dataframe: pd.DataFrame):
+        """
+        Test that dataframes are captured by the formatter
+        and do not return a tuple of payload/metadata dictionaries.
+
+        (This is because the formatter registers a display ID to be used
+        by `IPython.display`.)
+        """
+        formatter = DXDisplayFormatter()
+        formatted_value = formatter.format(sample_dataframe)
+        assert formatted_value == ({}, {})
