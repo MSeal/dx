@@ -29,8 +29,16 @@ logger = structlog.get_logger(__name__)
 
 
 DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
+IN_NOTEBOOK_ENV = False
 if get_ipython() is not None:
     DEFAULT_IPYTHON_DISPLAY_FORMATTER = get_ipython().display_formatter
+
+    try:
+        from ipykernel.zmqshell import ZMQInteractiveShell
+
+        IN_NOTEBOOK_ENV = isinstance(get_ipython(), ZMQInteractiveShell)
+    except ImportError:
+        pass
 
 
 def datalink_processing(
@@ -121,7 +129,7 @@ class DXDisplayFormatter(DisplayFormatter):
 
     def format(self, obj, **kwargs):
 
-        if isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+        if IN_NOTEBOOK_ENV and isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
             handle_format(obj)
             return ({}, {})
 
