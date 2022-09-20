@@ -69,7 +69,7 @@ The `dx` library currently enables DEX media type visualization of pandas `DataF
   })
   dx.display(df)
   ```
-  ![](docs/screenshots/dx_display_sample1.png)
+  ![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_display_sample1.png)
 
 - tabular data as `dict` or `list` types
   ```python
@@ -79,7 +79,7 @@ The `dx` library currently enables DEX media type visualization of pandas `DataF
     [0, 0, 0, 0, 1]
   ])
   ```
-  ![](docs/screenshots/dx_display_sample2.png)
+  ![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_display_sample2.png)
 
 - `.csv` or `.json` filepaths 
   ```python
@@ -88,7 +88,7 @@ The `dx` library currently enables DEX media type visualization of pandas `DataF
 
   dx.display("dx_docs_sample.csv")
   ```
-  ![](docs/screenshots/dx_display_sample3.png)
+  ![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_display_sample3.png)
 
 ### With `dx.set_display_mode()`
 Using either `"simple"` or `"enhanced"` display modes will allow `dx` will update the current `IPython` display formatters to allow DEX media type visualization of pandas `DataFrame` objects for an entire notebook / kernel session instead of the default `DataFrame` display output.
@@ -134,7 +134,7 @@ This will also handle some basic column cleaning and generate a schema for the `
   )
   df2
   ```
-  ![](docs/screenshots/dx_simple_mode_sample1.png)
+  ![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_simple_mode_sample1.png)
 
 If, at any point, you want to go back to the default display formatting (vanilla pandas output), use the `"plain"` display mode. This will revert the IPython display format update to its original state and put the pandas options back to their default values.
 
@@ -157,19 +157,19 @@ If, at any point, you want to go back to the default display formatting (vanilla
   )
   df2
   ```
-  ![](docs/screenshots/dx_plain_mode_sample1.png)
+  ![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_plain_mode_sample1.png)
 
 
 ### Custom Settings
 Default settings for `dx` can be found by calling `dx.settings`:
-![](docs/screenshots/dx_settings_sample1.png)
+![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_settings_sample1.png)
 
 Each can be set using `dx.set_option()`:
-![](docs/screenshots/dx_settings_sample2.png)
+![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_settings_sample2.png)
 _Setting `DISPLAY_MAX_ROWS` to `3` for the current session_
 
 ...or with the `dx.settings_context()` context manager:
-![](docs/screenshots/dx_settings_sample3.png)
+![](https://raw.githubusercontent.com/noteable-io/dx/main/docs/screenshots/dx_settings_sample3.png)
 _Setting `DISPLAY_MAX_ROWS` to `3` within the current context, leaving options for the rest of the session alone_
 
 ### Generating Sample Data
@@ -185,11 +185,11 @@ See [CONTRIBUTING.md](https://github.com/noteable-io/dx/blob/main/CONTRIBUTING.m
 
 ## Code of Conduct
 
-We follow the noteable.io [code of conduct](CODE_OF_CONDUCT.md).
+We follow the noteable.io [code of conduct](https://github.com/noteable-io/dx/blob/main/CODE_OF_CONDUCT.md).
 
 ## LICENSE
 
-See [LICENSE.md](LICENSE.md).
+See [LICENSE.md](https://github.com/noteable-io/dx/blob/main/LICENSE.md).
 
 -------
 
