@@ -6,7 +6,7 @@ import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import display
+from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 
 from dx.sampling import get_df_dimensions, sample_if_too_big
@@ -192,7 +192,7 @@ def format_output(
     # this needs to happen so we can update by display_id as needed
     with pd.option_context("html.table_schema", settings.HTML_TABLE_SCHEMA):
         logger.debug(f"displaying {settings.MEDIA_TYPE} payload in {display_id=}")
-        display(
+        ipydisplay(
             payload,
             raw=True,
             metadata=metadata,
