@@ -1,0 +1,28 @@
+name: Base Linting
+
+# Trigger the workflow on all pull requests and only pushes to the main branch
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  base-linting:
+    name: base-linting
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Lint Dockerfile, Shell scripts, YAML
+        uses: github/super-linter@v4
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Linters to enable
+          VALIDATE_BASH: true
+          VALIDATE_BASH_EXEC: true
+          VALIDATE_YAML: true
