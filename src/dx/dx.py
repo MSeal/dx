@@ -11,7 +11,7 @@ from dx.types import DXDisplayMode
 
 def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
-    mode: DXDisplayMode = DXDisplayMode.enhanced,
+    mode: DXDisplayMode = DXDisplayMode.simple,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
     """
