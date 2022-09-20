@@ -11,7 +11,7 @@ from dx.settings import settings  # noqa
 
 class DataResourceSettings(BaseSettings):
     # "simple" (classic simpleTable/DEX) display mode
-    DATARESOURCE_DISPLAY_MAX_ROWS: int = 100_000
+    DATARESOURCE_DISPLAY_MAX_ROWS: int = 50_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
