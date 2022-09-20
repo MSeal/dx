@@ -159,7 +159,7 @@ class TestDisplayFormatter:
         formatted_value = formatter.format(value)
         assert formatted_value == ({"text/plain": "'hello, world!'"}, {})
 
-    def test_dataframe(self, sample_dataframe: pd.DataFrame):
+    def test_dataframe(self, sample_dataframe: pd.DataFrame, mocker):
         """
         Test that dataframes are captured by the formatter
         and do not return a tuple of payload/metadata dictionaries.
@@ -168,5 +168,6 @@ class TestDisplayFormatter:
         by `IPython.display`.)
         """
         formatter = DXDisplayFormatter()
+        mocker.patch("dx.formatters.main.IN_NOTEBOOK_ENV", True)
         formatted_value = formatter.format(sample_dataframe)
         assert formatted_value == ({}, {})
