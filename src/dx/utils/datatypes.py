@@ -202,7 +202,7 @@ def is_json_serializable(s: pd.Series) -> bool:
     Returns True if the object can be serialized to JSON.
     """
     try:
-        s.to_json()
+        _ = json.dumps(s.values.tolist())
         return True
     except (TypeError, OverflowError, UnicodeDecodeError):
         # these are the main serialization errors we expect
