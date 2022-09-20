@@ -93,6 +93,9 @@ The `dx` library currently enables DEX media type visualization of pandas `DataF
 ### With `dx.set_display_mode()`
 Using either `"simple"` or `"enhanced"` display modes will allow `dx` will update the current `IPython` display formatters to allow DEX media type visualization of pandas `DataFrame` objects for an entire notebook / kernel session instead of the default `DataFrame` display output.
 
+<details>
+<summary>Details</summary>
+
 This will adjust pandas options to:
 - increasing the number of rows displayed to `50000` from pandas default of `60`
 - increasing the number of columns displayed to `50` from pandas default of `20`
@@ -101,10 +104,10 @@ This will adjust pandas options to:
 This will also handle some basic column cleaning and generate a schema for the `DataFrame` using `pandas.io.json.build_table_schema`. Depending on the display mode, the data will be transformed into either a list of dictionaries or list of lists of columnar values.
 - `"simple"` - list of dictionaries
 - `"enhanced"` - list of lists
+</details>
 
-
-!!! note "Note"
-  Unlike `dx.display()`, this **only** affects pandas DataFrames (or any types set in `settings.RENDERABLE_OBJECTS`); it does not affect the display of `.csv`/`.json` file data, or `dict`/`list` outputs
+> **NOTE:**
+> Unlike `dx.display()`, this **only** affects pandas DataFrames (or any types set in `settings.RENDERABLE_OBJECTS`); it does not affect the display of `.csv`/`.json` file data, or `dict`/`list` outputs
 
 
 - `dx.set_display_mode("simple")`
