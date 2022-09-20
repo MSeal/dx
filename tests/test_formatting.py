@@ -171,3 +171,35 @@ class TestDisplayFormatter:
         mocker.patch("dx.formatters.main.IN_NOTEBOOK_ENV", True)
         formatted_value = formatter.format(sample_dataframe)
         assert formatted_value == ({}, {})
+
+
+class TestMultiIndexDataFrames:
+    def test_simple_succeeds_with_multiindexes(
+        self,
+        sample_groupby_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "simple" display mode formatting doesn't fail while
+        formatting a dataframe with MultiIndex index/columns.
+        """
+        try:
+            with settings_context(display_mode="simple"):
+                handle_format(sample_groupby_dataframe, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
+    def test_enhanced_succeeds_with_multiindexes(
+        self,
+        sample_groupby_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "enhanced" display mode formatting doesn't fail while
+        formatting a dataframe with MultiIndex index/columns.
+        """
+        try:
+            with settings_context(display_mode="enhanced"):
+                handle_format(sample_groupby_dataframe, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"

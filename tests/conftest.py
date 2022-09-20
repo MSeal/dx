@@ -5,6 +5,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
 
 from dx.settings import get_settings
+from dx.utils.datatypes import random_dataframe
 
 settings = get_settings()
 
@@ -30,6 +31,18 @@ def sample_dataframe() -> pd.DataFrame:
         }
     )
     return df
+
+
+@pytest.fixture
+def sample_groupby_dataframe() -> pd.DataFrame:
+    """
+    This will generate a dataframe with two MultiIndexes:
+    - one at .index with 2 levels: keyword_column and integer_column
+    - one at .columns with the min/max values of any remaining columns
+    """
+    df = random_dataframe()
+    group_df = df.groupby(["keyword_column", "integer_column"]).agg(["min", "max"])
+    return group_df
 
 
 @pytest.fixture
