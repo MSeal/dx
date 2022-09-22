@@ -146,27 +146,30 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     return s
 
 
-def generate_metadata(display_id: str, **dataframe_info):
-    from dx.utils.tracking import DISPLAY_ID_TO_FILTERS, DISPLAY_ID_TO_METADATA
+def generate_metadata(display_id: str, default_index_used: bool = True, **dataframe_info):
+    from dx.utils.tracking import DXDF_CACHE
 
-    existing_metadata = DISPLAY_ID_TO_METADATA.get(display_id, {})
+    filters = []
+    sample_history = []
 
-    parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
-    if parent_dataframe_info:
-        # if this comes after a resampling operation, we need to make sure the
-        # original dimensions aren't overwritten by this new dataframe_info,
-        # but instead we want to update the previous dataframe_info with the
-        # updated values for the truncated* dimensions
-        # (`truncated_size_bytes`, `truncated_num_rows`, `truncated_num_cols`)
-        truncated_dataframe_info = {
-            k: v for k, v in dataframe_info.items() if k.startswith("truncated")
-        }
-        parent_dataframe_info.update(truncated_dataframe_info)
-        dataframe_info = parent_dataframe_info
-
-    # these are set whenever store_sample_to_history() is called after a filter action from the frontend
-    applied_filters = DISPLAY_ID_TO_FILTERS.get(display_id, [])
-    sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
+    # pull the topmost-parent dataframe's metadata, if available
+    if (parent_dxdf := DXDF_CACHE.get(display_id)) is not None:
+        existing_metadata = parent_dxdf.metadata
+        parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
+        if parent_dataframe_info:
+            # if this comes after a resampling operation, we need to make sure the
+            # original dimensions aren't overwritten by this new dataframe_info,
+            # but instead we want to update the previous dataframe_info with the
+            # updated values for the truncated* dimensions
+            # (`truncated_size_bytes`, `truncated_num_rows`, `truncated_num_cols`)
+            truncated_dataframe_info = {
+                k: v for k, v in dataframe_info.items() if k.startswith("truncated")
+            }
+            parent_dataframe_info.update(truncated_dataframe_info)
+            dataframe_info = parent_dataframe_info
+        # these are set whenever store_sample_to_history() is called after a filter action from the frontend
+        sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
+        filters = [dex_filter.dict() for dex_filter in parent_dxdf.filters]
 
     metadata = {
         "datalink": {
@@ -179,7 +182,7 @@ def generate_metadata(display_id: str, **dataframe_info):
                 }
             ),
             "display_id": display_id,
-            "applied_filters": applied_filters,
+            "applied_filters": filters,
             "sample_history": sample_history,
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
         },
