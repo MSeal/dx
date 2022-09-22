@@ -2,13 +2,16 @@
 site_name: DX
 nav:
   - Home: index.md
+  - Reference:
+    - 'Formatters': reference/formatters.md
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
 edit_uri: edit/main/docs/
 
 # Material theme config
 theme:
-  name: material
+  name: readthedocs
+  #name: material
   # font:
   #   text: "Lexend Deca"
   palette:
@@ -37,19 +40,19 @@ theme:
 # plugins
 plugins:
   - search
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: 'numpy'
-  - mkdocs-jupyter:
-      include_source: True
+  # - mkdocstrings:
+  #     handlers:
+  #       python:
+  #         options:
+  #           docstring_style: 'numpy'
+  # - mkdocs-jupyter:
+  #     include_source: True
 
 markdown_extensions:
   # code highlighting
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.superfences
+  # - pymdownx.highlight:
+  #     anchor_linenums: true
+  # - pymdownx.superfences
 
 extra:
   social:
