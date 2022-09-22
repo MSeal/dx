@@ -19,10 +19,6 @@ from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, sto
 logger = structlog.get_logger(__name__)
 
 
-LAST_PAYLOAD_SENT = {}
-LAST_METADATA_SENT = {}
-
-
 DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
 IN_NOTEBOOK_ENV = False
 if get_ipython() is not None:
@@ -170,11 +166,6 @@ def format_output(
 
     payload = {settings.MEDIA_TYPE: payload}
     metadata = {settings.MEDIA_TYPE: metadata}
-
-    global LAST_PAYLOAD_SENT
-    global LAST_METADATA_SENT
-    LAST_PAYLOAD_SENT = payload
-    LAST_METADATA_SENT = metadata
 
     # this needs to happen so we can update by display_id as needed
     with pd.option_context("html.table_schema", settings.HTML_TABLE_SCHEMA):
