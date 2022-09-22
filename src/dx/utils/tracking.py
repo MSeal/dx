@@ -67,10 +67,11 @@ class DXDataFrame:
         attr_str = " ".join(
             f"{k}={v}" for k, v in self.__dict__.items() if not isinstance(v, (pd.DataFrame))
         )
-        return f"<DXDataFrameCache {attr_str}>"
+        return f"<DXDataFrame {attr_str}>"
 
 
-DF_CACHE: dict[uuid.UUID : DXDataFrame] = {}
+# should be (display_id: DXDataFrame) pairs
+DF_CACHE = {}
 
 
 CELL_ID_TO_DISPLAY_ID = {}
