@@ -1,5 +1,4 @@
 import enum
-import uuid
 from datetime import datetime
 from typing import List, Literal, Optional, Union
 
@@ -153,7 +152,7 @@ class DEXFilterSettings(BaseModel):
 
 
 class DEXResampleMessage(BaseModel):
-    display_id: uuid.UUID
+    display_id: str
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
     limit: int = 50_000
     cell_id: Optional[str] = None
