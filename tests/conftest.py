@@ -17,10 +17,10 @@ def pytest_collection_modifyitems(config, items):
         return
 
     skip_benchmarks = pytest.mark.skip(
-        reason='benchmark marker not selected, use `-m benchmark` to include this test'
+        reason="benchmark marker not selected, use `-m benchmark` to include this test"
     )
     for item in items:
-        if 'benchmark' in item.keywords:
+        if "benchmark" in item.keywords:
             item.add_marker(skip_benchmarks)
 
 
