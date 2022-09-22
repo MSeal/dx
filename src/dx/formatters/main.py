@@ -15,8 +15,8 @@ from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
-    DXDF_CACHE,
     DISPLAY_ID_TO_METADATA,
+    DXDF_CACHE,
     SUBSET_TO_DISPLAY_ID,
     DXDataFrame,
     store_in_sqlite,
