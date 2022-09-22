@@ -152,13 +152,8 @@ class DEXFilterSettings(BaseModel):
         return " & ".join([f.pandas_filter for f in self.filters])
 
 
-class DEXSampling(BaseModel):
-    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
-    sample_size: int = 50_000
-
-
-class ResampleMessage(BaseModel):
+class DEXResampleMessage(BaseModel):
     display_id: uuid.UUID
-    sampling: DEXSampling
-    status: Literal["submitted"] = "submitted"
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
+    limit: int = 50_000
     cell_id: Optional[str] = None

@@ -6,7 +6,7 @@ from IPython.display import update_display
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
-from dx.types import DEXFilterSettings, ResampleMessage
+from dx.types import DEXFilterSettings, DEXResampleMessage
 from dx.utils.tracking import (
     DF_CACHE,
     SUBSET_TO_DATAFRAME_HASH,
@@ -112,7 +112,7 @@ def update_display_id(
         )
 
 
-def handle_resample(msg: ResampleMessage) -> None:
+def handle_resample(msg: DEXResampleMessage) -> None:
     raw_filters = msg.filters
     sample_size = msg.limit
 
