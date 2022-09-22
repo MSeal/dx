@@ -15,8 +15,9 @@ from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 from dx.utils.tracking import (
+    DXDF_CACHE,
     DISPLAY_ID_TO_METADATA,
-    SUBSET_TO_DATAFRAME_HASH,
+    SUBSET_TO_DISPLAY_ID,
     DXDataFrame,
     store_in_sqlite,
 )
@@ -49,17 +50,23 @@ def datalink_processing(
     dxdf = DXDataFrame(df)
     logger.debug(f"{dxdf=}")
 
-    update_existing_display = dxdf.hash in SUBSET_TO_DATAFRAME_HASH
+    parent_display_id = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
+    if parent_display_id is None:
+        DXDF_CACHE[dxdf.display_id] = dxdf
+        logger.debug(f"{DXDF_CACHE=}")
+    else:
+        logger.debug(f"df is subset of existing {parent_display_id=}")
+
     payload, metadata = format_output(
         dxdf.df,
-        update=update_existing_display,
+        update=parent_display_id,
         display_id=dxdf.display_id,
         has_default_index=default_index_used,
     )
 
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
-    if not update_existing_display:
+    if not parent_display_id:
         store_in_sqlite(dxdf.sql_table, dxdf.df)
 
     return payload, metadata
