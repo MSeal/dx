@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Optional, Set, Union
 
+import numpy as np
 import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
@@ -26,7 +27,7 @@ except ImportError:
 
 @lru_cache
 def get_default_renderable_types():
-    types = {pd.Series, pd.DataFrame}
+    types = {np.ndarray, pd.Series, pd.DataFrame}
     if GEOPANDAS_INSTALLED:
         gpd_types = {gpd.GeoDataFrame, gpd.GeoSeries}
         types.update(gpd_types)
@@ -34,7 +35,7 @@ def get_default_renderable_types():
 
 
 class Settings(BaseSettings):
-    LOG_LEVEL: Union[int, str] = logging.WARNING
+    LOG_LEVEL: Union[int, str] = logging.DEBUG
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20

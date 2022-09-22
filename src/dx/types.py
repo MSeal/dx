@@ -1,6 +1,7 @@
 import enum
+import uuid
 from datetime import datetime
-from typing import List, Literal, Union
+from typing import List, Literal, Optional, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -149,3 +150,15 @@ class DEXFilterSettings(BaseModel):
 
     def to_pandas_query(self) -> str:
         return " & ".join([f.pandas_filter for f in self.filters])
+
+
+class DEXSampling(BaseModel):
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
+    sample_size: int = 50_000
+
+
+class ResampleMessage(BaseModel):
+    display_id: uuid.UUID
+    sampling: DEXSampling
+    status: Literal["submitted"] = "submitted"
+    cell_id: Optional[str] = None
