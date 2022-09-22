@@ -14,13 +14,7 @@ from dx.settings import settings
 from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
-from dx.utils.tracking import (
-    DISPLAY_ID_TO_METADATA,
-    DXDF_CACHE,
-    SUBSET_TO_DISPLAY_ID,
-    DXDataFrame,
-    store_in_sqlite,
-)
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, store_in_sqlite
 
 logger = structlog.get_logger(__name__)
 
@@ -173,9 +167,6 @@ def format_output(
         **sampled_df_dimensions,
     }
     metadata = generate_metadata(display_id=display_id, **dataframe_info)
-
-    if display_id not in DISPLAY_ID_TO_METADATA:
-        DISPLAY_ID_TO_METADATA[display_id] = metadata
 
     payload = {settings.MEDIA_TYPE: payload}
     metadata = {settings.MEDIA_TYPE: metadata}

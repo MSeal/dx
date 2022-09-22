@@ -26,9 +26,6 @@ CELL_ID_TO_DISPLAY_ID = {}
 # used to track when a filtered subset should be tied to an existing display ID
 SUBSET_TO_DISPLAY_ID = {}
 
-DISPLAY_ID_TO_METADATA = {}
-DISPLAY_ID_TO_FILTERS = {}
-
 
 class DXDataFrame:
     """
