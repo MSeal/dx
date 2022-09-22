@@ -10,6 +10,20 @@ from dx.utils.datatypes import random_dataframe
 settings = get_settings()
 
 
+def pytest_collection_modifyitems(config, items):
+    keywordexpr = config.option.keyword
+    markexpr = config.option.markexpr
+    if keywordexpr or markexpr:
+        return
+
+    skip_benchmarks = pytest.mark.skip(
+        reason='benchmark marker not selected, use `-m benchmark` to include this test'
+    )
+    for item in items:
+        if 'benchmark' in item.keywords:
+            item.add_marker(skip_benchmarks)
+
+
 @pytest.fixture
 def get_ipython() -> TerminalInteractiveShell:
     if TerminalInteractiveShell._instance:
