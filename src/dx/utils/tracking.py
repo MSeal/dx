@@ -1,6 +1,6 @@
 import hashlib
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 import pandas as pd
 import structlog
@@ -9,21 +9,69 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 from sqlalchemy import create_engine
 
+from dx.settings import get_settings
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
 from dx.utils.date_time import is_datetime_series
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
 sql_engine = create_engine("sqlite://", echo=False)
+settings = get_settings()
 
 
-# we need to keep track of some things here:
-# - an original uuid for each dataframe
-# - the hash of each dataframe so we aren't storing them multiple times
-# - the display ID associated with each *cleaned* dataframe
-# - the cell ID associated with the display ID, when passed during an update over comms
-# - before/after cleaning associations per dataframe
-# - any special column treatment (e.g. datetime columns)
-# TODO: create new classes to handle this instead of abusing globals.
+class DXDataFrame:
+    """
+    Convenience class to store information about dataframes,
+    including original size, series data types, and other
+    dx-generated information such as display_id and hash.
+    """
+
+    df: pd.DataFrame = None
+    original_column_dtypes: dict = {}
+    index: List[str] = []
+
+    id: uuid.UUID = None
+    parent_id: uuid.UUID = None
+
+    hash: str = None
+    display_id: uuid.UUID = None
+    variable_name: str = None
+
+    metadata: dict = {}
+    filters: List[dict] = []
+
+    def __init__(self, df: pd.DataFrame):
+        from dx.sampling import get_df_dimensions
+
+        self.original_column_dtypes = df.dtypes.to_dict()
+        self.sequence_columns = [column for column in df.columns if is_sequence_series(df[column])]
+        self.datetime_columns = [
+            c for c in df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
+        ]
+
+        self.default_index_used = is_default_index(df.index)
+        self.index_name = df.index.name or "index"
+
+        self.id = uuid.uuid4()
+        self.df = normalize_index_and_columns(df)
+
+        self.hash = generate_df_hash(self.df)
+        self.variable_name = get_df_variable_name(self.df, df_hash=self.hash)
+        self.sql_table = f"{self.variable_name}_{self.hash}"
+        self.display_id = get_display_id(self.hash)
+
+        self.metadata = generate_metadata(self.display_id)
+        self.metadata["datalink"]["dataframe_info"] = get_df_dimensions(self.df, prefix="orig")
+
+    def __repr__(self):
+        attr_str = " ".join(
+            f"{k}={v}" for k, v in self.__dict__.items() if not isinstance(v, (pd.DataFrame))
+        )
+        return f"<DXDataFrameCache {attr_str}>"
+
+
+DF_CACHE: dict[uuid.UUID : DXDataFrame] = {}
+
 
 CELL_ID_TO_DISPLAY_ID = {}
 
@@ -94,12 +142,18 @@ def get_df_variable_name(
     df_hash: Optional[str] = None,
 ) -> str:
     """
-    Returns the variable name of the DataFrame object.
+    Returns the variable name of the DataFrame object
+    by inspecting the IPython shell's user namespace
+    and comparing `df` to the available variables and their values.
     """
     logger.debug("looking for matching variables for dataframe")
 
     ipython = ipython_shell or get_ipython()
-    df_vars = {k: v for k, v in ipython.user_ns.items() if isinstance(v, pd.DataFrame)}
+    df_vars = {
+        k: v
+        for k, v in ipython.user_ns.items()
+        if isinstance(v, tuple(settings.RENDERABLE_OBJECTS))
+    }
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
 
     df_hash = df_hash or generate_df_hash(df)
@@ -131,29 +185,6 @@ def get_df_variable_name(
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
-
-
-def register_display_id(
-    df: pd.DataFrame,
-    display_id: str,
-    df_hash: str,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> str:
-    """
-    Hashes the dataframe object and tracks display_id for future references in other function calls,
-    and writes the data to a local sqlite table for follow-on SQL querying.
-    """
-    DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
-    DATAFRAME_HASH_TO_DISPLAY_ID[df_hash] = display_id
-
-    df_name = get_df_variable_name(
-        df,
-        ipython_shell=ipython_shell,
-        df_hash=df_hash,
-    )
-    DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
-    logger.debug(f"registering display_id {display_id=} for `{df_name}`")
-    return f"{df_name}__{df_hash}"
 
 
 def get_display_id(df_hash: str) -> str:
@@ -199,7 +230,6 @@ def track_column_conversions(
     # of the resulting row(s), then swap out the results with the
     # index positions of the original data
 
-    DISPLAY_ID_TO_INDEX[display_id] = df.index.name
     DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
         c
         for c in orig_df.columns

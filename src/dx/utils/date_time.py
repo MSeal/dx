@@ -52,7 +52,7 @@ def generate_time_delta_series(num_rows: int) -> pd.Series:
 
 def handle_time_period_series(s: pd.Series) -> pd.Series:
     types = (pd.Period, pd.PeriodIndex)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has pd.Period values; converting to string")
         s = s.apply(lambda x: [x.start_time, x.end_time] if isinstance(x, types) else x)
     return s
@@ -64,7 +64,7 @@ def handle_time_delta_series(s: pd.Series) -> pd.Series:
         np.timedelta64,
         pd.Timedelta,
     )
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has pd.TimeDelta values; converting to total seconds")
         s = s.apply(lambda x: x.total_seconds() if isinstance(x, types) else x)
     return s
