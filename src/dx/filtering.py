@@ -7,13 +7,7 @@ from IPython.display import update_display
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types import DEXFilterSettings, DEXResampleMessage
-from dx.utils.tracking import (
-    DF_CACHE,
-    SUBSET_TO_DATAFRAME_HASH,
-    DXDataFrame,
-    generate_df_hash,
-    sql_engine,
-)
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, sql_engine
 
 logger = structlog.get_logger(__name__)
 
@@ -25,14 +19,15 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     Updates the metadata cache to include past filters, times, and dataframe info.
     """
     # apply new metadata for resampled dataset
-    dxdf: DXDataFrame = DF_CACHE.get(display_id)
+    dxdf = DXDF_CACHE[display_id]
+
     metadata = dxdf.metadata
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
     sample = {
         "sampling_time": sample_time,
-        "filters": filters,
+        "filters": [dex_filter.dict() for dex_filter in filters],
         "dataframe_info": get_df_dimensions(df, prefix="truncated"),
     }
     datalink_metadata["sample_history"].append(sample)
@@ -68,7 +63,7 @@ def update_display_id(
     display handler.
     """
     row_limit = limit or settings.DISPLAY_MAX_ROWS
-    dxdf: DXDataFrame = DF_CACHE.get(display_id)
+    dxdf = DXDF_CACHE[display_id]
 
     query_string = sql_filter.format(table_name=dxdf.sql_table)
     logger.debug(f"sql query string: {query_string}")
@@ -96,11 +91,8 @@ def update_display_id(
     logger.debug(f"applying {filters=}")
     dxdf.filters = filters or []
 
-    # make sure all the updates are tracked
-    logger.debug(f"{DF_CACHE[display_id]=}")
-
-    logger.debug(f"assigning subset {new_df_hash} to parent {dxdf.hash=}")
-    SUBSET_TO_DATAFRAME_HASH[new_df_hash] = dxdf.hash
+    logger.debug(f"assigning subset {new_df_hash} to {display_id=}")
+    SUBSET_TO_DISPLAY_ID[new_df_hash] = display_id
 
     # allow temporary override of the display limit
     with settings_context(DISPLAY_MAX_ROWS=row_limit):
