@@ -35,6 +35,7 @@ flake8-docstrings = "^1.6.0"
 # for datatype testing
 geopandas = "^0.11.1"
 Faker = "^14.1.0"
+pytest-benchmark = "^3.4.1"
 
 [tool.poetry.extras]
 docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstrings-python"]
