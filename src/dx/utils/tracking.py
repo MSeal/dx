@@ -39,7 +39,7 @@ class DXDataFrame:
 
     df: pd.DataFrame = None
     original_column_dtypes: dict = {}
-    index: List[str] = []
+    index_name: List[str] = []
 
     id: uuid.UUID = None
     parent_id: uuid.UUID = None
@@ -51,11 +51,15 @@ class DXDataFrame:
     metadata: dict = {}
     filters: List[dict] = []
 
-    def __init__(self, df: pd.DataFrame):
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        ipython_shell: Optional[InteractiveShell] = None,
+    ):
         from dx.sampling import get_df_dimensions
 
         self.id = uuid.uuid4()
-        self.variable_name = get_df_variable_name(df)
+        self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
 
         self.original_column_dtypes = df.dtypes.to_dict()
         self.sequence_columns = [column for column in df.columns if is_sequence_series(df[column])]
