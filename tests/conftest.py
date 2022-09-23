@@ -1,3 +1,4 @@
+import duckdb
 import numpy as np
 import pandas as pd
 import pytest
@@ -36,6 +37,13 @@ def get_ipython() -> TerminalInteractiveShell:
     config.TerminalInteractiveShell.simple_prompt = True
     shell = TerminalInteractiveShell.instance(config=config)
     return shell
+
+
+@pytest.fixture
+def sample_db_connection() -> duckdb.DuckDBPyConnection:
+    conn = duckdb.connect(":memory:")
+    yield conn
+    conn.close()
 
 
 @pytest.fixture

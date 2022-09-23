@@ -14,7 +14,7 @@ from dx.settings import settings
 from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, store_in_sqlite
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, db_connection
 
 logger = structlog.get_logger(__name__)
 
@@ -57,7 +57,22 @@ def datalink_processing(
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
     if not parent_display_id:
-        store_in_sqlite(dxdf.sql_table, dxdf.df)
+        if dxdf.variable_name.startswith("unk_dataframe"):
+            # it wasn't assigned to a variable but we still
+            # want it to be available for push-down filtering
+            logger.debug(
+                f"registering unassigned dataframe to duckdb and adding to user_ns: {dxdf.variable_name}"
+            )
+            ipython_shell.user_ns[dxdf.variable_name] = dxdf.df
+            db_connection.register(dxdf.variable_name, dxdf.df)
+        else:
+            # duckdb should already be tracking this variable name
+            count_resp = db_connection.execute(
+                f"SELECT COUNT(*) FROM {dxdf.variable_name}"
+            ).fetchone()
+            logger.debug(
+                f"duckdb is already tracking {dxdf.variable_name}, and shows {count_resp[0]} row(s)"
+            )
 
     return payload, metadata
 

@@ -2,9 +2,10 @@
 Tests to ensure various data types can be sent functions to
 - build the table schema and payload/metadata body for each display formatter
 - hash the dataframe for tracking
-- write to sqlite for tracking/filtering
+- write to the database for tracking/filtering
 """
 
+import duckdb
 import pandas as pd
 import pytest
 from pandas.io.json import build_table_schema
@@ -19,7 +20,7 @@ from dx.utils.datatypes import (
     random_dataframe,
 )
 from dx.utils.formatting import clean_column_values
-from dx.utils.tracking import generate_df_hash, sql_engine, store_in_sqlite
+from dx.utils.tracking import generate_df_hash
 
 
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
@@ -135,37 +136,42 @@ def test_generate_df_hash(dtype: str):
 
 @pytest.mark.xfail(reason="only for dev")
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
-def test_to_sql(dtype: str):
+def test_to_sql(dtype: str, sample_db_connection: duckdb.DuckDBPyConnection):
     """
     DEV: Test which data types pass/fail when passed directly through .to_sql()
     with the sqlalchemy engine.
     """
     params = {dt: False for dt in SORTED_DX_DATATYPES}
     params[dtype] = True
+
     df = random_dataframe(**params)
+
     try:
-        with sql_engine.connect() as conn:
-            num_rows = df.to_sql("test", conn, if_exists="replace")
+        sample_db_connection.register(f"{dtype}_test", df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
+    count_resp = sample_db_connection.execute(f"SELECT COUNT(*) FROM {dtype}_test").fetchone()
+    num_rows = count_resp[0]
     assert num_rows == df.shape[0]
 
 
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
-def test_store_in_sqlite(dtype: str):
+def test_store_in_db(dtype: str, sample_db_connection: duckdb.DuckDBPyConnection):
     """
     Test that we've correctly handled data types before storing in sqlite.
     """
     params = {dt: False for dt in SORTED_DX_DATATYPES}
     params[dtype] = True
+
     df = random_dataframe(**params)
+
     for col in df.columns:
         df[col] = clean_column_values(df[col])
+
     try:
-        num_rows = store_in_sqlite(f"{dtype}_test", df)
+        sample_db_connection.register(f"{dtype}_test", df)
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
+    count_resp = sample_db_connection.execute(f"SELECT COUNT(*) FROM {dtype}_test").fetchone()
+    num_rows = count_resp[0]
     assert num_rows == df.shape[0]
-
-
-# TODO: test that we can convert back to original datatypes after read_sql?

@@ -7,7 +7,7 @@ from IPython.display import update_display
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types import DEXFilterSettings, DEXResampleMessage
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, sql_engine
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, db_connection, generate_df_hash
 
 logger = structlog.get_logger(__name__)
 
@@ -65,12 +65,13 @@ def update_display_id(
     row_limit = limit or settings.DISPLAY_MAX_ROWS
     dxdf = DXDF_CACHE[display_id]
 
-    query_string = sql_filter.format(table_name=dxdf.sql_table)
+    query_string = sql_filter.format(table_name=dxdf.variable_name)
     logger.debug(f"sql query string: {query_string}")
-    new_df = pd.read_sql(query_string, sql_engine)
 
-    with sql_engine.connect() as conn:
-        orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {dxdf.sql_table}").scalar()
+    new_df: pd.DataFrame = db_connection.execute(query_string).df()
+    count_resp = db_connection.execute(f"SELECT COUNT(*) FROM {dxdf.variable_name}").fetchone()
+    # should return a tuple of (count,)
+    orig_df_count = count_resp[0]
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
     metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
