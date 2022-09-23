@@ -46,10 +46,11 @@ def renamer(comm, open_msg):
         data = msg["content"]["data"]
 
         if "old_name" in data and "new_name" in data:
-            to_rename = globals().get(data["old_name"])
+            shell = get_ipython()
+            to_rename = shell.user_ns.get(data["old_name"])
             if isinstance(to_rename, pd.DataFrame):
-                globals[data["new_name"]] = to_rename
-                del globals[data["old_name"]]
+                shell.user_ns[data["new_name"]] = to_rename
+                del shell.user_ns[data["old_name"]]
 
     comm.send({"connected": True})
 
