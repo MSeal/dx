@@ -14,16 +14,7 @@ from dx.settings import settings
 from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
-from dx.utils.tracking import (
-    DISPLAY_ID_TO_METADATA,
-    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
-    SUBSET_TO_DATAFRAME_HASH,
-    generate_df_hash,
-    get_display_id,
-    register_display_id,
-    store_in_sqlite,
-    track_column_conversions,
-)
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, store_in_sqlite
 
 logger = structlog.get_logger(__name__)
 
@@ -46,45 +37,27 @@ def datalink_processing(
     default_index_used: bool,
     ipython_shell: Optional[InteractiveShell] = None,
 ):
-    orig_df = df.copy()
-    orig_dtypes = orig_df.dtypes.to_dict()
-    df = normalize_index_and_columns(df)
-    df_hash = generate_df_hash(df)
-    update_existing_display = df_hash in SUBSET_TO_DATAFRAME_HASH
-    display_id = get_display_id(df_hash)
+    dxdf = DXDataFrame(df)
+    logger.debug(f"{dxdf=}")
 
-    # to be referenced during update_display_id() after
-    # data is pulled from sqlite in order to put dtypes back
-    # to their original states
-    if display_id not in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
-        DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id] = orig_dtypes
-
-    if not update_existing_display:
-        sqlite_df_table = register_display_id(
-            df,
-            display_id=display_id,
-            df_hash=df_hash,
-            ipython_shell=ipython_shell,
-        )
-
-    track_column_conversions(
-        orig_df=orig_df,
-        df=df,
-        display_id=display_id,
-    )
-    del orig_df
+    parent_display_id = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
+    if parent_display_id is None:
+        DXDF_CACHE[dxdf.display_id] = dxdf
+        logger.debug(f"{DXDF_CACHE=}")
+    else:
+        logger.debug(f"df is subset of existing {parent_display_id=}")
 
     payload, metadata = format_output(
-        df,
-        update=update_existing_display,
-        display_id=display_id,
+        dxdf.df,
+        update=parent_display_id,
+        display_id=dxdf.display_id,
         has_default_index=default_index_used,
     )
 
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
-    if not update_existing_display:
-        store_in_sqlite(sqlite_df_table, df)
+    if not parent_display_id:
+        store_in_sqlite(dxdf.sql_table, dxdf.df)
 
     return payload, metadata
 
@@ -190,9 +163,6 @@ def format_output(
         **sampled_df_dimensions,
     }
     metadata = generate_metadata(display_id=display_id, **dataframe_info)
-
-    if display_id not in DISPLAY_ID_TO_METADATA:
-        DISPLAY_ID_TO_METADATA[display_id] = metadata
 
     payload = {settings.MEDIA_TYPE: payload}
     metadata = {settings.MEDIA_TYPE: metadata}

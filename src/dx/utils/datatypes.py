@@ -129,7 +129,7 @@ def generate_ipv6_series(num_rows: int) -> pd.Series:
 
 def handle_complex_number_series(s: pd.Series) -> pd.Series:
     types = (complex, np.complex)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has complex numbers; converting to real/imag string")
         s = s.apply(lambda x: f"{x.real}+{x.imag}j" if isinstance(x, types) else x)
     return s
@@ -137,7 +137,7 @@ def handle_complex_number_series(s: pd.Series) -> pd.Series:
 
 def handle_dict_series(s: pd.Series) -> pd.Series:
     types = dict
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has dicts; converting to json string")
         s = s.apply(lambda x: json.dumps(x) if isinstance(x, types) else x)
     return s
@@ -148,7 +148,7 @@ def handle_dtype_series(s: pd.Series):
     Casts dtypes as strings.
     """
     types = (type, np.dtype)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has types; converting to strings")
         s = s.astype(str)
     return s
@@ -156,7 +156,7 @@ def handle_dtype_series(s: pd.Series):
 
 def handle_interval_series(s: pd.Series) -> pd.Series:
     types = pd.Interval
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has intervals; converting to left/right")
         s = s.apply(lambda x: [x.left, x.right] if isinstance(x, types) else x)
     return s
@@ -164,7 +164,7 @@ def handle_interval_series(s: pd.Series) -> pd.Series:
 
 def handle_ip_address_series(s: pd.Series) -> pd.Series:
     types = (ipaddress.IPv4Address, ipaddress.IPv6Address)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has ip addresses; converting to strings")
         s = s.astype(str)
     return s
@@ -185,7 +185,7 @@ def is_sequence_series(s: pd.Series) -> bool:
     if str(s.dtype) != "object":
         return False
 
-    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
+    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.dropna().head().values):
         return True
     return False
 
@@ -202,7 +202,7 @@ def is_json_serializable(s: pd.Series) -> bool:
     Returns True if the object can be serialized to JSON.
     """
     try:
-        _ = json.dumps(s.values.tolist())
+        _ = json.dumps(s.dropna().head().values.tolist())
         return True
     except (TypeError, OverflowError, UnicodeDecodeError):
         # these are the main serialization errors we expect
@@ -217,7 +217,7 @@ def is_json_serializable(s: pd.Series) -> bool:
 def has_numeric_strings(s: pd.Series) -> bool:
     if not str(s.dtype) == "object":
         return False
-    for v in s.values:
+    for v in s.dropna().head().values:
         if str(v).isnumeric() or str(v).isdigit() or str(v).isdecimal():
             return True
     return False
