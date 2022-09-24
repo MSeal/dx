@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+from functools import lru_cache
 from typing import List, Optional
 
 import duckdb
@@ -15,7 +16,6 @@ from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
-db_connection = duckdb.connect(database=":memory:")
 settings = get_settings()
 
 
@@ -25,6 +25,11 @@ DXDF_CACHE = {}
 CELL_ID_TO_DISPLAY_ID = {}
 # used to track when a filtered subset should be tied to an existing display ID
 SUBSET_TO_DISPLAY_ID = {}
+
+
+@lru_cache
+def get_db_connection() -> duckdb.DuckDBPyConnection:
+    return duckdb.connect(database=settings.DB_LOCATION, read_only=False)
 
 
 class DXDataFrame:
@@ -65,7 +70,7 @@ class DXDataFrame:
         ]
 
         self.default_index_used = is_default_index(df.index)
-        self.index_name = df.index.name or "index"
+        self.index_name = df.index.name or df.index.names or "index"
 
         self.df = normalize_index_and_columns(df)
         self.hash = generate_df_hash(self.df)
