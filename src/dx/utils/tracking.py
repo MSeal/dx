@@ -2,12 +2,12 @@ import hashlib
 import uuid
 from typing import List, Optional
 
+import duckdb
 import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
-from sqlalchemy import create_engine
 
 from dx.settings import get_settings
 from dx.utils.datatypes import has_numeric_strings, is_sequence_series
@@ -15,7 +15,7 @@ from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
-sql_engine = create_engine("sqlite://", echo=False)
+db_connection = duckdb.connect(database=":memory:")
 settings = get_settings()
 
 
@@ -169,19 +169,3 @@ def get_df_variable_name(
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
-
-
-def store_in_sqlite(table_name: str, df: pd.DataFrame):
-    logger.debug(f"{df.columns=}")
-    tracking_df = df.copy()
-
-    logger.debug(f"writing to `{table_name}` table in sqlite")
-    with sql_engine.begin() as conn:
-        num_written_rows = tracking_df.to_sql(
-            table_name,
-            con=conn,
-            if_exists="replace",
-            index=True,  # this is the default, but just to be explicit
-        )
-    logger.debug(f"wrote {num_written_rows} row(s) to `{table_name}` table")
-    return num_written_rows

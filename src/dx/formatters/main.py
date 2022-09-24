@@ -14,10 +14,10 @@ from dx.settings import settings
 from dx.types import DXDisplayMode
 from dx.utils.datatypes import to_dataframe
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, store_in_sqlite
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, get_db_connection
 
 logger = structlog.get_logger(__name__)
-
+db_connection = get_db_connection()
 
 DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
 IN_NOTEBOOK_ENV = False
@@ -57,7 +57,8 @@ def datalink_processing(
     # this needs to happen after sending to the frontend
     # so the user doesn't wait as long for writing larger datasets
     if not parent_display_id:
-        store_in_sqlite(dxdf.sql_table, dxdf.df)
+        logger.debug(f"registering `{dxdf.variable_name}` to duckdb")
+        db_connection.register(dxdf.variable_name, dxdf.df.reset_index())
 
     return payload, metadata
 
