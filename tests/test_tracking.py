@@ -1,6 +1,9 @@
+import duckdb
 import pandas as pd
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
+from dx.formatters.main import handle_format
+from dx.settings import settings_context
 from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDataFrame, generate_df_hash
 
@@ -102,3 +105,27 @@ def test_dxdataframe_metadata(
 
     assert isinstance(datalink_metadata["applied_filters"], list)
     assert isinstance(datalink_metadata["sample_history"], list)
+
+
+def test_store_in_db(
+    mocker,
+    get_ipython: TerminalInteractiveShell,
+    sample_random_dataframe: pd.DataFrame,
+    sample_db_connection: duckdb.DuckDBPyConnection,
+):
+    """
+    Ensure dataframes are stored as tables using the kernel's
+    local database connection.
+    """
+    mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
+
+    get_ipython.user_ns["test_df"] = sample_random_dataframe
+
+    with settings_context(enable_datalink=True):
+        handle_format(
+            sample_random_dataframe,
+            ipython_shell=get_ipython,
+        )
+
+    resp = sample_db_connection.execute("SELECT COUNT(*) FROM test_df").fetchone()
+    assert resp[0] == len(sample_random_dataframe)

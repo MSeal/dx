@@ -1,3 +1,4 @@
+import duckdb
 import numpy as np
 import pandas as pd
 import pytest
@@ -36,6 +37,13 @@ def get_ipython() -> TerminalInteractiveShell:
     config.TerminalInteractiveShell.simple_prompt = True
     shell = TerminalInteractiveShell.instance(config=config)
     return shell
+
+
+@pytest.fixture
+def sample_db_connection() -> duckdb.DuckDBPyConnection:
+    conn = duckdb.connect(":memory:")
+    yield conn
+    conn.close()
 
 
 @pytest.fixture
@@ -106,7 +114,18 @@ def sample_long_wide_dataframe() -> pd.DataFrame:
 @pytest.fixture
 def sample_dex_date_filter(sample_random_dataframe: pd.DataFrame) -> dict:
     return {
-        "column": "date_column",
+        "column": "datetime_column",
+        "type": "DATE_FILTER",
+        "predicate": "between",
+        "start": sample_random_dataframe.datetime_column.min(),
+        "end": sample_random_dataframe.datetime_column.max(),
+    }
+
+
+@pytest.fixture
+def sample_dex_groupby_date_filter(sample_random_dataframe: pd.DataFrame) -> dict:
+    return {
+        "column": "datetime_column, min",
         "type": "DATE_FILTER",
         "predicate": "between",
         "start": sample_random_dataframe.datetime_column.min(),
@@ -118,6 +137,19 @@ def sample_dex_date_filter(sample_random_dataframe: pd.DataFrame) -> dict:
 def sample_dex_metric_filter(sample_random_dataframe: pd.DataFrame) -> dict:
     return {
         "column": "float_column",
+        "type": "METRIC_FILTER",
+        "predicate": "between",
+        "value": [
+            sample_random_dataframe.float_column.min(),
+            sample_random_dataframe.float_column.max(),
+        ],
+    }
+
+
+@pytest.fixture
+def sample_dex_groupby_metric_filter(sample_random_dataframe: pd.DataFrame) -> dict:
+    return {
+        "column": "float_column, min",
         "type": "METRIC_FILTER",
         "predicate": "between",
         "value": [
@@ -153,8 +185,16 @@ def sample_dex_filters(
 
 
 @pytest.fixture
-def sample_display_id() -> str:
-    return "test-display-123"
+def sample_dex_groupby_filters(
+    sample_dex_groupby_date_filter: dict,
+    sample_dex_groupby_metric_filter: dict,
+) -> list:
+    return DEXFilterSettings(
+        filters=[
+            sample_dex_groupby_date_filter,
+            sample_dex_groupby_metric_filter,
+        ]
+    ).filters
 
 
 @pytest.fixture

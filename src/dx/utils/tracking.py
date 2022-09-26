@@ -1,21 +1,19 @@
 import hashlib
 import uuid
-from typing import List, Optional
+from functools import lru_cache
+from typing import List, Optional, Union
 
+import duckdb
 import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
-from sqlalchemy import create_engine
 
 from dx.settings import get_settings
-from dx.utils.datatypes import has_numeric_strings, is_sequence_series
-from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
-sql_engine = create_engine("sqlite://", echo=False)
 settings = get_settings()
 
 
@@ -25,6 +23,11 @@ DXDF_CACHE = {}
 CELL_ID_TO_DISPLAY_ID = {}
 # used to track when a filtered subset should be tied to an existing display ID
 SUBSET_TO_DISPLAY_ID = {}
+
+
+@lru_cache
+def get_db_connection() -> duckdb.DuckDBPyConnection:
+    return duckdb.connect(database=settings.DB_LOCATION, read_only=False)
 
 
 class DXDataFrame:
@@ -59,17 +62,12 @@ class DXDataFrame:
         self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
 
         self.original_column_dtypes = df.dtypes.to_dict()
-        self.sequence_columns = [column for column in df.columns if is_sequence_series(df[column])]
-        self.datetime_columns = [
-            c for c in df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
-        ]
 
         self.default_index_used = is_default_index(df.index)
-        self.index_name = df.index.name or "index"
+        self.index_name = get_df_index(df.index)
 
         self.df = normalize_index_and_columns(df)
         self.hash = generate_df_hash(self.df)
-        self.sql_table = f"{self.variable_name}_{self.hash}"
         self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
 
         self.metadata = generate_metadata(self.display_id)
@@ -122,6 +120,13 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     return hash_str
 
 
+def get_df_index(index: Union[pd.Index, pd.MultiIndex]):
+    index_name = index.name
+    if index_name is None and isinstance(index, pd.MultiIndex):
+        index_name = index.names
+    return index_name
+
+
 def get_df_variable_name(
     df: pd.DataFrame,
     ipython_shell: Optional[InteractiveShell] = None,
@@ -169,19 +174,3 @@ def get_df_variable_name(
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
-
-
-def store_in_sqlite(table_name: str, df: pd.DataFrame):
-    logger.debug(f"{df.columns=}")
-    tracking_df = df.copy()
-
-    logger.debug(f"writing to `{table_name}` table in sqlite")
-    with sql_engine.begin() as conn:
-        num_written_rows = tracking_df.to_sql(
-            table_name,
-            con=conn,
-            if_exists="replace",
-            index=True,  # this is the default, but just to be explicit
-        )
-    logger.debug(f"wrote {num_written_rows} row(s) to `{table_name}` table")
-    return num_written_rows

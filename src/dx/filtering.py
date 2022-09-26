@@ -3,14 +3,15 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython.display import update_display
+from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types import DEXFilterSettings, DEXResampleMessage
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, sql_engine
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, get_db_connection
 
 logger = structlog.get_logger(__name__)
-
+db_connection = get_db_connection()
 settings = get_settings()
 
 
@@ -52,6 +53,7 @@ def update_display_id(
     output_variable_name: Optional[str] = None,
     limit: Optional[int] = None,
     cell_id: Optional[str] = None,
+    ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
     """
     Filters the dataframe in the cell with the given display_id.
@@ -65,21 +67,26 @@ def update_display_id(
     row_limit = limit or settings.DISPLAY_MAX_ROWS
     dxdf = DXDF_CACHE[display_id]
 
-    query_string = sql_filter.format(table_name=dxdf.sql_table)
+    query_string = sql_filter.format(table_name=dxdf.variable_name)
     logger.debug(f"sql query string: {query_string}")
-    new_df = pd.read_sql(query_string, sql_engine)
 
-    with sql_engine.connect() as conn:
-        orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {dxdf.sql_table}").scalar()
+    new_df: pd.DataFrame = db_connection.execute(query_string).df()
+    count_resp = db_connection.execute(f"SELECT COUNT(*) FROM {dxdf.variable_name}").fetchone()
+    # should return a tuple of (count,)
+    orig_df_count = count_resp[0]
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
     metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
 
-    # resetting original index
-    new_df.set_index(dxdf.index_name, inplace=True)
+    # resetting original index if needed
+    if dxdf.index_name is not None:
+        new_df.set_index(dxdf.index_name, inplace=True)
 
     # convert back to original dtypes
     for col, dtype in dxdf.original_column_dtypes.items():
+        if settings.FLATTEN_COLUMN_VALUES and isinstance(col, tuple):
+            # the dataframe in use originally had pd.MultiIndex columns
+            col = ", ".join(col)
         new_df[col] = new_df[col].astype(dtype)
 
     # this is associating the subset with the original dataframe,
@@ -104,7 +111,10 @@ def update_display_id(
         )
 
 
-def handle_resample(msg: DEXResampleMessage) -> None:
+def handle_resample(
+    msg: DEXResampleMessage,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> None:
     raw_filters = msg.filters
     sample_size = msg.limit
 
@@ -130,4 +140,4 @@ def handle_resample(msg: DEXResampleMessage) -> None:
             }
         )
 
-    update_display_id(**update_params)
+    update_display_id(ipython_shell=ipython_shell, **update_params)
