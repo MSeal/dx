@@ -108,7 +108,7 @@ dev = ["build (==0.8.0)", "flake8 (==4.0.1)", "hashin (==0.17.0)", "pip-tools (=
 
 [[package]]
 name = "certifi"
-version = "2022.9.14"
+version = "2022.9.24"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -269,11 +269,14 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "executing"
-version = "1.0.0"
+version = "1.1.0"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "main"
 optional = false
 python-versions = "*"
+
+[package.extras]
+tests = ["rich", "littleutils", "pytest", "asttokens"]
 
 [[package]]
 name = "faker"
@@ -399,7 +402,7 @@ docs = ["sphinx"]
 
 [[package]]
 name = "griffe"
-version = "0.22.1"
+version = "0.22.2"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 category = "main"
 optional = true
@@ -767,7 +770,7 @@ mkdocs = ">=1.1"
 
 [[package]]
 name = "mkdocs-jupyter"
-version = "0.21.0"
+version = "0.22.0"
 description = "Use Jupyter in mkdocs websites"
 category = "main"
 optional = true
@@ -881,7 +884,7 @@ test = ["black", "check-manifest", "flake8", "ipykernel", "ipython", "ipywidgets
 
 [[package]]
 name = "nbconvert"
-version = "6.5.3"
+version = "6.5.4"
 description = "Converting Jupyter Notebooks"
 category = "main"
 optional = true
@@ -915,7 +918,7 @@ webpdf = ["pyppeteer (>=1,<1.1)"]
 
 [[package]]
 name = "nbformat"
-version = "5.6.0"
+version = "5.6.1"
 description = "The Jupyter Notebook format"
 category = "main"
 optional = true
@@ -1450,7 +1453,7 @@ sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
 name = "stack-data"
-version = "0.5.0"
+version = "0.5.1"
 description = "Extract data from python stack frames and tracebacks for informative displays"
 category = "main"
 optional = false
@@ -1618,7 +1621,7 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstr
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "dbdf7f19c805328ea053818514b4cca3e23c8f498c8a557436e4ec817d82e922"
+content-hash = "7179986a7629ad639acc44a7dace81a1cf06a20995890b96e29e720e9600da08"
 
 [metadata.files]
 appnope = [
