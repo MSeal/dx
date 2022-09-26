@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import duckdb
 import pandas as pd
@@ -11,8 +11,6 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 
 from dx.settings import get_settings
-from dx.utils.datatypes import has_numeric_strings, is_sequence_series
-from dx.utils.date_time import is_datetime_series
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
@@ -64,17 +62,12 @@ class DXDataFrame:
         self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
 
         self.original_column_dtypes = df.dtypes.to_dict()
-        self.sequence_columns = [column for column in df.columns if is_sequence_series(df[column])]
-        self.datetime_columns = [
-            c for c in df.columns if is_datetime_series(df[c]) and not has_numeric_strings(df[c])
-        ]
 
         self.default_index_used = is_default_index(df.index)
-        self.index_name = df.index.name or df.index.names or "index"
+        self.index_name = get_df_index(df.index)
 
         self.df = normalize_index_and_columns(df)
         self.hash = generate_df_hash(self.df)
-        self.sql_table = f"{self.variable_name}_{self.hash}"
         self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
 
         self.metadata = generate_metadata(self.display_id)
@@ -125,6 +118,13 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     # then hash the resulting (potentially large) string
     hash_str = hashlib.sha256(df_hash_str.encode()).hexdigest()
     return hash_str
+
+
+def get_df_index(index: Union[pd.Index, pd.MultiIndex]):
+    index_name = index.name
+    if index_name is None and isinstance(index, pd.MultiIndex):
+        index_name = index.names
+    return index_name
 
 
 def get_df_variable_name(

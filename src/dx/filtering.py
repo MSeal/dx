@@ -3,6 +3,7 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython.display import update_display
+from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
@@ -52,6 +53,7 @@ def update_display_id(
     output_variable_name: Optional[str] = None,
     limit: Optional[int] = None,
     cell_id: Optional[str] = None,
+    ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
     """
     Filters the dataframe in the cell with the given display_id.
@@ -76,11 +78,15 @@ def update_display_id(
 
     metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
 
-    # resetting original index
-    new_df.set_index(dxdf.index_name, inplace=True)
+    # resetting original index if needed
+    if dxdf.index_name is not None:
+        new_df.set_index(dxdf.index_name, inplace=True)
 
     # convert back to original dtypes
     for col, dtype in dxdf.original_column_dtypes.items():
+        if settings.FLATTEN_COLUMN_VALUES and isinstance(col, tuple):
+            # the dataframe in use originally had pd.MultiIndex columns
+            col = ", ".join(col)
         new_df[col] = new_df[col].astype(dtype)
 
     # this is associating the subset with the original dataframe,
@@ -105,7 +111,10 @@ def update_display_id(
         )
 
 
-def handle_resample(msg: DEXResampleMessage) -> None:
+def handle_resample(
+    msg: DEXResampleMessage,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> None:
     raw_filters = msg.filters
     sample_size = msg.limit
 
@@ -131,4 +140,4 @@ def handle_resample(msg: DEXResampleMessage) -> None:
             }
         )
 
-    update_display_id(**update_params)
+    update_display_id(ipython_shell=ipython_shell, **update_params)
