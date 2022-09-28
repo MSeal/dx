@@ -79,6 +79,24 @@ def sample_groupby_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFr
 
 
 @pytest.fixture
+def sample_groupby_series(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    This will generate a pd.Series with a MultiIndex and one column whose name also appears in the MultiIndex names.
+    """
+    return sample_random_dataframe.groupby(
+        ["keyword_column", "integer_column"]
+    ).float_column.value_counts()
+
+
+@pytest.fixture
+def sample_multiindex_series(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    This will generate a pd.Series with a MultiIndex and one column whose name does not appear in the MultiIndex names.
+    """
+    return sample_random_dataframe.groupby(["keyword_column", "integer_column"]).float_column.mean()
+
+
+@pytest.fixture
 def sample_large_dataframe() -> pd.DataFrame:
     """
     Generates a dataframe that is within the MAX_ROWS/MAX_COLUMNS limits,
