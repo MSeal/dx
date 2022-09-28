@@ -16,8 +16,10 @@ from dx.settings import settings_context
 from dx.utils.datatypes import (
     DX_DATATYPES,
     SORTED_DX_DATATYPES,
+    groupby_series_index_name,
     quick_random_dataframe,
     random_dataframe,
+    to_dataframe,
 )
 from dx.utils.formatting import clean_column_values
 from dx.utils.tracking import generate_df_hash
@@ -175,3 +177,57 @@ def test_store_in_db(dtype: str, sample_db_connection: duckdb.DuckDBPyConnection
     count_resp = sample_db_connection.execute(f"SELECT COUNT(*) FROM {dtype}_test").fetchone()
     num_rows = count_resp[0]
     assert num_rows == df.shape[0]
+
+
+def test_series_is_converted(sample_random_dataframe: pd.Series):
+    """
+    Test that a basic conversion from pd.Series to pd.Dataframe
+    keeps the original index and uses the Series name as its only column.
+    """
+    s: pd.Series = sample_random_dataframe.keyword_column
+    df = to_dataframe(s)
+    assert df.index.equals(s.index)
+    assert df.columns[0] == s.name
+
+
+def test_multiindex_series_left_alone(sample_multiindex_series: pd.Series):
+    """
+    Test no renaming is done with a MultiIndex pd.Series if their
+    name doesn't appear in the MultiIndex names.
+    """
+    index = sample_multiindex_series.index
+    df = to_dataframe(sample_multiindex_series)
+    assert df.index.names == index.names
+    assert df.columns[0] == sample_multiindex_series.name
+
+
+def test_groupby_series_resets(sample_groupby_series: pd.Series):
+    """
+    Test we're resetting the index of a pd.Series created from a groupby
+    operation by using the combination of index names.
+    """
+    index = sample_groupby_series.index
+    df = to_dataframe(sample_groupby_series)
+    assert df.index.names == index.names
+    assert df.columns[0] == groupby_series_index_name(index)
+    assert df.columns[0] != sample_groupby_series.name
+
+
+def test_dataframe_index_left_alone(sample_random_dataframe: pd.DataFrame):
+    """
+    Ensure we don't alter the structure of a dataframe during
+    initial dataframe conversion.
+    """
+    df = to_dataframe(sample_random_dataframe)
+    assert df.index.equals(sample_random_dataframe.index)
+    assert df.columns.equals(sample_random_dataframe.columns)
+
+
+def test_groupby_dataframe_index_left_alone(sample_groupby_dataframe: pd.DataFrame):
+    """
+    Ensure we don't alter the structure of a dataframe
+    with MultiIndexes during initial dataframe conversion.
+    """
+    df = to_dataframe(sample_groupby_dataframe)
+    assert df.index.equals(sample_groupby_dataframe.index)
+    assert df.columns.equals(sample_groupby_dataframe.columns)
