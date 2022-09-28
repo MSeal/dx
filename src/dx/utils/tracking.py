@@ -124,6 +124,11 @@ def get_df_index(index: Union[pd.Index, pd.MultiIndex]):
     index_name = index.name
     if index_name is None and isinstance(index, pd.MultiIndex):
         index_name = index.names
+    if index_name is None:
+        # no custom index was used, but will be set to `index`
+        # before storing in the database, which we'll need to
+        # reset after any database querying
+        index_name = "index"
     return index_name
 
 
