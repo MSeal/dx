@@ -33,7 +33,7 @@ nox = "^2022.8.7"
 nox-poetry = "^1.0.0"
 pytest = "^7.1.2"
 pytest-benchmark = "^3.4.1"
-pytest-cov = "^3.0.0"
+pytest-cov = "^4.0.0"
 pytest-mock = "^3.8.2"
 # for datatype testing
 Faker = "^15.0.0"
