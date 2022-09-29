@@ -206,6 +206,38 @@ class TestMultiIndexDataFrames:
         except Exception as e:
             assert False, f"{e}"
 
+    def test_simple_succeeds_with_groupby_series(
+        self,
+        sample_groupby_series: pd.Series,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "simple" display mode formatting doesn't fail while
+        formatting a pd.Series with a MultiIndex created from
+        a groupby operation on a single column.
+        """
+        try:
+            with settings_context(display_mode="simple"):
+                handle_format(sample_groupby_series, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
+    def test_enhanced_succeeds_with_groupby_series(
+        self,
+        sample_groupby_series: pd.Series,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "enhanced" display mode formatting doesn't fail while
+        formatting a pd.Series with a MultiIndex created from
+        a groupby operation on a single column.
+        """
+        try:
+            with settings_context(display_mode="enhanced"):
+                handle_format(sample_groupby_series, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
 
 class TestRenderableTypes:
     @pytest.mark.parametrize("renderable_type", [np.ndarray, pd.Series])
