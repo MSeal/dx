@@ -6,10 +6,12 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
-from dx.settings import settings_context
+from dx.settings import get_settings, settings_context
+from dx.utils.tracking import DXDF_CACHE
 
 dataresource_settings = get_dataresource_settings()
 dx_settings = get_dx_settings()
+settings = get_settings()
 
 
 class TestMediaTypes:
@@ -201,5 +203,101 @@ class TestMultiIndexDataFrames:
         try:
             with settings_context(display_mode="enhanced"):
                 handle_format(sample_groupby_dataframe, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
+    def test_simple_succeeds_with_groupby_series(
+        self,
+        sample_groupby_series: pd.Series,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "simple" display mode formatting doesn't fail while
+        formatting a pd.Series with a MultiIndex created from
+        a groupby operation on a single column.
+        """
+        try:
+            with settings_context(display_mode="simple"):
+                handle_format(sample_groupby_series, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
+    def test_enhanced_succeeds_with_groupby_series(
+        self,
+        sample_groupby_series: pd.Series,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "enhanced" display mode formatting doesn't fail while
+        formatting a pd.Series with a MultiIndex created from
+        a groupby operation on a single column.
+        """
+        try:
+            with settings_context(display_mode="enhanced"):
+                handle_format(sample_groupby_series, ipython_shell=get_ipython)
+        except Exception as e:
+            assert False, f"{e}"
+
+
+class TestRenderableTypes:
+    @pytest.mark.parametrize("renderable_type", [np.ndarray, pd.Series])
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
+    def test_simple_succeeds_with_default_renderable_types(
+        self,
+        renderable_type,
+        datalink_enabled: bool,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "simple" display mode formatting doesn't fail while
+        formatting a supported renderable data type that isn't a pandas DataFrame,
+        to include the additional processing and tracking handled for datalink.
+
+        Additionally, if datalink is enabled, ensure that the display ID was
+        generated within the DXDataFrame and stored in the DXDF_CACHE.
+        """
+        if renderable_type is np.ndarray:
+            data = sample_random_dataframe.values
+        elif renderable_type is pd.Series:
+            data = sample_random_dataframe["keyword_column"]
+
+        try:
+            with settings_context(display_mode="simple", enable_datalink=datalink_enabled):
+                _, metadata = handle_format(data, ipython_shell=get_ipython)
+                if datalink_enabled:
+                    display_id = metadata[settings.MEDIA_TYPE]["display_id"]
+                    assert display_id in DXDF_CACHE
+        except Exception as e:
+            assert False, f"{e}"
+
+    @pytest.mark.parametrize("renderable_type", [np.ndarray, pd.Series])
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
+    def test_enhanced_succeeds_with_default_renderable_types(
+        self,
+        renderable_type,
+        datalink_enabled: bool,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+    ):
+        """
+        Test "enhanced" display mode formatting doesn't fail while
+        formatting a supported renderable data type that isn't a pandas DataFrame,
+        to include the additional processing and tracking handled for datalink.
+
+        Additionally, if datalink is enabled, ensure that the display ID was
+        generated within the DXDataFrame and stored in the DXDF_CACHE.
+        """
+        if renderable_type is np.ndarray:
+            data = sample_random_dataframe.values
+        elif renderable_type is pd.Series:
+            data = sample_random_dataframe["keyword_column"]
+
+        try:
+            with settings_context(display_mode="enhanced", enable_datalink=datalink_enabled):
+                _, metadata = handle_format(data, ipython_shell=get_ipython)
+                if datalink_enabled:
+                    display_id = metadata[settings.MEDIA_TYPE]["display_id"]
+                    assert display_id in DXDF_CACHE
         except Exception as e:
             assert False, f"{e}"

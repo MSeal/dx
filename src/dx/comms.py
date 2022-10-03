@@ -3,6 +3,7 @@ from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
 from dx.filtering import handle_resample
+from dx.types import DEXResampleMessage
 
 logger = structlog.get_logger(__name__)
 
@@ -11,22 +12,24 @@ logger = structlog.get_logger(__name__)
 def target_func(comm, open_msg):
     @comm.on_msg
     def _recv(msg):
+        handle_comm_msg(msg)
 
-        content = msg.get("content", {})
-        if not content:
-            return
 
-        data = content.get("data", {})
-        if not data:
-            return
+def handle_comm_msg(msg):
+    content = msg.get("content", {})
+    if not content:
+        return
 
-        data = msg["content"]["data"]
+    data = content.get("data", {})
+    if not data:
+        return
 
-        if "display_id" in data and "filters" in data:
-            # TODO: check for explicit resample value?
-            handle_resample(data)
+    data = msg["content"]["data"]
 
-    comm.send({"connected": True})
+    if "display_id" in data and "filters" in data:
+        # TODO: check for explicit resample value?
+        msg = DEXResampleMessage.parse_obj(data)
+        handle_resample(msg)
 
 
 def register_comm(ipython_shell: InteractiveShell) -> None:

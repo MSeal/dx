@@ -3,24 +3,15 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython.display import update_display
+from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
-from dx.types import DEXFilterSettings
-from dx.utils.tracking import (
-    DATAFRAME_HASH_TO_VAR_NAME,
-    DISPLAY_ID_TO_DATAFRAME_HASH,
-    DISPLAY_ID_TO_FILTERS,
-    DISPLAY_ID_TO_INDEX,
-    DISPLAY_ID_TO_METADATA,
-    DISPLAY_ID_TO_ORIG_COLUMN_DTYPES,
-    DISPLAY_ID_TO_SEQUENCE_COLUMNS,
-    SUBSET_TO_DATAFRAME_HASH,
-    generate_df_hash,
-)
+from dx.types import DEXFilterSettings, DEXResampleMessage
+from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, get_db_connection
 
 logger = structlog.get_logger(__name__)
-
+db_connection = get_db_connection()
 settings = get_settings()
 
 
@@ -29,13 +20,15 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     Updates the metadata cache to include past filters, times, and dataframe info.
     """
     # apply new metadata for resampled dataset
-    metadata = DISPLAY_ID_TO_METADATA[display_id]
+    dxdf = DXDF_CACHE[display_id]
+
+    metadata = dxdf.metadata
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
     sample = {
         "sampling_time": sample_time,
-        "filters": filters,
+        "filters": [dex_filter.dict() for dex_filter in filters],
         "dataframe_info": get_df_dimensions(df, prefix="truncated"),
     }
     datalink_metadata["sample_history"].append(sample)
@@ -47,12 +40,12 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata["sampling_time"] = sample_time
 
     metadata["datalink"] = datalink_metadata
-    DISPLAY_ID_TO_METADATA[display_id] = metadata
+    dxdf.metadata = metadata
 
     return metadata
 
 
-def update_display_id(
+def resample_from_db(
     display_id: str,
     sql_filter: str,
     pandas_filter: Optional[str] = None,
@@ -60,7 +53,8 @@ def update_display_id(
     output_variable_name: Optional[str] = None,
     limit: Optional[int] = None,
     cell_id: Optional[str] = None,
-) -> None:
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> pd.DataFrame:
     """
     Filters the dataframe in the cell with the given display_id.
     This is done by executing the SQL filter on the table
@@ -70,88 +64,54 @@ def update_display_id(
     (based on the display ID) so as to avoid re-registering a new
     display handler.
     """
-    from dx.utils.tracking import sql_engine
+    dxdf = DXDF_CACHE[display_id]
+    # store filters to be passed through metadata to the frontend
+    logger.debug(f"applying {filters=}")
+    dxdf.filters = filters or []
 
-    row_limit = limit or settings.DISPLAY_MAX_ROWS
-    df_hash = DISPLAY_ID_TO_DATAFRAME_HASH[display_id]
-    df_name = DATAFRAME_HASH_TO_VAR_NAME[df_hash]
-    table_name = f"{df_name}__{df_hash}"
-
-    query_string = sql_filter.format(table_name=table_name)
+    query_string = sql_filter.format(table_name=dxdf.variable_name)
     logger.debug(f"sql query string: {query_string}")
-    new_df = pd.read_sql(query_string, sql_engine)
+    new_df: pd.DataFrame = db_connection.execute(query_string).df()
 
-    with sql_engine.connect() as conn:
-        orig_df_count = conn.execute(f"SELECT COUNT (*) FROM {table_name}").scalar()
+    # just for logging purposes - not used anywhere
+    count_resp = db_connection.execute(f"SELECT COUNT(*) FROM {dxdf.variable_name}").fetchone()
+    # should return a tuple of (count,)
+    orig_df_count = count_resp[0]
     logger.debug(f"filtered to {len(new_df)}/{orig_df_count} row(s)")
 
-    metadata = store_sample_to_history(new_df, display_id=display_id, filters=filters)
-
-    # in the event there were nested values stored,
-    # try to expand them back to their original datatypes
-    for col in new_df.columns:
-        if col in DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id]:
-            new_df[col] = new_df[col].apply(lambda x: x.split(", "))
-    # resetting original formatting
-    if display_id in DISPLAY_ID_TO_INDEX:
-        index_col = DISPLAY_ID_TO_INDEX[display_id] or "index"
-        new_df.set_index(index_col, inplace=True)
+    # resetting original index if needed
+    if dxdf.index_name is not None:
+        new_df.set_index(dxdf.index_name, inplace=True)
     # convert back to original dtypes
-    if display_id in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES:
-        for col, dtype in DISPLAY_ID_TO_ORIG_COLUMN_DTYPES[display_id].items():
-            new_df[col] = new_df[col].astype(dtype)
+    for col, dtype in dxdf.original_column_dtypes.items():
+        if settings.FLATTEN_COLUMN_VALUES and isinstance(col, tuple):
+            # the dataframe in use originally had pd.MultiIndex columns
+            col = ", ".join(col)
+        new_df[col] = new_df[col].astype(dtype)
 
     # this is associating the subset with the original dataframe,
     # which will be checked when the DisplayFormatter.format() is called
     # during update_display(), which will prevent re-registering the display ID to the subset
     new_df_hash = generate_df_hash(new_df)
+    logger.debug(f"assigning subset {new_df_hash} to {display_id=}")
+    SUBSET_TO_DISPLAY_ID[new_df_hash] = display_id
 
-    # store filters to be passed through metadata to the frontend
-    logger.debug(f"applying {filters=}")
-    filters = filters or []
-    DISPLAY_ID_TO_FILTERS[display_id] = filters
-
-    logger.debug(f"assigning subset {new_df_hash} to parent {df_hash=}")
-    SUBSET_TO_DATAFRAME_HASH[new_df_hash] = df_hash
-
-    # allow temporary override of the display limit
-    with settings_context(DISPLAY_MAX_ROWS=row_limit):
-        logger.debug(f"updating {display_id=} with {min(row_limit, len(new_df))}-row resample")
-        update_display(
-            new_df,
-            display_id=display_id,
-            metadata=metadata,
-        )
+    return new_df
 
 
-def handle_resample(data: dict) -> None:
-    # TODO: add resample message to types.py
-    # `data` should look like this:
-    # {
-    #     "display_id": "1c1c8b40-f1f4-4205-931d-644a42e8232d",
-    #     "sampling": {
-    #         "filters": [
-    #             {
-    #                 "column": "float_column",
-    #                 "type": "METRIC_FILTER",
-    #                 "predicate": "between",
-    #                 "value": [0.5346270287577823, 0.673002123739554],
-    #             }
-    #         ],
-    #         "sample_size": 10000,
-    #     },
-    #     "status": "submitted",
-    # }
-
-    raw_filters = data["filters"]
-    sample_size = data["limit"]
+def handle_resample(
+    msg: DEXResampleMessage,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> pd.DataFrame:
+    raw_filters = msg.filters
+    sample_size = msg.limit
 
     update_params = {
-        "display_id": data["display_id"],
+        "display_id": msg.display_id,
         "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
         "limit": sample_size,
-        "cell_id": data["cell_id"],
+        "cell_id": msg.cell_id,
     }
 
     if raw_filters:
@@ -168,4 +128,23 @@ def handle_resample(data: dict) -> None:
             }
         )
 
-    update_display_id(**update_params)
+    resampled_df = resample_from_db(**update_params)
+
+    metadata = store_sample_to_history(
+        resampled_df,
+        display_id=msg.display_id,
+        filters=raw_filters,
+    )
+
+    # allow temporary override of the display limit
+    with settings_context(DISPLAY_MAX_ROWS=sample_size):
+        logger.debug(
+            f"updating {msg.display_id=} with {min(sample_size, len(resampled_df))}-row resample"
+        )
+        update_display(
+            resampled_df,
+            display_id=msg.display_id,
+            metadata=metadata,
+        )
+
+    return resampled_df

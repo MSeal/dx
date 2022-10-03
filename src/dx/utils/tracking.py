@@ -1,52 +1,86 @@
 import hashlib
 import uuid
-from typing import Optional
+from functools import lru_cache
+from typing import List, Optional, Union
 
+import duckdb
 import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
-from sqlalchemy import create_engine
 
-from dx.utils.datatypes import has_numeric_strings, is_sequence_series
-from dx.utils.date_time import is_datetime_series
+from dx.settings import get_settings
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
-sql_engine = create_engine("sqlite://", echo=False)
+settings = get_settings()
 
 
-# we need to keep track of some things here:
-# - an original uuid for each dataframe
-# - the hash of each dataframe so we aren't storing them multiple times
-# - the display ID associated with each *cleaned* dataframe
-# - the cell ID associated with the display ID, when passed during an update over comms
-# - before/after cleaning associations per dataframe
-# - any special column treatment (e.g. datetime columns)
-# TODO: create new classes to handle this instead of abusing globals.
-
+# should be (display_id: DXDataFrame) pairs
+DXDF_CACHE = {}
+# not currently used -- will be needed to disambiguate subsets across different cells
 CELL_ID_TO_DISPLAY_ID = {}
-
-DATAFRAME_HASH_TO_DISPLAY_ID = {}
-DATAFRAME_HASH_TO_VAR_NAME = {}
-
-DISPLAY_ID_TO_COLUMNS = {}
-DISPLAY_ID_TO_DATAFRAME_HASH = {}
-DISPLAY_ID_TO_METADATA = {}
-DISPLAY_ID_TO_FILTERS = {}
-
-DISPLAY_ID_TO_INDEX = {}
-DISPLAY_ID_TO_ORIG_COLUMN_DTYPES = {}
-DISPLAY_ID_TO_DATETIME_COLUMNS = {}
-DISPLAY_ID_TO_CONVERTED_COLUMNS = {}
-DISPLAY_ID_TO_SEQUENCE_COLUMNS = {}
-
-SUBSET_TO_DATAFRAME_HASH = {}
+# used to track when a filtered subset should be tied to an existing display ID
+SUBSET_TO_DISPLAY_ID = {}
 
 
-def get_display_id_for_df(df: pd.DataFrame) -> str:
-    df_hash = generate_df_hash(df)
-    return DATAFRAME_HASH_TO_DISPLAY_ID.get(df_hash)
+@lru_cache
+def get_db_connection() -> duckdb.DuckDBPyConnection:
+    return duckdb.connect(database=settings.DB_LOCATION, read_only=False)
+
+
+class DXDataFrame:
+    """
+    Convenience class to store information about dataframes,
+    including original size, series data types, and other
+    dx-generated information such as display_id and hash.
+    """
+
+    df: pd.DataFrame = None
+    original_column_dtypes: dict = {}
+    index_name: List[str] = []
+
+    id: uuid.UUID = None
+    parent_id: uuid.UUID = None
+
+    hash: str = None
+    display_id: uuid.UUID = None
+    variable_name: str = None
+
+    metadata: dict = {}
+    filters: List[dict] = []
+
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        ipython_shell: Optional[InteractiveShell] = None,
+    ):
+        from dx.sampling import get_df_dimensions
+
+        self.id = uuid.uuid4()
+        self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
+
+        self.original_column_dtypes = df.dtypes.to_dict()
+
+        self.default_index_used = is_default_index(df.index)
+        self.index_name = get_df_index(df.index)
+
+        self.df = normalize_index_and_columns(df)
+        self.hash = generate_df_hash(self.df)
+        self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
+
+        self.metadata = generate_metadata(self.display_id)
+        self.metadata["datalink"]["dataframe_info"] = {
+            "default_index_used": self.default_index_used,
+            **get_df_dimensions(self.df, prefix="orig"),
+        }
+
+    def __repr__(self):
+        attr_str = " ".join(
+            f"{k}={v}" for k, v in self.__dict__.items() if not isinstance(v, (pd.DataFrame))
+        )
+        return f"<DXDataFrame {attr_str}>"
 
 
 def generate_df_hash(df: pd.DataFrame) -> str:
@@ -77,10 +111,8 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     SHA256 hash the string-concatenated values:
     'd3148913511e79be9b301d5ef665196a889b53cce82643b9fdee9d25403828b8'
     """
-    hash_df = df.copy()
-
     # this will be a series of hash values the length of df
-    df_hash_series = hash_pandas_object(hash_df)
+    df_hash_series = hash_pandas_object(df)
     # then string-concatenate all the hashed values, which could be very large
     df_hash_str = "-".join(df_hash_series.astype(str))
     # then hash the resulting (potentially large) string
@@ -88,21 +120,37 @@ def generate_df_hash(df: pd.DataFrame) -> str:
     return hash_str
 
 
+def get_df_index(index: Union[pd.Index, pd.MultiIndex]):
+    index_name = index.name
+    if index_name is None and isinstance(index, pd.MultiIndex):
+        index_name = index.names
+    if index_name is None:
+        # no custom index was used, but will be set to `index`
+        # before storing in the database, which we'll need to
+        # reset after any database querying
+        index_name = "index"
+    return index_name
+
+
 def get_df_variable_name(
     df: pd.DataFrame,
     ipython_shell: Optional[InteractiveShell] = None,
-    df_hash: Optional[str] = None,
 ) -> str:
     """
-    Returns the variable name of the DataFrame object.
+    Returns the variable name of the DataFrame object
+    by inspecting the IPython shell's user namespace
+    and comparing `df` to the available variables and their values.
     """
     logger.debug("looking for matching variables for dataframe")
 
     ipython = ipython_shell or get_ipython()
-    df_vars = {k: v for k, v in ipython.user_ns.items() if isinstance(v, pd.DataFrame)}
+    df_vars = {
+        k: v
+        for k, v in ipython.user_ns.items()
+        if isinstance(v, tuple(settings.RENDERABLE_OBJECTS))
+    }
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
 
-    df_hash = df_hash or generate_df_hash(df)
     matching_df_vars = []
     for k, v in df_vars.items():
         logger.debug(f"checking if `{k}` is equal to this dataframe")
@@ -113,14 +161,14 @@ def get_df_variable_name(
         if df.equals(v):
             logger.debug(f"`{k}` matches this dataframe")
             matching_df_vars.append(k)
-    logger.debug(f"dataframe variables with same hash: {matching_df_vars}")
+    logger.debug(f"dataframe variables with same data: {matching_df_vars}")
 
     # we might get a mix of references here like ['_', '__', 'df']
-    named_df_vars_with_same_hash = [name for name in matching_df_vars if not name.startswith("_")]
-    logger.debug(f"named dataframe variables with same hash: {named_df_vars_with_same_hash}")
-    if named_df_vars_with_same_hash:
-        logger.debug(f"{named_df_vars_with_same_hash=}")
-        return named_df_vars_with_same_hash[0]
+    named_df_vars_with_same_data = [name for name in matching_df_vars if not name.startswith("_")]
+    logger.debug(f"named dataframe variables with same hash: {named_df_vars_with_same_data}")
+    if named_df_vars_with_same_data:
+        logger.debug(f"{named_df_vars_with_same_data=}")
+        return named_df_vars_with_same_data[0]
 
     if matching_df_vars:
         # dataframe rendered without variable assignment
@@ -131,95 +179,3 @@ def get_df_variable_name(
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")
     return df_uuid
-
-
-def register_display_id(
-    df: pd.DataFrame,
-    display_id: str,
-    df_hash: str,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> str:
-    """
-    Hashes the dataframe object and tracks display_id for future references in other function calls,
-    and writes the data to a local sqlite table for follow-on SQL querying.
-    """
-    DISPLAY_ID_TO_DATAFRAME_HASH[display_id] = df_hash
-    DATAFRAME_HASH_TO_DISPLAY_ID[df_hash] = display_id
-
-    df_name = get_df_variable_name(
-        df,
-        ipython_shell=ipython_shell,
-        df_hash=df_hash,
-    )
-    DATAFRAME_HASH_TO_VAR_NAME[df_hash] = df_name
-    logger.debug(f"registering display_id {display_id=} for `{df_name}`")
-    return f"{df_name}__{df_hash}"
-
-
-def get_display_id(df_hash: str) -> str:
-    """
-    Checks whether `df` is a subset of any others currently being tracked,
-    and either returns the known display ID or creates a new one.
-    """
-    if df_hash in SUBSET_TO_DATAFRAME_HASH:
-        parent_df_hash = SUBSET_TO_DATAFRAME_HASH[df_hash]
-        display_id = DATAFRAME_HASH_TO_DISPLAY_ID[parent_df_hash]
-    else:
-        display_id = str(uuid.uuid4())
-    return display_id
-
-
-def store_in_sqlite(table_name: str, df: pd.DataFrame):
-    logger.debug(f"{df.columns=}")
-    tracking_df = df.copy()
-
-    logger.debug(f"writing to `{table_name}` table in sqlite")
-    with sql_engine.begin() as conn:
-        num_written_rows = tracking_df.to_sql(
-            table_name,
-            con=conn,
-            if_exists="replace",
-            index=True,  # this is the default, but just to be explicit
-        )
-    logger.debug(f"wrote {num_written_rows} row(s) to `{table_name}` table")
-    return num_written_rows
-
-
-def track_column_conversions(
-    orig_df: pd.DataFrame,
-    df: pd.DataFrame,
-    display_id: str,
-) -> None:
-    # keep track of any original->cleaned column conversions
-    # because once the cleaned versions are sent to the frontend,
-    # any frontend interactions are going to be referencing values
-    # that aren't actually present in the dataset.
-    # this means that in filtering.py, we need to apply filters
-    # to the cleaned version of the dataframe, pull the index values
-    # of the resulting row(s), then swap out the results with the
-    # index positions of the original data
-
-    DISPLAY_ID_TO_INDEX[display_id] = df.index.name
-    DISPLAY_ID_TO_DATETIME_COLUMNS[display_id] = [
-        c
-        for c in orig_df.columns
-        if is_datetime_series(orig_df[c]) and not has_numeric_strings(orig_df[c])
-    ]
-    DISPLAY_ID_TO_SEQUENCE_COLUMNS[display_id] = [
-        c for c in orig_df.columns if is_sequence_series(orig_df[c])
-    ]
-
-    if display_id not in DISPLAY_ID_TO_CONVERTED_COLUMNS:
-        DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id] = {}
-
-    for col in orig_df.columns:
-        if col not in df.columns:
-            # hopefully it was set as an index?
-            continue
-
-        if df[col].dtype != orig_df[col].dtype:
-            DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id][col] = (orig_df[col], df[col])
-            continue
-        if not (df[col] == orig_df[col]).all():
-            DISPLAY_ID_TO_CONVERTED_COLUMNS[display_id][col] = (orig_df[col], df[col])
-            continue
