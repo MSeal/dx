@@ -12,8 +12,7 @@ edit_uri: edit/main/docs/
 
 # Material theme config
 theme:
-  name: readthedocs
-  #name: material
+  name: material
   # font:
   #   text: "Lexend Deca"
   palette:
