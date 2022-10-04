@@ -14,6 +14,4 @@
 
 ::: dx.settings.set_option
 
-::: dx.settings.set_display_mode
-
 ::: dx.settings.settings_context
