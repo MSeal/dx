@@ -3,9 +3,9 @@ site_name: DX
 nav:
   - Home: index.md
   - Reference:
-    - 'Display Modes': reference/display_modes.md
-    - 'Settings': reference/settings.md
-    - 'Sampling': reference/sampling.md
+      - 'Display Modes': reference/display_modes.md
+      - 'Settings': reference/settings.md
+      - 'Sampling': reference/sampling.md
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
 edit_uri: edit/main/docs/
