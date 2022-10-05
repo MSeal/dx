@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     ENABLE_DATALINK: bool = True
     ENABLE_RENAMER: bool = True
     NUM_PAST_SAMPLES_TRACKED: int = 3
+    DB_LOCATION: str = ":memory:"
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):

@@ -85,7 +85,7 @@ def handle_geometry_series(s: pd.Series) -> pd.Series:
         shapely.geometry.base.BaseGeometry,
         shapely.geometry.base.BaseMultipartGeometry,
     )
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has geometries; converting to JSON")
         s = s.apply(lambda x: mapping(x) if isinstance(x, types) else x)
     return s

@@ -129,7 +129,7 @@ def generate_ipv6_series(num_rows: int) -> pd.Series:
 
 def handle_complex_number_series(s: pd.Series) -> pd.Series:
     types = (complex, np.complex)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has complex numbers; converting to real/imag string")
         s = s.apply(lambda x: f"{x.real}+{x.imag}j" if isinstance(x, types) else x)
     return s
@@ -137,7 +137,7 @@ def handle_complex_number_series(s: pd.Series) -> pd.Series:
 
 def handle_dict_series(s: pd.Series) -> pd.Series:
     types = dict
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has dicts; converting to json string")
         s = s.apply(lambda x: json.dumps(x) if isinstance(x, types) else x)
     return s
@@ -148,7 +148,7 @@ def handle_dtype_series(s: pd.Series):
     Casts dtypes as strings.
     """
     types = (type, np.dtype)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has types; converting to strings")
         s = s.astype(str)
     return s
@@ -156,7 +156,7 @@ def handle_dtype_series(s: pd.Series):
 
 def handle_interval_series(s: pd.Series) -> pd.Series:
     types = pd.Interval
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has intervals; converting to left/right")
         s = s.apply(lambda x: [x.left, x.right] if isinstance(x, types) else x)
     return s
@@ -164,7 +164,7 @@ def handle_interval_series(s: pd.Series) -> pd.Series:
 
 def handle_ip_address_series(s: pd.Series) -> pd.Series:
     types = (ipaddress.IPv4Address, ipaddress.IPv6Address)
-    if any(isinstance(v, types) for v in s.values):
+    if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has ip addresses; converting to strings")
         s = s.astype(str)
     return s
@@ -185,7 +185,7 @@ def is_sequence_series(s: pd.Series) -> bool:
     if str(s.dtype) != "object":
         return False
 
-    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.values):
+    if any(isinstance(v, (list, tuple, set, np.ndarray)) for v in s.dropna().head().values):
         return True
     return False
 
@@ -202,7 +202,7 @@ def is_json_serializable(s: pd.Series) -> bool:
     Returns True if the object can be serialized to JSON.
     """
     try:
-        _ = json.dumps(s.values.tolist())
+        _ = json.dumps(s.dropna().head().values.tolist())
         return True
     except (TypeError, OverflowError, UnicodeDecodeError):
         # these are the main serialization errors we expect
@@ -217,7 +217,7 @@ def is_json_serializable(s: pd.Series) -> bool:
 def has_numeric_strings(s: pd.Series) -> bool:
     if not str(s.dtype) == "object":
         return False
-    for v in s.values:
+    for v in s.dropna().head().values:
         if str(v).isnumeric() or str(v).isdigit() or str(v).isdecimal():
             return True
     return False
@@ -318,6 +318,70 @@ def to_dataframe(obj) -> pd.DataFrame:
     Converts an object to a pandas dataframe.
     """
     logger.debug(f"converting {type(obj)} to pd.DataFrame")
-    # TODO: support custom converters
+
+    # handling for groupby operations returning pd.Series
+    index_reset_name = None
+    if is_groupby_series(obj):
+        orig_index_names = obj.index.names
+        index_reset_name = groupby_series_index_name(obj.index)
+        # this will convert a MultiIndex series to a flat DataFrame
+        obj = obj.reset_index(name=index_reset_name)
+        # ensure we keep the original index structure
+        obj.set_index(orig_index_names, inplace=True)
+
     df = pd.DataFrame(obj)
     return df
+
+
+def is_groupby_series(s: pd.Series) -> bool:
+    """
+    Checks if the pd.Series is the result of a groupby operation
+    by checking if the index is a MultiIndex and its name is
+    also used as a level in its index.
+
+    Example:
+
+    df = pd.DataFrame({
+        'foo': list('aaabbcddee'),
+        'bar': np.random.rand(1, 10)[0],
+        'baz': np.random.randint(-10, 10, 10)
+    })
+
+    group = df.groupby('foo').bar.value_counts()
+    print(group)
+    >>> foo  bar
+    a    0.304653    1
+         0.440604    1
+         0.445702    1
+    b    0.164294    1
+         0.296721    1
+    c    0.789996    1
+    d    0.550120    1
+         0.948220    1
+    e    0.223248    1
+         0.664756    1
+    Name: bar, dtype: int64
+
+    print(group.index.names)
+    >>> ['foo', 'bar']
+
+    print(group.name)
+    >>> bar
+    """
+    if not isinstance(s, pd.Series):
+        return False
+    if not isinstance(s.index, pd.MultiIndex):
+        return False
+    return s.name in s.index.names
+
+
+def groupby_series_index_name(index: pd.MultiIndex) -> str:
+    """
+    Creates a name for groupby operations to provide using a .reset_index()
+    based on the dataframe's MultiIndex names.
+
+    Example:
+    - A MultiIndex with level names of ["foo", "bar"] will return "foo.bar.value"
+    """
+    index_trail = ".".join([str(name) for name in index.names])
+    return f"{index_trail}.value"
