@@ -12,21 +12,23 @@ logger = structlog.get_logger(__name__)
 
 # ref: https://jupyter-notebook.readthedocs.io/en/stable/comms.html#opening-a-comm-from-the-frontend
 def resampler(comm, open_msg):
+    """
+    Datalink resample request.
+    """
+
     @comm.on_msg
     def _recv(msg):
         handle_comm_msg(msg)
 
 
 def handle_comm_msg(msg):
-    content = msg.get("content", {})
+    content = msg.get("content")
     if not content:
         return
 
-    data = content.get("data", {})
+    data = content.get("data")
     if not data:
         return
-
-    data = msg["content"]["data"]
 
     if "display_id" in data and "filters" in data:
         # TODO: check for explicit resample value?
@@ -35,26 +37,37 @@ def handle_comm_msg(msg):
 
 
 def renamer(comm, open_msg):
+    """
+    Rename a SQL cell dataframe.
+    """
+
     @comm.on_msg
     def _recv(msg):
 
-        content = msg.get("content", {})
+        content = msg.get("content")
         if not content:
             return
 
-        data = content.get("data", {})
+        data = content.get("data")
         if not data:
             return
 
-        data = msg["content"]["data"]
-
         if "old_name" in data and "new_name" in data:
             shell = get_ipython()
-            to_rename = shell.user_ns.get(data["old_name"])
-            if isinstance(to_rename, pd.DataFrame):
-                shell.user_ns[data["new_name"]] = to_rename
+            value_to_rename = shell.user_ns.get(data["old_name"])
+
+            # Do not rename unless old_name mapped onto exactly a dataframe.
+            #
+            # (Handles case when it maps onto None, indicating that the old name
+            #  hasn't been assigned to at all yet (i.e. user gestured to rename
+            #  SQL cell dataframe name before the SQL cell has even been run the
+            #  first time yet))
+            #
+            if isinstance(value_to_rename, pd.DataFrame):
+                shell.user_ns[data["new_name"]] = value_to_rename
                 del shell.user_ns[data["old_name"]]
 
+    # XXX Why is this done here but not done at equivalent place within resampler() ?
     comm.send({"connected": True})
 
 
