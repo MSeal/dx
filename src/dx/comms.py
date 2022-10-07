@@ -1,10 +1,9 @@
 from typing import Optional
 
+import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
-
-import pandas as pd
 
 from dx.filtering import handle_resample
 from dx.types import DEXResampleMessage
