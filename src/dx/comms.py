@@ -40,9 +40,7 @@ def handle_resample_comm(msg):
 
 
 def renamer(comm, open_msg):
-    """
-    Rename a SQL cell dataframe.
-    """
+    """Rename a SQL cell dataframe."""
 
     @comm.on_msg
     def _recv(msg):
@@ -50,7 +48,7 @@ def renamer(comm, open_msg):
 
 
 def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell]):
-
+    """Implementation behind renaming a SQL cell dataframe via comms"""
     content = msg.get("content")
     if not content:
         return
@@ -79,7 +77,7 @@ def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell]):
             if data["new_name"]:
                 ipython_shell.user_ns[data["new_name"]] = value_to_rename
 
-            # But old name will always be present in message.
+            # But old name will always be present in message. Delete it now.
             del ipython_shell.user_ns[data["old_name"]]
 
 
