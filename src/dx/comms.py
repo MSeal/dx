@@ -46,7 +46,7 @@ def renamer(comm, open_msg):
         handle_renaming_comm(msg)
 
 
-def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell]):
+def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = None):
     """Implementation behind renaming a SQL cell dataframe via comms"""
     content = msg.get("content")
     if not content:
