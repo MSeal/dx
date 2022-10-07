@@ -1,3 +1,5 @@
+from typing import Optional
+
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
@@ -18,10 +20,11 @@ def resampler(comm, open_msg):
 
     @comm.on_msg
     def _recv(msg):
-        handle_comm_msg(msg)
+        # Is separate function to make testing easier.
+        handle_resample_comm(msg)
 
 
-def handle_comm_msg(msg):
+def handle_resample_comm(msg):
     content = msg.get("content")
     if not content:
         return
@@ -43,32 +46,41 @@ def renamer(comm, open_msg):
 
     @comm.on_msg
     def _recv(msg):
+        handle_renaming_comm(msg)
 
-        content = msg.get("content")
-        if not content:
-            return
 
-        data = content.get("data")
-        if not data:
-            return
+def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell]):
 
-        if "old_name" in data and "new_name" in data:
-            shell = get_ipython()
-            value_to_rename = shell.user_ns.get(data["old_name"])
+    content = msg.get("content")
+    if not content:
+        return
 
-            # Do not rename unless old_name mapped onto exactly a dataframe.
-            #
-            # (Handles case when it maps onto None, indicating that the old name
-            #  hasn't been assigned to at all yet (i.e. user gestured to rename
-            #  SQL cell dataframe name before the SQL cell has even been run the
-            #  first time yet))
-            #
-            if isinstance(value_to_rename, pd.DataFrame):
-                shell.user_ns[data["new_name"]] = value_to_rename
-                del shell.user_ns[data["old_name"]]
+    data = content.get("data")
+    if not data:
+        return
 
-    # XXX Why is this done here but not done at equivalent place within resampler() ?
-    comm.send({"connected": True})
+    if "old_name" in data and "new_name" in data:
+
+        if ipython_shell is None:  # noqa
+            # shell will be passed in from test suite, otherwise go with global shell.
+            ipython_shell = get_ipython()
+
+        value_to_rename = ipython_shell.user_ns.get(data["old_name"])
+
+        # Do not rename unless old_name mapped onto exactly a dataframe.
+        #
+        # (Handles case when it maps onto None, indicating that the old name
+        #  hasn't been assigned to at all yet (i.e. user gestured to rename
+        #  SQL cell dataframe name before the SQL cell has even been run the
+        #  first time yet))
+        #
+        if isinstance(value_to_rename, pd.DataFrame):
+            # New name can be empty string, indicating to drop reference to the var.
+            if data["new_name"]:
+                ipython_shell.user_ns[data["new_name"]] = value_to_rename
+
+            # But old name will always be present in message.
+            del ipython_shell.user_ns[data["old_name"]]
 
 
 def register_comm(ipython_shell: InteractiveShell) -> None:
