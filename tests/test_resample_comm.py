@@ -1,4 +1,4 @@
-from dx.comms import handle_resample_comm
+from dx.comms.resample import handle_resample_comm
 from dx.types import DEXResampleMessage
 
 

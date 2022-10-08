@@ -5,37 +5,7 @@ import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
-from dx.filtering import handle_resample
-from dx.types import DEXResampleMessage
-
 logger = structlog.get_logger(__name__)
-
-
-# ref: https://jupyter-notebook.readthedocs.io/en/stable/comms.html#opening-a-comm-from-the-frontend
-def resampler(comm, open_msg):
-    """
-    Datalink resample request.
-    """
-
-    @comm.on_msg
-    def _recv(msg):
-        # Is separate function to make testing easier.
-        handle_resample_comm(msg)
-
-
-def handle_resample_comm(msg):
-    content = msg.get("content")
-    if not content:
-        return
-
-    data = content.get("data")
-    if not data:
-        return
-
-    if "display_id" in data and "filters" in data:
-        # TODO: check for explicit resample value?
-        msg = DEXResampleMessage.parse_obj(data)
-        handle_resample(msg)
 
 
 def renamer(comm, open_msg):
@@ -80,7 +50,7 @@ def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = 
             del ipython_shell.user_ns[data["old_name"]]
 
 
-def register_comm(ipython_shell: InteractiveShell) -> None:
+def register_renamer_comm(ipython_shell: InteractiveShell) -> None:
     """
     Registers the comm target function with the IPython kernel.
     """
@@ -90,12 +60,9 @@ def register_comm(ipython_shell: InteractiveShell) -> None:
         # likely a TerminalInteractiveShell
         return
 
-    if get_settings().ENABLE_DATALINK:
-        ipython_shell.kernel.comm_manager.register_target("datalink", resampler)
-
     if get_settings().ENABLE_RENAMER:
         ipython_shell.kernel.comm_manager.register_target("rename", renamer)
 
 
 if (ipython := get_ipython()) is not None:
-    register_comm(ipython)
+    register_renamer_comm(ipython)
