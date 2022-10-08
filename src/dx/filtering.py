@@ -48,11 +48,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
 def resample_from_db(
     display_id: str,
     sql_filter: str,
-    pandas_filter: Optional[str] = None,
     filters: Optional[list] = None,
-    output_variable_name: Optional[str] = None,
-    limit: Optional[int] = None,
-    cell_id: Optional[str] = None,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
