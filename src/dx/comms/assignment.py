@@ -8,7 +8,7 @@ logger = structlog.get_logger(__name__)
 
 
 # ref: https://jupyter-notebook.readthedocs.io/en/stable/comms.html#opening-a-comm-from-the-frontend
-def dataframe_exporter(comm, open_msg):
+def dataframe_assignment(comm, open_msg):
     """
     Datalink resample request.
     """
@@ -16,10 +16,10 @@ def dataframe_exporter(comm, open_msg):
     @comm.on_msg
     def _recv(msg):
         # Is separate function to make testing easier.
-        handle_export_comm(msg)
+        handle_assignment_comm(msg)
 
 
-def handle_export_comm(msg):
+def handle_assignment_comm(msg):
     data = msg.get("content", {}).get("data", {})
     if not data:
         return
@@ -29,7 +29,7 @@ def handle_export_comm(msg):
         handle_resample(msg)
 
 
-def register_exporter_comm(ipython_shell: InteractiveShell) -> None:
+def register_assignment_comm(ipython_shell: InteractiveShell) -> None:
     """
     Registers the comm target function with the IPython kernel.
     """
@@ -39,5 +39,7 @@ def register_exporter_comm(ipython_shell: InteractiveShell) -> None:
         # likely a TerminalInteractiveShell
         return
 
-    if get_settings().ENABLE_DATALINK:
-        ipython_shell.kernel.comm_manager.register_target("datalink", dataframe_exporter)
+    if get_settings().ENABLE_ASSIGNMENT:
+        ipython_shell.kernel.comm_manager.register_target(
+            "datalink_assignment", dataframe_assignment
+        )

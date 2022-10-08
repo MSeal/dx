@@ -69,6 +69,8 @@ class Settings(BaseSettings):
     # controls dataframe variable tracking, hashing, and storing in sqlite
     ENABLE_DATALINK: bool = True
     ENABLE_RENAMER: bool = True
+    ENABLE_ASSIGNMENT: bool = True
+
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
 
