@@ -2,6 +2,7 @@ import ipaddress
 import json
 import random
 import string
+from decimal import Decimal
 
 import numpy as np
 import pandas as pd
@@ -20,12 +21,17 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
-
+# this is primarily used for testing to match the optional
+# data types used for random dataframe generation,
+# and should match the keyword arguments available in `random_dataframe()``
 DX_DATATYPES = {
     "dtype_column": True,
     "integer_column": True,
     "float_column": True,
+    "decimal_column": False,
     "datetime_column": True,
+    "date_column": False,
+    "time_column": False,
     "time_delta_column": False,
     "time_period_column": False,
     "time_interval_column": False,
@@ -42,6 +48,7 @@ DX_DATATYPES = {
     "ipv6_address_column": False,
     "complex_number_column": False,
 }
+# specifically used for pytest.mark.parametrize ordering
 SORTED_DX_DATATYPES = sorted(list(DX_DATATYPES.keys()))
 
 
@@ -51,6 +58,10 @@ def generate_integer_series(num_rows: int) -> pd.Series:
 
 def generate_float_series(num_rows: int) -> pd.Series:
     return pd.Series([np.random.rand() for _ in range(num_rows)])
+
+
+def generate_decimal_series(num_rows: int) -> pd.Series:
+    return pd.Series([Decimal(np.random.rand()) for _ in range(num_rows)])
 
 
 def generate_complex_number_series(num_rows: int) -> pd.Series:
@@ -197,6 +208,14 @@ def handle_unk_type_series(s: pd.Series) -> pd.Series:
     return s
 
 
+def handle_decimal_series(s: pd.Series) -> pd.Series:
+    types = tuple(Decimal)
+    if any(isinstance(v, types) for v in s.dropna().head().values):
+        logger.debug(f"series `{s.name}` has Decimals; converting to float")
+        s = s.astype(float)
+    return s
+
+
 def is_json_serializable(s: pd.Series) -> bool:
     """
     Returns True if the object can be serialized to JSON.
@@ -238,52 +257,87 @@ def quick_random_dataframe(
     return df.astype(dtype, errors="ignore")
 
 
-def random_dataframe(num_rows: int = 5, **kwargs):  # noqa: C901
-
-    kwargs = kwargs or DX_DATATYPES
+def random_dataframe(
+    num_rows: int = 5,
+    dtype_column: bool = True,
+    integer_column: bool = True,
+    float_column: bool = True,
+    decimal_column: bool = False,
+    datetime_column: bool = True,
+    date_column: bool = True,
+    time_column: bool = True,
+    time_delta_column: bool = False,
+    time_period_column: bool = False,
+    time_interval_column: bool = False,
+    text_column: bool = False,
+    keyword_column: bool = True,
+    dict_column: bool = False,
+    list_column: bool = False,
+    nested_tabular_column: bool = False,
+    latlon_point_column: bool = False,
+    filled_geojson_column: bool = False,
+    exterior_geojson_column: bool = False,
+    bytes_column: bool = True,
+    ipv4_address_column: bool = False,
+    ipv6_address_column: bool = False,
+    complex_number_column: bool = False,
+):  # noqa: C901
+    """
+    Convenience function to generate a dataframe of `num_rows` length
+    with mixed data types.
+    """
     df = pd.DataFrame(index=list(range(num_rows)))
 
-    if kwargs.get("dtype_column"):
+    if dtype_column:
         df["dtype_column"] = generate_dtype_series(num_rows)
 
     # numeric columns
-    if kwargs.get("integer_column"):
+    if integer_column:
         df["integer_column"] = generate_integer_series(num_rows)
 
-    if kwargs.get("float_column"):
+    if float_column:
         df["float_column"] = generate_float_series(num_rows)
 
-    if kwargs.get("complex_number_column"):
+    if decimal_column:
+        df["decimal_column"] = generate_decimal_series(num_rows)
+
+    if complex_number_column:
         df["complex_number_column"] = generate_complex_number_series(num_rows)
 
     # date/time columns
-    if kwargs.get("datetime_column"):
+    if datetime_column:
         df["datetime_column"] = date_time.generate_datetime_series(num_rows)
 
-    if kwargs.get("time_delta_column"):
+    if date_column:
+        df["date_column"] = date_time.generate_date_series(num_rows)
+
+    if time_column:
+        df["time_column"] = date_time.generate_time_series(num_rows)
+
+    if time_delta_column:
         df["time_delta_column"] = date_time.generate_time_delta_series(num_rows)
 
-    if kwargs.get("time_period_column"):
+    if time_period_column:
         df["time_period_column"] = date_time.generate_time_period_series(num_rows)
 
-    if kwargs.get("time_interval_column"):
+    if time_interval_column:
         df["time_interval_column"] = date_time.generate_time_interval_series(num_rows)
 
     # string columns
-    if kwargs.get("text_column"):
+    if text_column:
         df["text_column"] = generate_text_series(num_rows)
 
-    if kwargs.get("keyword_column"):
+    if keyword_column:
         df["keyword_column"] = generate_keyword_series(num_rows)
 
     # container columns
-    if kwargs.get("dict_column"):
+    if dict_column:
         df["dict_column"] = generate_dict_series(num_rows)
 
-    if kwargs.get("list_column"):
+    if list_column:
         df["list_column"] = generate_list_series(num_rows)
 
-    if kwargs.get("nested_tabular_column"):
+    if nested_tabular_column:
         df["nested_tabular_column"] = generate_nested_tabular_series(
             num_rows,
             float_column=True,
@@ -291,23 +345,23 @@ def random_dataframe(num_rows: int = 5, **kwargs):  # noqa: C901
         )
 
     # geopandas/shapely columns
-    if kwargs.get("latlon_point_column"):
+    if latlon_point_column:
         df["latlon_point_column"] = geometry.generate_latlon_series(num_rows)
 
-    if kwargs.get("filled_geojson_column"):
+    if filled_geojson_column:
         df["filled_geojson_column"] = geometry.generate_filled_geojson_series(num_rows)
 
-    if kwargs.get("exterior_geojson_column"):
+    if exterior_geojson_column:
         df["exterior_geojson_column"] = geometry.generate_exterior_bounds_geojson_series(num_rows)
 
     # extras
-    if kwargs.get("bytes_column"):
+    if bytes_column:
         df["bytes_column"] = generate_bytes_series(num_rows)
 
-    if kwargs.get("ipv4_address_column"):
+    if ipv4_address_column:
         df["ipv4_address_column"] = generate_ipv4_series(num_rows)
 
-    if kwargs.get("ipv6_address_column"):
+    if ipv6_address_column:
         df["ipv6_address_column"] = generate_ipv6_series(num_rows)
 
     return df
