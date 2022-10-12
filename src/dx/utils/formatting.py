@@ -192,5 +192,5 @@ def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
     logger.debug(f"handling columns found in index names: {intersecting_names}")
-    column_renames = {column: f'{column}.value' for column in intersecting_names}
+    column_renames = {column: f"{column}.value" for column in intersecting_names}
     return df.rename(columns=column_renames)
