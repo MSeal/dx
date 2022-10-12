@@ -226,7 +226,7 @@ class TestDataFrameHandling:
     ):
         """
         Test that various operations applied to dataframes will still
-        be rendered without error across the different display modes
+        be formatted without error across the different display modes
         and with datalink enabled/disabled.
         """
         if data_structure == "sample_dataframe":
