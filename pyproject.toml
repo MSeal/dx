@@ -36,7 +36,7 @@ pytest-benchmark = "^3.4.1"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 # for datatype testing
-Faker = "^15.0.0"
+Faker = "^15.1.0"
 geopandas = "^0.11.1"
 
 [tool.poetry.extras]
