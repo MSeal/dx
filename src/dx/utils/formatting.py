@@ -7,22 +7,6 @@ from dx.utils import datatypes, date_time, geometry
 logger = structlog.get_logger(__name__)
 
 
-def human_readable_size(size_bytes: int) -> str:
-    """
-    Converts bytes to a more human-readable string.
-
-    >>> human_readable_size(1689445298)
-    '1.5 GiB'
-    """
-    size_str = ""
-    for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
-        if abs(size_bytes) < 1024.0:
-            size_str = f"{size_bytes:3.1f} {unit}"
-            break
-        size_bytes /= 1024.0
-    return size_str
-
-
 def is_default_index(index: pd.Index) -> bool:
     """
     Returns True if the index have no specified name,
