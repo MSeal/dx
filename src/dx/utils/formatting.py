@@ -132,7 +132,9 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     """
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
+    s = date_time.handle_date_series(s)
 
+    s = datatypes.handle_decimal_series(s)
     s = datatypes.handle_dtype_series(s)
     s = datatypes.handle_interval_series(s)
     s = datatypes.handle_ip_address_series(s)
