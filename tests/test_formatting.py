@@ -325,7 +325,9 @@ class TestIndexColumnNormalizing:
     def test_sample_resampled_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
         """
         Test that a resampled groupby dataframe will keep its original index,
-        but the
+        but if the dataframe has a MultiIndex with names that conflict with
+        the dataframe columns, the duplicate columns will have `.value` appended
+        so .reset_index() doesn't break.
         """
         # same as the `sample_resampled_groupby_dataframe` fixture,
         # but defining the columns here makes for easier readability
