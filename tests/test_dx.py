@@ -2,10 +2,10 @@ import uuid
 
 import pytest
 
+from dx.datatypes.main import quick_random_dataframe
 from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import format_output, generate_body
 from dx.settings import settings_context
-from dx.utils.datatypes import quick_random_dataframe
 
 dx_settings = get_dx_settings()
 

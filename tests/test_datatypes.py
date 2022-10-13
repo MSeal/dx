@@ -11,17 +11,15 @@ import pytest
 from pandas.io.json import build_table_schema
 from pandas.util import hash_pandas_object
 
-from dx.formatters.main import generate_body
-from dx.settings import settings_context
-from dx.utils.datatypes import (
+from dx.datatypes.main import (
     DX_DATATYPES,
     SORTED_DX_DATATYPES,
-    groupby_series_index_name,
     quick_random_dataframe,
     random_dataframe,
-    to_dataframe,
 )
-from dx.utils.formatting import clean_column_values
+from dx.formatters.main import generate_body
+from dx.settings import settings_context
+from dx.utils.formatting import clean_column_values, groupby_series_index_name, to_dataframe
 from dx.utils.tracking import generate_df_hash
 
 

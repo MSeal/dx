@@ -12,8 +12,12 @@ from pandas.io.json import build_table_schema
 from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.types import DXDisplayMode
-from dx.utils.datatypes import to_dataframe
-from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
+from dx.utils.formatting import (
+    generate_metadata,
+    is_default_index,
+    normalize_index_and_columns,
+    to_dataframe,
+)
 from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, get_db_connection
 
 logger = structlog.get_logger(__name__)

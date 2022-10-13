@@ -1,6 +1,6 @@
 import pytest
 
-from dx.utils.datatypes import SORTED_DX_DATATYPES, random_dataframe
+from dx.datatypes.main import SORTED_DX_DATATYPES, random_dataframe
 from dx.utils.formatting import clean_column_values
 
 
