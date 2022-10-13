@@ -19,7 +19,7 @@ from dx.datatypes.main import (
 )
 from dx.formatters.main import generate_body
 from dx.settings import settings_context
-from dx.utils.formatting import clean_column_values, groupby_series_index_name, to_dataframe
+from dx.utils.formatting import clean_column_values
 from dx.utils.tracking import generate_df_hash
 
 
