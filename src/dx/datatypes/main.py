@@ -13,6 +13,7 @@ DX_DATATYPES = {
     "dtype_column": True,
     "integer_column": True,
     "float_column": True,
+    "bool_column": False,
     "decimal_column": False,
     "datetime_column": True,
     "date_column": False,
@@ -57,6 +58,7 @@ def random_dataframe(
     dtype_column: bool = True,
     integer_column: bool = True,
     float_column: bool = True,
+    bool_column: bool = False,
     decimal_column: bool = False,
     datetime_column: bool = True,
     date_column: bool = False,
@@ -85,6 +87,9 @@ def random_dataframe(
 
     if dtype_column:
         df["dtype_column"] = misc.generate_dtype_series(num_rows)
+
+    if bool_column:
+        df["bool_column"] = misc.generate_boolean_series(num_rows)
 
     # numeric columns
     if integer_column:

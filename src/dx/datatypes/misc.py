@@ -10,6 +10,10 @@ logger = structlog.get_logger(__name__)
 
 
 ### Generator helper functions ###
+def generate_boolean_series(num_rows: int) -> pd.Series:
+    return pd.Series([random.choice([True, False]) for _ in range(num_rows)])
+
+
 def generate_dtype_series(num_rows: int) -> pd.Series:
     return pd.Series(
         [random.choice([float, int, str, bool, set, tuple, dict, list]) for _ in range(num_rows)]
