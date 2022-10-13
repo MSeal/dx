@@ -325,9 +325,9 @@ class TestIndexColumnNormalizing:
     def test_sample_resampled_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
         """
         Test that a resampled groupby dataframe will keep its original index,
-        but if the dataframe has a MultiIndex with names that conflict with
-        the dataframe columns, the duplicate columns will have `.value` appended
-        so .reset_index() doesn't break.
+        but if the dataframe has a MultiIndex with a name that conflicts with
+        one of the dataframe columns, the duplicate column will have `.value`
+        appended so .reset_index() doesn't break.
         """
         # same as the `sample_resampled_groupby_dataframe` fixture,
         # but defining the columns here makes for easier readability
@@ -341,3 +341,27 @@ class TestIndexColumnNormalizing:
         assert clean_df.index.equals(sample_resampled_groupby_dataframe.index)
         assert "keyword_column" not in clean_df.columns
         assert "keyword_column.value" in clean_df.columns
+
+    def test_sample_resampled_multi_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
+        """
+        Test that a resampled groupby dataframe will keep its original index,
+        but if the dataframe has a MultiIndex with names that conflict with
+        the dataframe columns, the duplicate columns will have `.value` appended
+        so .reset_index() doesn't break.
+        """
+        # same as the `sample_resampled_groupby_dataframe` fixture,
+        # but defining the columns here makes for easier readability
+        sample_resampled_groupby_dataframe = (
+            sample_random_dataframe.groupby(["keyword_column", "integer_column"])
+            .resample("1D", on="datetime_column")
+            .min()
+        )
+        # this will add `keyword_column`, `integer_column`, and `datetime_column`
+        # as levels in the .index, but `keyword_column` and `integer_column`
+        # will remain in the .columns
+        clean_df = normalize_index_and_columns(sample_resampled_groupby_dataframe)
+        assert clean_df.index.equals(sample_resampled_groupby_dataframe.index)
+        assert "keyword_column" not in clean_df.columns
+        assert "keyword_column.value" in clean_df.columns
+        assert "integer_column" not in clean_df.columns
+        assert "integer_column.value" in clean_df.columns
