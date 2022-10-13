@@ -1,4 +1,5 @@
 from .comms import *
+from .datatypes import *
 from .dx import *
 from .formatters import *
 from .loggers import *

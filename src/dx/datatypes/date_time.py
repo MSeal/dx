@@ -21,6 +21,24 @@ def generate_datetime_series(num_rows: int) -> pd.Series:
     )
 
 
+def generate_date_series(num_rows: int) -> pd.Series:
+    return pd.Series(
+        [
+            (pd.Timestamp("now") + pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours")).date()
+            for _ in range(num_rows)
+        ]
+    )
+
+
+def generate_time_series(num_rows: int) -> pd.Series:
+    return pd.Series(
+        [
+            (pd.Timestamp("now") + pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours")).time()
+            for _ in range(num_rows)
+        ]
+    )
+
+
 def generate_time_period_series(num_rows: int) -> pd.Series:
     return pd.Series(
         [
@@ -67,6 +85,24 @@ def handle_time_delta_series(s: pd.Series) -> pd.Series:
     if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has pd.TimeDelta values; converting to total seconds")
         s = s.apply(lambda x: x.total_seconds() if isinstance(x, types) else x)
+    return s
+
+
+def handle_date_series(s: pd.Series) -> pd.Series:
+    types = (datetime.date,)
+    if any(isinstance(v, types) for v in s.dropna().head().values):
+        logger.debug(
+            f"series `{s.name}` has datetime.date values; converting with pd.to_datetime()"
+        )
+        s = pd.to_datetime(s)
+    return s
+
+
+def handle_time_series(s: pd.Series) -> pd.Series:
+    types = (datetime.time,)
+    if any(isinstance(v, types) for v in s.dropna().head().values):
+        logger.debug(f"series `{s.name}` has datetime.time values; converting to string")
+        s = s.astype(str)
     return s
 
 
