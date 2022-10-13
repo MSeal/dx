@@ -153,11 +153,17 @@ def test_dx_handling(value: Any, as_dataframe: bool = False) -> dict:
         if settings.DISPLAY_MODE == "enhanced":
             dx_value = payload[settings.MEDIA_TYPE]["data"][0][0]
 
+        dx_schema_fields = payload[settings.MEDIA_TYPE]["schema"]["fields"]
+        # should only be two fields here by default: `index` and `test`
+        # but we wanted to run the entire formatting process, which doesn't need
+        # an option to disable `index` from being included
+        dx_schema_type = [field["type"] for field in dx_schema_fields if field["name"] == "test"]
+
         result["dx.handle_format"] = {
             "type": type(dx_value),
             "success": True,
             "value": dx_value,
-            "schema_type": payload[settings.MEDIA_TYPE]["schema"]["fields"][0]["type"],
+            "schema_type": dx_schema_type,
         }
     except Exception as e:
         result["dx.handle_format"] = {
