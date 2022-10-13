@@ -7,6 +7,7 @@ from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import get_settings, settings_context
+from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDF_CACHE
 
 dataresource_settings = get_dataresource_settings()
@@ -309,3 +310,32 @@ class TestRenderableTypes:
                     assert display_id in DXDF_CACHE
         except Exception as e:
             assert False, f"{e}"
+
+
+class TestIndexColumnNormalizing:
+    def test_sample_dataframe(self, sample_dataframe: pd.DataFrame):
+        """
+        Test that a basic dataframe will keep its original index
+        and column structure after being passed through normalize_index_and_columns().
+        """
+        clean_df = normalize_index_and_columns(sample_dataframe)
+        assert clean_df.index.equals(sample_dataframe.index)
+        assert clean_df.columns.equals(sample_dataframe.columns)
+
+    def test_sample_resampled_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
+        """
+        Test that a resampled groupby dataframe will keep its original index,
+        but the
+        """
+        # same as the `sample_resampled_groupby_dataframe` fixture,
+        # but defining the columns here makes for easier readability
+        sample_resampled_groupby_dataframe = (
+            sample_random_dataframe.groupby("keyword_column")
+            .resample("1D", on="datetime_column")
+            .min()
+        )
+        # this will add `keyword_column` and `datetime_column` as levels in the .index, but `keyword_column` will remain in the .columns
+        clean_df = normalize_index_and_columns(sample_resampled_groupby_dataframe)
+        assert clean_df.index.equals(sample_resampled_groupby_dataframe.index)
+        assert "keyword_column" not in clean_df.columns
+        assert "keyword_column.value" in clean_df.columns
