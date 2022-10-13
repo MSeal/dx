@@ -210,7 +210,7 @@ def get_df_dimensions(df: pd.DataFrame, prefix: Optional[str] = None) -> dict:
 
     num_rows, num_cols = df.shape
     return {
-        f"{prefix}size_bytes": df.memory_usage(deep=True).sum(),
+        f"{prefix}size_bytes": df.memory_usage().sum(),
         f"{prefix}num_rows": num_rows,
         f"{prefix}num_cols": num_cols,
     }
