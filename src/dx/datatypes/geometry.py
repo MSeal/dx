@@ -25,7 +25,7 @@ def generate_latlon_series(num_rows: int):
 
     lats = [random.randint(-90, 89) + np.random.rand() for _ in range(num_rows)]
     lons = [random.randint(-180, 179) + np.random.rand() for _ in range(num_rows)]
-    return gpd.points_from_xy(lons, lats)
+    return gpd.GeoSeries(gpd.points_from_xy(lons, lats))
 
 
 def generate_filled_geojson_series(

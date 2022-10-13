@@ -5,9 +5,9 @@ import pytest
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
 
+from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
 from dx.types import DEXFilterSettings
-from dx.utils.datatypes import random_dataframe
 from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDataFrame
 
