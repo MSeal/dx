@@ -147,7 +147,7 @@ def test_dx_handling(value: Any, as_dataframe: bool = False) -> dict:
         # should only be two fields here by default: `index` and `test`
         # but we wanted to run the entire formatting process, which doesn't need
         # an option to disable `index` from being included
-        dx_schema_type = [field["type"] for field in dx_schema_fields if field["name"] == "test"]
+        dx_schema_type = [field["type"] for field in dx_schema_fields if field["name"] == "test"][0]
 
         result["dx.handle_format"] = {
             "type": type(dx_value),
