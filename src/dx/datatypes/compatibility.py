@@ -18,9 +18,7 @@ def test_compatibility(value: Any, as_dataframe: bool = True) -> dict:
     - duckdb conn.register
     - final dx output type
     """
-    result = {
-        "type": type(value),
-    }
+    result = {}
     result.update(test_build_table_schema(value))
     result.update(test_json_clean(value))
     result.update(test_db_write(value))
@@ -37,9 +35,7 @@ def test_build_table_schema(value: Any, as_dataframe: bool = False) -> dict:
     is called to set up the initial column schema during dx formatting.
     """
     df = pd.DataFrame({"test": [value]})
-    result = {
-        "type": type(value),
-    }
+    result = {}
 
     try:
         schema = build_table_schema(df, index=False)
@@ -70,9 +66,7 @@ def test_json_clean(value: Any, as_dataframe: bool = False) -> dict:
     is called during IPython.display after dx formatting.
     """
     df = pd.DataFrame({"test": [value]})
-    result = {
-        "type": type(value),
-    }
+    result = {}
 
     try:
         from jupyter_client.jsonutil import json_clean
@@ -106,9 +100,7 @@ def test_db_write(value: Any, as_dataframe: bool = False) -> dict:
     from dx.utils.tracking import get_db_connection  # circular import
 
     df = pd.DataFrame({"test": [value]})
-    result = {
-        "type": type(value),
-    }
+    result = {}
 
     db_connection = get_db_connection()
     try:
@@ -141,9 +133,7 @@ def test_dx_handling(value: Any, as_dataframe: bool = False) -> dict:
     from dx.formatters.main import handle_format  # circular import
 
     df = pd.DataFrame({"test": [value]})
-    result = {
-        "type": type(value),
-    }
+    result = {}
 
     try:
         payload, _ = handle_format(df, with_ipython_display=False)
