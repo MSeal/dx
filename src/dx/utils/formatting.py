@@ -7,22 +7,6 @@ from dx.utils import datatypes, date_time, geometry
 logger = structlog.get_logger(__name__)
 
 
-def human_readable_size(size_bytes: int) -> str:
-    """
-    Converts bytes to a more human-readable string.
-
-    >>> human_readable_size(1689445298)
-    '1.5 GiB'
-    """
-    size_str = ""
-    for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
-        if abs(size_bytes) < 1024.0:
-            size_str = f"{size_bytes:3.1f} {unit}"
-            break
-        size_bytes /= 1024.0
-    return size_str
-
-
 def is_default_index(index: pd.Index) -> bool:
     """
     Returns True if the index have no specified name,
@@ -52,6 +36,7 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     display_df = normalize_index(display_df)
     display_df = normalize_columns(display_df)
+    display_df = deconflict_index_and_column_names(display_df)
 
     return display_df
 
@@ -192,3 +177,22 @@ def generate_metadata(display_id: str, default_index_used: bool = True, **datafr
     }
     logger.debug(f"{metadata=}")
     return metadata
+
+
+def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
+    # we may encounter dataframes that contain the same
+    # column and index name(s), which will cause problems
+    # during .reset_index() later, so we need to rename
+    # the columns to keep the index structure the same
+    index_names = set([df.index.name])
+    if isinstance(df.index, pd.MultiIndex):
+        index_names = set(df.index.names)
+
+    column_names = set(df.columns)
+    intersecting_names = column_names.intersection(index_names)
+    if not intersecting_names:
+        return df
+
+    logger.debug(f"handling columns found in index names: {intersecting_names}")
+    column_renames = {column: f"{column}.value" for column in intersecting_names}
+    return df.rename(columns=column_renames)

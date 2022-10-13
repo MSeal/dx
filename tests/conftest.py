@@ -79,6 +79,18 @@ def sample_groupby_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFr
 
 
 @pytest.fixture
+def sample_resampled_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    return sample_random_dataframe.resample("1D", on="datetime_column").min()
+
+
+@pytest.fixture
+def sample_resampled_groupby_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    return (
+        sample_random_dataframe.groupby("keyword_column").resample("1D", on="datetime_column").min()
+    )
+
+
+@pytest.fixture
 def sample_groupby_series(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     This will generate a pd.Series with a MultiIndex and one column whose name also appears in the MultiIndex names.
