@@ -195,7 +195,7 @@ def clean_column_values(s: pd.Series) -> pd.Series:
 
     s = numeric.handle_decimal_series(s)
     s = numeric.handle_complex_number_series(s)
-    
+
     s = misc.handle_dtype_series(s)
     s = misc.handle_interval_series(s)
     s = misc.handle_ip_address_series(s)
