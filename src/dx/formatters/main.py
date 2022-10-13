@@ -40,6 +40,7 @@ def datalink_processing(
     df: pd.DataFrame,
     default_index_used: bool,
     ipython_shell: Optional[InteractiveShell] = None,
+    with_ipython_display: bool = True,
 ):
     dxdf = DXDataFrame(df)
     logger.debug(f"{dxdf=}")
@@ -56,6 +57,7 @@ def datalink_processing(
         update=parent_display_id,
         display_id=dxdf.display_id,
         has_default_index=default_index_used,
+        with_ipython_display=with_ipython_display,
     )
 
     # this needs to happen after sending to the frontend
@@ -69,6 +71,7 @@ def datalink_processing(
 
 def handle_format(
     obj,
+    with_ipython_display: bool = True,
     ipython_shell: Optional[InteractiveShell] = None,
 ):
     ipython = ipython_shell or get_ipython()
@@ -85,6 +88,7 @@ def handle_format(
         payload, metadata = format_output(
             obj,
             has_default_index=default_index_used,
+            with_ipython_display=with_ipython_display,
         )
         return payload, metadata
 
@@ -93,11 +97,16 @@ def handle_format(
             obj,
             default_index_used,
             ipython_shell=ipython,
+            with_ipython_display=with_ipython_display,
         )
     except Exception as e:
         logger.debug(f"Error in datalink_processing: {e}")
         # fall back to default processing
-        payload, metadata = format_output(obj, has_default_index=default_index_used)
+        payload, metadata = format_output(
+            obj,
+            has_default_index=default_index_used,
+            with_ipython_display=with_ipython_display,
+        )
 
     return payload, metadata
 
@@ -152,6 +161,7 @@ def format_output(
     update: bool = False,
     display_id: Optional[str] = None,
     has_default_index: bool = True,
+    with_ipython_display: bool = True,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
 
@@ -173,14 +183,15 @@ def format_output(
     metadata = {settings.MEDIA_TYPE: metadata}
 
     # this needs to happen so we can update by display_id as needed
-    with pd.option_context("html.table_schema", settings.HTML_TABLE_SCHEMA):
-        logger.debug(f"displaying {settings.MEDIA_TYPE} payload in {display_id=}")
-        ipydisplay(
-            payload,
-            raw=True,
-            metadata=metadata,
-            display_id=display_id,
-            update=update,
-        )
+    if with_ipython_display:
+        with pd.option_context("html.table_schema", settings.HTML_TABLE_SCHEMA):
+            logger.debug(f"displaying {settings.MEDIA_TYPE} payload in {display_id=}")
+            ipydisplay(
+                payload,
+                raw=True,
+                metadata=metadata,
+                display_id=display_id,
+                update=update,
+            )
 
     return (payload, metadata)
