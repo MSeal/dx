@@ -40,4 +40,4 @@ def register_resampler_comm(ipython_shell: InteractiveShell) -> None:
         return
 
     if get_settings().ENABLE_DATALINK:
-        ipython_shell.kernel.comm_manager.register_target("datalink", resampler)
+        ipython_shell.kernel.comm_manager.register_target("datalink_resample", resampler)
