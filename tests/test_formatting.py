@@ -7,6 +7,7 @@ from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import get_settings, settings_context
+from dx.utils.formatting import groupby_series_index_name, normalize_index_and_columns, to_dataframe
 from dx.utils.tracking import DXDF_CACHE
 
 dataresource_settings = get_dataresource_settings()
@@ -15,40 +16,46 @@ settings = get_settings()
 
 
 class TestMediaTypes:
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_simple_media_type(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
+        datalink_enabled: bool,
     ):
         """
         Test "simple" display mode formatting returns the right media types
         and doesn't fail at any point with a basic dataframe.
         """
-        with settings_context(display_mode="simple"):
+        with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
             payload, metadata = handle_format(sample_dataframe, ipython_shell=get_ipython)
         assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in payload
         assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in metadata
 
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_enhanced_media_type(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
+        datalink_enabled: bool,
     ):
         """
         Test "enhanced" display mode formatting returns the right media types
         and doesn't fail at any point with a basic dataframe.
         """
-        with settings_context(display_mode="enhanced"):
+        with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
             payload, metadata = handle_format(sample_dataframe, ipython_shell=get_ipython)
         assert dx_settings.DX_MEDIA_TYPE in payload
         assert dx_settings.DX_MEDIA_TYPE in metadata
 
 
 class TestDuplicateIndexValues:
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_simple_nonunique_index_succeeds(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
+        datalink_enabled: bool,
     ):
         """
         Test "simple" display mode formatting doesn't fail while formatting
@@ -56,15 +63,17 @@ class TestDuplicateIndexValues:
         """
         double_df = pd.concat([sample_dataframe, sample_dataframe])
         try:
-            with settings_context(display_mode="simple"):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
                 handle_format(double_df, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
 
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_enhanced_nonunique_index_succeeds(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
+        datalink_enabled: bool,
     ):
         """
         Test "enhanced" formatting doesn't fail while formatting
@@ -72,7 +81,7 @@ class TestDuplicateIndexValues:
         """
         double_df = pd.concat([sample_dataframe, sample_dataframe])
         try:
-            with settings_context(display_mode="enhanced"):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
                 handle_format(double_df, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
@@ -80,11 +89,13 @@ class TestDuplicateIndexValues:
 
 class TestMissingValues:
     @pytest.mark.parametrize("null_value", [None, np.nan, pd.NA])
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_simple_succeeds_with_missing_data(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
         null_value,
+        datalink_enabled: bool,
     ):
         """
         Test dataresource formatting doesn't fail while formatting
@@ -92,17 +103,19 @@ class TestMissingValues:
         """
         sample_dataframe["missing_data"] = null_value
         try:
-            with settings_context(display_mode="simple"):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
                 handle_format(sample_dataframe, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
 
     @pytest.mark.parametrize("null_value", [None, np.nan, pd.NA])
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_enhanced_succeeds_with_missing_data(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
         null_value,
+        datalink_enabled: bool,
     ):
         """
         Test dx formatting doesn't fail while formatting
@@ -110,13 +123,18 @@ class TestMissingValues:
         """
         sample_dataframe["missing_data"] = null_value
         try:
-            with settings_context(display_mode="enhanced"):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
                 handle_format(sample_dataframe, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
 
     @pytest.mark.parametrize("null_value", [np.nan, pd.NA])
-    def test_simple_converts_na_to_none(self, null_value):
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
+    def test_simple_converts_na_to_none(
+        self,
+        null_value,
+        datalink_enabled: bool,
+    ):
         """
         Test "simple" display mode properly converts `pd.NA` and `NaN`
         values to `None` before passing along the payload.
@@ -127,14 +145,21 @@ class TestMissingValues:
                 "bar": ["a", null_value, "b"],
             }
         )
-        with settings_context(display_mode="simple"):
+        with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
             payload = generate_body(df)
         assert payload["data"][0] == {"index": 0, "foo": 1, "bar": "a"}
         assert payload["data"][1] == {"index": 1, "foo": 2, "bar": None}
         assert payload["data"][2] == {"index": 2, "foo": None, "bar": "b"}
 
     @pytest.mark.parametrize("null_value", [np.nan, pd.NA])
-    def test_enhanced_converts_na_to_none(self, null_value):
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    def test_enhanced_converts_na_to_none(
+        self,
+        null_value,
+        datalink_enabled: bool,
+        display_mode: str,
+    ):
         """
         Test dx formatting properly converts `pd.NA` and `NaN`
         values to `None` before passing along the payload.
@@ -145,7 +170,7 @@ class TestMissingValues:
                 "bar": ["a", null_value, "b"],
             }
         )
-        with settings_context(display_mode="enhanced"):
+        with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
             payload = generate_body(df)
         assert payload["data"][1] == [1, 2, None]
         assert payload["data"][2] == ["a", None, "b"]
@@ -175,66 +200,50 @@ class TestDisplayFormatter:
         assert formatted_value == ({}, {})
 
 
-class TestMultiIndexDataFrames:
-    def test_simple_succeeds_with_multiindexes(
+class TestDataFrameHandling:
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    @pytest.mark.parametrize("datalink_enabled", [True, False])
+    @pytest.mark.parametrize(
+        "data_structure",
+        [
+            "sample_dataframe",
+            "sample_groupby_series",
+            "sample_groupby_dataframe",
+            "sample_resampled_dataframe",
+            "sample_resampled_groupby_dataframe",
+        ],
+    )
+    def test_success_with_varying_dataframe_structures(
         self,
-        sample_groupby_dataframe: pd.DataFrame,
+        data_structure,
         get_ipython: TerminalInteractiveShell,
-    ):
-        """
-        Test "simple" display mode formatting doesn't fail while
-        formatting a dataframe with MultiIndex index/columns.
-        """
-        try:
-            with settings_context(display_mode="simple"):
-                handle_format(sample_groupby_dataframe, ipython_shell=get_ipython)
-        except Exception as e:
-            assert False, f"{e}"
-
-    def test_enhanced_succeeds_with_multiindexes(
-        self,
-        sample_groupby_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
-    ):
-        """
-        Test "enhanced" display mode formatting doesn't fail while
-        formatting a dataframe with MultiIndex index/columns.
-        """
-        try:
-            with settings_context(display_mode="enhanced"):
-                handle_format(sample_groupby_dataframe, ipython_shell=get_ipython)
-        except Exception as e:
-            assert False, f"{e}"
-
-    def test_simple_succeeds_with_groupby_series(
-        self,
+        datalink_enabled: bool,
+        display_mode: str,
+        sample_dataframe: pd.DataFrame,
         sample_groupby_series: pd.Series,
-        get_ipython: TerminalInteractiveShell,
+        sample_groupby_dataframe: pd.DataFrame,
+        sample_resampled_dataframe: pd.DataFrame,
+        sample_resampled_groupby_dataframe: pd.DataFrame,
     ):
         """
-        Test "simple" display mode formatting doesn't fail while
-        formatting a pd.Series with a MultiIndex created from
-        a groupby operation on a single column.
+        Test that various operations applied to dataframes will still
+        be formatted without error across the different display modes
+        and with datalink enabled/disabled.
         """
-        try:
-            with settings_context(display_mode="simple"):
-                handle_format(sample_groupby_series, ipython_shell=get_ipython)
-        except Exception as e:
-            assert False, f"{e}"
+        if data_structure == "sample_dataframe":
+            obj = sample_dataframe
+        elif data_structure == "sample_groupby_series":
+            obj = sample_groupby_series
+        elif data_structure == "sample_groupby_dataframe":
+            obj = sample_groupby_dataframe
+        elif data_structure == "sample_resampled_dataframe":
+            obj = sample_resampled_dataframe
+        elif data_structure == "sample_resampled_groupby_dataframe":
+            obj = sample_resampled_groupby_dataframe
 
-    def test_enhanced_succeeds_with_groupby_series(
-        self,
-        sample_groupby_series: pd.Series,
-        get_ipython: TerminalInteractiveShell,
-    ):
-        """
-        Test "enhanced" display mode formatting doesn't fail while
-        formatting a pd.Series with a MultiIndex created from
-        a groupby operation on a single column.
-        """
         try:
-            with settings_context(display_mode="enhanced"):
-                handle_format(sample_groupby_series, ipython_shell=get_ipython)
+            with settings_context(enable_datalink=datalink_enabled, display_mode=display_mode):
+                handle_format(obj, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
 
@@ -263,7 +272,7 @@ class TestRenderableTypes:
             data = sample_random_dataframe["keyword_column"]
 
         try:
-            with settings_context(display_mode="simple", enable_datalink=datalink_enabled):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
                 _, metadata = handle_format(data, ipython_shell=get_ipython)
                 if datalink_enabled:
                     display_id = metadata[settings.MEDIA_TYPE]["display_id"]
@@ -294,10 +303,116 @@ class TestRenderableTypes:
             data = sample_random_dataframe["keyword_column"]
 
         try:
-            with settings_context(display_mode="enhanced", enable_datalink=datalink_enabled):
+            with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
                 _, metadata = handle_format(data, ipython_shell=get_ipython)
                 if datalink_enabled:
                     display_id = metadata[settings.MEDIA_TYPE]["display_id"]
                     assert display_id in DXDF_CACHE
         except Exception as e:
             assert False, f"{e}"
+
+
+class TestIndexColumnNormalizing:
+    def test_sample_dataframe(self, sample_dataframe: pd.DataFrame):
+        """
+        Test that a basic dataframe will keep its original index
+        and column structure after being passed through normalize_index_and_columns().
+        """
+        clean_df = normalize_index_and_columns(sample_dataframe)
+        assert clean_df.index.equals(sample_dataframe.index)
+        assert clean_df.columns.equals(sample_dataframe.columns)
+
+    def test_sample_resampled_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
+        """
+        Test that a resampled groupby dataframe will keep its original index,
+        but if the dataframe has a MultiIndex with a name that conflicts with
+        one of the dataframe columns, the duplicate column will have `.value`
+        appended so .reset_index() doesn't break.
+        """
+        # same as the `sample_resampled_groupby_dataframe` fixture,
+        # but defining the columns here makes for easier readability
+        sample_resampled_groupby_dataframe = (
+            sample_random_dataframe.groupby("keyword_column")
+            .resample("1D", on="datetime_column")
+            .min()
+        )
+        # this will add `keyword_column` and `datetime_column` as levels in the .index, but `keyword_column` will remain in the .columns
+        clean_df = normalize_index_and_columns(sample_resampled_groupby_dataframe)
+        assert clean_df.index.equals(sample_resampled_groupby_dataframe.index)
+        assert "keyword_column" not in clean_df.columns
+        assert "keyword_column.value" in clean_df.columns
+
+    def test_sample_resampled_multi_groupby_dataframe(self, sample_random_dataframe: pd.DataFrame):
+        """
+        Test that a resampled groupby dataframe will keep its original index,
+        but if the dataframe has a MultiIndex with names that conflict with
+        the dataframe columns, the duplicate columns will have `.value` appended
+        so .reset_index() doesn't break.
+        """
+        # same as the `sample_resampled_groupby_dataframe` fixture,
+        # but defining the columns here makes for easier readability
+        sample_resampled_groupby_dataframe = (
+            sample_random_dataframe.groupby(["keyword_column", "integer_column"])
+            .resample("1D", on="datetime_column")
+            .min()
+        )
+        # this will add `keyword_column`, `integer_column`, and `datetime_column`
+        # as levels in the .index, but `keyword_column` and `integer_column`
+        # will remain in the .columns
+        clean_df = normalize_index_and_columns(sample_resampled_groupby_dataframe)
+        assert clean_df.index.equals(sample_resampled_groupby_dataframe.index)
+        assert "keyword_column" not in clean_df.columns
+        assert "keyword_column.value" in clean_df.columns
+        assert "integer_column" not in clean_df.columns
+        assert "integer_column.value" in clean_df.columns
+
+
+class TestDataFrameConversion:
+    def test_series_is_converted(self, sample_random_dataframe: pd.Series):
+        """
+        Test that a basic conversion from pd.Series to pd.Dataframe
+        keeps the original index and uses the Series name as its only column.
+        """
+        s: pd.Series = sample_random_dataframe.keyword_column
+        df = to_dataframe(s)
+        assert df.index.equals(s.index)
+        assert df.columns[0] == s.name
+
+    def test_multiindex_series_left_alone(self, sample_multiindex_series: pd.Series):
+        """
+        Test no renaming is done with a MultiIndex pd.Series if their
+        name doesn't appear in the MultiIndex names.
+        """
+        index = sample_multiindex_series.index
+        df = to_dataframe(sample_multiindex_series)
+        assert df.index.names == index.names
+        assert df.columns[0] == sample_multiindex_series.name
+
+    def test_groupby_series_resets(self, sample_groupby_series: pd.Series):
+        """
+        Test we're resetting the index of a pd.Series created from a groupby
+        operation by using the combination of index names.
+        """
+        index = sample_groupby_series.index
+        df = to_dataframe(sample_groupby_series)
+        assert df.index.names == index.names
+        assert df.columns[0] == groupby_series_index_name(index)
+        assert df.columns[0] != sample_groupby_series.name
+
+    def test_dataframe_index_left_alone(self, sample_random_dataframe: pd.DataFrame):
+        """
+        Ensure we don't alter the structure of a dataframe during
+        initial dataframe conversion.
+        """
+        df = to_dataframe(sample_random_dataframe)
+        assert df.index.equals(sample_random_dataframe.index)
+        assert df.columns.equals(sample_random_dataframe.columns)
+
+    def test_groupby_dataframe_index_left_alone(self, sample_groupby_dataframe: pd.DataFrame):
+        """
+        Ensure we don't alter the structure of a dataframe
+        with MultiIndexes during initial dataframe conversion.
+        """
+        df = to_dataframe(sample_groupby_dataframe)
+        assert df.index.equals(sample_groupby_dataframe.index)
+        assert df.columns.equals(sample_groupby_dataframe.columns)

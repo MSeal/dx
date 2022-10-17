@@ -5,9 +5,9 @@ import pytest
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.testing import tools
 
+from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
 from dx.types import DEXFilterSettings
-from dx.utils.datatypes import random_dataframe
 from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDataFrame
 
@@ -76,6 +76,18 @@ def sample_groupby_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFr
     - one at .columns with the min/max values of any remaining columns
     """
     return sample_random_dataframe.groupby(["keyword_column", "integer_column"]).agg(["min", "max"])
+
+
+@pytest.fixture
+def sample_resampled_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    return sample_random_dataframe.resample("1D", on="datetime_column").min()
+
+
+@pytest.fixture
+def sample_resampled_groupby_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
+    return (
+        sample_random_dataframe.groupby("keyword_column").resample("1D", on="datetime_column").min()
+    )
 
 
 @pytest.fixture

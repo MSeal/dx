@@ -1,26 +1,84 @@
 import pandas as pd
 import structlog
 
+from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
-from dx.utils import datatypes, date_time, geometry
 
 logger = structlog.get_logger(__name__)
 
 
-def human_readable_size(size_bytes: int) -> str:
+def to_dataframe(obj) -> pd.DataFrame:
     """
-    Converts bytes to a more human-readable string.
+    Converts an object to a pandas dataframe.
+    """
+    logger.debug(f"converting {type(obj)} to pd.DataFrame")
 
-    >>> human_readable_size(1689445298)
-    '1.5 GiB'
+    # handling for groupby operations returning pd.Series
+    index_reset_name = None
+    if is_groupby_series(obj):
+        orig_index_names = obj.index.names
+        index_reset_name = groupby_series_index_name(obj.index)
+        # this will convert a MultiIndex series to a flat DataFrame
+        obj = obj.reset_index(name=index_reset_name)
+        # ensure we keep the original index structure
+        obj.set_index(orig_index_names, inplace=True)
+
+    df = pd.DataFrame(obj)
+    return df
+
+
+def is_groupby_series(s: pd.Series) -> bool:
     """
-    size_str = ""
-    for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
-        if abs(size_bytes) < 1024.0:
-            size_str = f"{size_bytes:3.1f} {unit}"
-            break
-        size_bytes /= 1024.0
-    return size_str
+    Checks if the pd.Series is the result of a groupby operation
+    by checking if the index is a MultiIndex and its name is
+    also used as a level in its index.
+
+    Example:
+
+    df = pd.DataFrame({
+        'foo': list('aaabbcddee'),
+        'bar': np.random.rand(1, 10)[0],
+        'baz': np.random.randint(-10, 10, 10)
+    })
+
+    group = df.groupby('foo').bar.value_counts()
+    print(group)
+    >>> foo  bar
+    a    0.304653    1
+         0.440604    1
+         0.445702    1
+    b    0.164294    1
+         0.296721    1
+    c    0.789996    1
+    d    0.550120    1
+         0.948220    1
+    e    0.223248    1
+         0.664756    1
+    Name: bar, dtype: int64
+
+    print(group.index.names)
+    >>> ['foo', 'bar']
+
+    print(group.name)
+    >>> bar
+    """
+    if not isinstance(s, pd.Series):
+        return False
+    if not isinstance(s.index, pd.MultiIndex):
+        return False
+    return s.name in s.index.names
+
+
+def groupby_series_index_name(index: pd.MultiIndex) -> str:
+    """
+    Creates a name for groupby operations to provide using a .reset_index()
+    based on the dataframe's MultiIndex names.
+
+    Example:
+    - A MultiIndex with level names of ["foo", "bar"] will return "foo.bar.value"
+    """
+    index_trail = ".".join([str(name) for name in index.names])
+    return f"{index_trail}.value"
 
 
 def is_default_index(index: pd.Index) -> bool:
@@ -52,6 +110,7 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     display_df = normalize_index(display_df)
     display_df = normalize_columns(display_df)
+    display_df = deconflict_index_and_column_names(display_df)
 
     return display_df
 
@@ -132,17 +191,20 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     """
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
+    s = date_time.handle_date_series(s)
 
-    s = datatypes.handle_dtype_series(s)
-    s = datatypes.handle_interval_series(s)
-    s = datatypes.handle_ip_address_series(s)
-    s = datatypes.handle_complex_number_series(s)
+    s = numeric.handle_decimal_series(s)
+    s = numeric.handle_complex_number_series(s)
+
+    s = misc.handle_dtype_series(s)
+    s = misc.handle_interval_series(s)
+    s = misc.handle_ip_address_series(s)
 
     s = geometry.handle_geometry_series(s)
 
-    s = datatypes.handle_dict_series(s)
-    s = datatypes.handle_sequence_series(s)
-    s = datatypes.handle_unk_type_series(s)
+    s = misc.handle_dict_series(s)
+    s = misc.handle_sequence_series(s)
+    s = misc.handle_unk_type_series(s)
     return s
 
 
@@ -190,3 +252,22 @@ def generate_metadata(display_id: str, default_index_used: bool = True, **datafr
     }
     logger.debug(f"{metadata=}")
     return metadata
+
+
+def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
+    # we may encounter dataframes that contain the same
+    # column and index name(s), which will cause problems
+    # during .reset_index() later, so we need to rename
+    # the columns to keep the index structure the same
+    index_names = set([df.index.name])
+    if isinstance(df.index, pd.MultiIndex):
+        index_names = set(df.index.names)
+
+    column_names = set(df.columns)
+    intersecting_names = column_names.intersection(index_names)
+    if not intersecting_names:
+        return df
+
+    logger.debug(f"handling columns found in index names: {intersecting_names}")
+    column_renames = {column: f"{column}.value" for column in intersecting_names}
+    return df.rename(columns=column_renames)
