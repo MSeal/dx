@@ -26,10 +26,12 @@ def handle_assignment_comm(
     msg: dict,
     ipython_shell: Optional[InteractiveShell] = None,
 ):
+    logger.critical("got assignment comm msg", msg=msg)
     data = msg.get("content", {}).get("data", {})
     if not data:
         return
 
+    logger.critical("got assignment data", data=data)
     if "display_id" in data and "variable_name" in data:
         filters = data["filters"]
         sample_size = data["sample_size"]
@@ -51,7 +53,7 @@ def handle_assignment_comm(
 
         # if the variable already exists in the user namespace, add a suffix so the previous value isn't overwritten
         free_variable_name = check_variable_name(variable_name, ipython=ipython)
-        logger.debug(
+        logger.critical(
             f"assigning {len(sampled_df)}-row dataframe to `{free_variable_name}` in {ipython}"
         )
         ipython.user_ns[free_variable_name] = sampled_df
