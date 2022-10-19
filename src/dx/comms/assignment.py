@@ -50,7 +50,7 @@ def handle_assignment_comm(
         variable_name = data["variable_name"]
 
         # if the variable already exists in the user namespace, add a suffix so the previous value isn't overwritten
-        free_variable_name = check_variable_name(variable_name, ipython_shell=ipython)
+        free_variable_name = check_variable_name(variable_name, ipython=ipython)
         logger.debug(
             f"assigning {len(sampled_df)}-row dataframe to `{free_variable_name}` in {ipython}"
         )
