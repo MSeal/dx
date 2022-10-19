@@ -21,6 +21,8 @@ def dataframe_assignment(comm, open_msg):
         # Is separate function to make testing easier.
         handle_assignment_comm(msg)
 
+    comm.send({"status": "connected"})
+
 
 def handle_assignment_comm(
     msg: dict,
