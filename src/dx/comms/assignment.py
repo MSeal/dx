@@ -88,10 +88,6 @@ def register_assignment_comm(ipython_shell: InteractiveShell) -> None:
     """
     from dx.settings import get_settings
 
-    if getattr(ipython_shell, "kernel", None) is None:
-        # likely a TerminalInteractiveShell
-        return
-
     if get_settings().ENABLE_ASSIGNMENT:
         ipython_shell.kernel.comm_manager.register_target(
             "datalink_assignment", dataframe_assignment
