@@ -1,7 +1,6 @@
 from typing import Optional
 
 import structlog
-from ipykernel.comm import Comm
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
@@ -9,12 +8,6 @@ from dx.filtering import resample_from_db
 from dx.types import DEXFilterSettings
 
 logger = structlog.get_logger(__name__)
-
-
-def comm_log(msg, comm: Optional[Comm]):
-    if comm is not None:
-        comm.send({"msg": msg})
-    logger.debug(msg)
 
 
 # ref: https://jupyter-notebook.readthedocs.io/en/stable/comms.html#opening-a-comm-from-the-frontend
@@ -31,12 +24,7 @@ def dataframe_assignment(comm, open_msg):
     comm.send({"status": "connected"})
 
 
-def handle_assignment_comm(
-    msg: dict,
-    ipython_shell: Optional[InteractiveShell] = None,
-    comm: Optional[Comm] = None,
-):
-    comm_log(f"assignment comm received: {msg}", comm=comm)
+def handle_assignment_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = None):
     data = msg.get("content", {}).get("data", {})
     if not data:
         return
@@ -62,9 +50,8 @@ def handle_assignment_comm(
 
         # if the variable already exists in the user namespace, add a suffix so the previous value isn't overwritten
         free_variable_name = check_variable_name(variable_name, ipython=ipython)
-        comm_log(
-            f"assigning {len(sampled_df)}-row dataframe to `{free_variable_name}` in {ipython}",
-            comm=comm,
+        logger.debug(
+            f"assigning {len(sampled_df)}-row dataframe to `{free_variable_name}` in {ipython}"
         )
         ipython.user_ns[free_variable_name] = sampled_df
 
