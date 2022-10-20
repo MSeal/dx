@@ -23,7 +23,7 @@ def test_handle_resample_comm(mocker):
             }
         }
     }
-    mock_handle_resample = mocker.patch("dx.comms.handle_resample")
+    mock_handle_resample = mocker.patch("dx.comms.resample.handle_resample")
     handle_resample_comm(msg)
     resample_msg = DEXResampleMessage.parse_obj(msg["content"]["data"])
     mock_handle_resample.assert_called_once_with(resample_msg)
