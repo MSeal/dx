@@ -19,7 +19,7 @@ def dataframe_assignment(comm, open_msg):
     @comm.on_msg
     def _recv(msg):
         # Is separate function to make testing easier.
-        handle_assignment_comm(msg, comm=comm)
+        handle_assignment_comm(msg)
 
     comm.send({"status": "connected"})
 
