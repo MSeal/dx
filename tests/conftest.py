@@ -36,6 +36,8 @@ def get_ipython() -> TerminalInteractiveShell:
     config = tools.default_config()
     config.TerminalInteractiveShell.simple_prompt = True
     shell = TerminalInteractiveShell.instance(config=config)
+    # clear out any lingering variables between tests
+    shell.user_ns = {}
     return shell
 
 
