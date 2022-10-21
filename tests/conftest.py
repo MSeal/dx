@@ -31,14 +31,18 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture
 def get_ipython() -> TerminalInteractiveShell:
     if TerminalInteractiveShell._instance:
-        return TerminalInteractiveShell.instance()
+        shell = TerminalInteractiveShell.instance()
+    else:
+        config = tools.default_config()
+        config.TerminalInteractiveShell.simple_prompt = True
+        shell = TerminalInteractiveShell.instance(config=config)
 
-    config = tools.default_config()
-    config.TerminalInteractiveShell.simple_prompt = True
-    shell = TerminalInteractiveShell.instance(config=config)
     # clear out any lingering variables between tests
-    shell.user_ns = {}
-    return shell
+    orig_variables = dict(shell.user_ns).copy()
+
+    yield shell
+
+    shell.user_ns = orig_variables
 
 
 @pytest.fixture
