@@ -81,8 +81,6 @@ def test_resample_from_db(
         resample_msg = DEXResampleMessage(
             display_id=metadata[settings.MEDIA_TYPE]["display_id"],
             filters=filters,
-            limit=50_000,
-            cell_id=None,
         )
         try:
             handle_resample(
@@ -126,8 +124,6 @@ def test_resample_groupby_from_db(
         resample_msg = DEXResampleMessage(
             display_id=metadata[settings.MEDIA_TYPE]["display_id"],
             filters=filters,
-            limit=50_000,
-            cell_id=None,
         )
         try:
             handle_resample(
@@ -179,7 +175,6 @@ def test_resample_keeps_original_structure(
                 display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                 sql_filter=sql_filter,
                 filters=filters,
-                limit=sample_size,
                 ipython_shell=get_ipython,
             )
         except Exception as e:

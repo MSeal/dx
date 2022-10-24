@@ -48,11 +48,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
 def resample_from_db(
     display_id: str,
     sql_filter: str,
-    pandas_filter: Optional[str] = None,
     filters: Optional[list] = None,
-    output_variable_name: Optional[str] = None,
-    limit: Optional[int] = None,
-    cell_id: Optional[str] = None,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
@@ -110,23 +106,19 @@ def handle_resample(
         "display_id": msg.display_id,
         "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
-        "limit": sample_size,
-        "cell_id": msg.cell_id,
     }
 
     if raw_filters:
         dex_filters = DEXFilterSettings(filters=raw_filters)
-        # used to give a pandas query string to the user
-        pandas_filter_str = dex_filters.to_pandas_query()
         # used to actually filter the data
         sql_filter_str = dex_filters.to_sql_query()
-        update_params.update(
-            {
-                "pandas_filter": pandas_filter_str,
-                "sql_filter": f"SELECT * FROM {{table_name}} WHERE {sql_filter_str} LIMIT {sample_size}",
-                "filters": raw_filters,
-            }
-        )
+        update_params[
+            "sql_filter"
+        ] = f"SELECT * FROM {{table_name}} WHERE {sql_filter_str} LIMIT {sample_size}"
+
+        # TODO: move this into metadata?
+        # used to give a pandas query string to the user
+        # pandas_filter_str = dex_filters.to_pandas_query()
 
     resampled_df = resample_from_db(**update_params)
 
