@@ -156,3 +156,6 @@ class DEXResampleMessage(BaseModel):
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
     limit: int = 50_000
     cell_id: Optional[str] = None
+    num_columns: int = 100
+    column_sampling_method: DXSamplingMethod = DXSamplingMethod.outer
+    row_sampling_method: DXSamplingMethod = DXSamplingMethod.random
