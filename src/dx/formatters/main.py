@@ -58,6 +58,7 @@ def datalink_processing(
         display_id=dxdf.display_id,
         has_default_index=default_index_used,
         with_ipython_display=with_ipython_display,
+        variable_name=dxdf.variable_name,
     )
 
     # this needs to happen after sending to the frontend
@@ -162,6 +163,7 @@ def format_output(
     display_id: Optional[str] = None,
     has_default_index: bool = True,
     with_ipython_display: bool = True,
+    variable_name: str = "",
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
 
@@ -177,7 +179,11 @@ def format_output(
         **orig_df_dimensions,
         **sampled_df_dimensions,
     }
-    metadata = generate_metadata(display_id=display_id, **dataframe_info)
+    metadata = generate_metadata(
+        display_id=display_id,
+        variable_name=variable_name,
+        **dataframe_info,
+    )
 
     payload = {settings.MEDIA_TYPE: payload}
     metadata = {settings.MEDIA_TYPE: metadata}
