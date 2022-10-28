@@ -70,7 +70,10 @@ class DXDataFrame:
         self.hash = generate_df_hash(self.df)
         self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
 
-        self.metadata = generate_metadata(self.display_id)
+        self.metadata = generate_metadata(
+            display_id=self.display_id,
+            variable_name=self.variable_name,
+        )
         self.metadata["datalink"]["dataframe_info"] = {
             "default_index_used": self.default_index_used,
             **get_df_dimensions(self.df, prefix="orig"),
