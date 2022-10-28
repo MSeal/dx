@@ -416,3 +416,100 @@ class TestDataFrameConversion:
         df = to_dataframe(sample_groupby_dataframe)
         assert df.index.equals(sample_groupby_dataframe.index)
         assert df.columns.equals(sample_groupby_dataframe.columns)
+
+
+class TestMetadataStructure:
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    def test_variable_name_exists(
+        self,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+        display_mode: str,
+    ):
+        """
+        Ensure that the variable name is present in the metadata.
+        """
+        with settings_context(
+            enable_datalink=True,
+            display_mode=display_mode,
+        ):
+            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            display_metadata = metadata[settings.MEDIA_TYPE]
+
+        assert "datalink" in display_metadata
+        assert "display_id" in display_metadata
+
+        datalink_metadata = display_metadata["datalink"]
+        assert "variable_name" in datalink_metadata
+        assert "dataframe_info" in datalink_metadata
+
+        assert (
+            datalink_metadata["dataframe_info"]["orig_num_rows"] == sample_random_dataframe.shape[0]
+        )
+        assert (
+            datalink_metadata["dataframe_info"]["orig_num_cols"] == sample_random_dataframe.shape[1]
+        )
+
+        assert "dx_settings" in datalink_metadata
+        assert isinstance(datalink_metadata["applied_filters"], list)
+        assert isinstance(datalink_metadata["sample_history"], list)
+
+
+class TestMetadataVariableName:
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    def test_assigned_variable_name_matches(
+        self,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+        display_mode: str,
+    ):
+        """
+        Ensure that the assigned variable name is present in the metadata.
+        """
+        get_ipython.user_ns["test_df"] = sample_random_dataframe
+
+        with settings_context(
+            enable_datalink=True,
+            display_mode=display_mode,
+        ):
+            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            display_metadata = metadata[settings.MEDIA_TYPE]
+            assert display_metadata["datalink"]["variable_name"] == "test_df"
+
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    def test_unassigned_variable_name_present(
+        self,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+        display_mode: str,
+    ):
+        """
+        Ensure that our placeholder variable name is present in the metadata.
+        """
+        with settings_context(
+            enable_datalink=True,
+            display_mode=display_mode,
+        ):
+            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            display_metadata = metadata[settings.MEDIA_TYPE]
+            assert display_metadata["datalink"]["variable_name"].startswith("unk_dataframe")
+
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
+    def test_empty_variable_name_with_datalink_disabled(
+        self,
+        sample_random_dataframe: pd.DataFrame,
+        get_ipython: TerminalInteractiveShell,
+        display_mode: str,
+    ):
+        """
+        Ensure that our placeholder variable name is present in the metadata.
+
+        (With datalink disabled, no cleaning/hashing/variable association will be done.)
+        """
+        with settings_context(
+            enable_datalink=False,
+            display_mode=display_mode,
+        ):
+            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            display_metadata = metadata[settings.MEDIA_TYPE]
+            assert display_metadata["datalink"]["variable_name"] == ""
