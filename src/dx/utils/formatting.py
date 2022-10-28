@@ -208,7 +208,7 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     return s
 
 
-def generate_metadata(display_id: str, default_index_used: bool = True, **dataframe_info):
+def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info):
     from dx.utils.tracking import DXDF_CACHE
 
     filters = []
@@ -247,6 +247,7 @@ def generate_metadata(display_id: str, default_index_used: bool = True, **datafr
             "applied_filters": filters,
             "sample_history": sample_history,
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
+            "variable_name": variable_name,
         },
         "display_id": display_id,
     }
