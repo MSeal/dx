@@ -82,29 +82,13 @@ def test_dxdataframe_metadata(
     """
     Test that the DXDataFrame creates metadata for the frontend
     including the appropriate dataframe information and datalink keys.
+
+    (Similar to ./test_formatting.py::TestMetadataStructure)
     """
     metadata = sample_dxdataframe.metadata
     assert "datalink" in metadata and "display_id" in metadata
     assert metadata["display_id"] == sample_dxdataframe.display_id
     assert metadata["datalink"]["display_id"] == sample_dxdataframe.display_id
-
-    datalink_metadata = metadata["datalink"]
-
-    assert "dataframe_info" in datalink_metadata
-    assert (
-        datalink_metadata["dataframe_info"]["orig_num_rows"]
-        == sample_cleaned_random_dataframe.shape[0]
-    )
-    assert (
-        datalink_metadata["dataframe_info"]["orig_num_cols"]
-        == sample_cleaned_random_dataframe.shape[1]
-    )
-
-    assert "dx_settings" in datalink_metadata
-    assert datalink_metadata["dx_settings"]
-
-    assert isinstance(datalink_metadata["applied_filters"], list)
-    assert isinstance(datalink_metadata["sample_history"], list)
 
 
 def test_store_in_db(
