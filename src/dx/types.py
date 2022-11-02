@@ -1,9 +1,11 @@
 import enum
+import time
+import uuid
 from datetime import datetime
 from typing import List, Literal, Optional, Union
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing_extensions import Annotated
 
 
@@ -39,6 +41,37 @@ class DEXMediaType(enum.Enum):
 
     def __str__(self):
         return self.value
+
+
+class DEXMode(enum.Enum):
+    exploration = "exploration"
+    presentation = "presentation"
+
+
+class DEXSampleStrategy(enum.Enum):
+    first = "first"
+    last = "last"
+    none = "none"
+    random = "random"
+
+
+class DEXViewType(enum.Enum):
+    public = "public"
+
+
+class DEXChartMode(enum.Enum):
+    grid = "grid"
+    line = "line"
+    summary = "summary"
+    wordcloud = "wordcloud"
+
+
+class DEXFieldOverrideType(enum.Enum):
+    boolean = "boolean"
+    datetime = "datetime"
+    integer = "integer"
+    number = "number"
+    string = "string"
 
 
 class DEXDateFilter(BaseModel):
@@ -142,6 +175,7 @@ FilterTypes = Union[DEXDateFilter, DEXDimensionFilter, DEXMetricFilter]
 
 
 class DEXFilterSettings(BaseModel):
+    SHOW_FILTER_PANEL: Optional[bool] = True
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
 
     def to_sql_query(self) -> str:
@@ -156,3 +190,118 @@ class DEXResampleMessage(BaseModel):
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
     limit: int = 50_000
     cell_id: Optional[str] = None
+
+
+class DEXBaseModel(BaseModel):
+    class Config:
+        use_enum_values = True
+        allow_population_by_field_name = True
+
+
+# TODO: flesh this out
+# class DEXConditionalFormatRule(DEXBaseModel):
+#     pass
+
+
+DEXConditionalFormatRule = dict
+
+
+class DEXDecoration(BaseModel):
+    footer: str = ""
+    subtitle: str = ""
+    title: str = "Table"
+
+
+class DEXDashboardViewConfig(BaseModel):
+    id: str
+    column: int
+    row: int
+
+
+class DEXDashboardView(DEXBaseModel):
+    annotation_rules: Optional[dict] = Field(alias="annotationRules", default_factory=dict)
+    dashboard_filter: bool = Field(alias="dashboardFilter", default=False)
+    dashboard_filter_settings: dict = Field(alias="dashboardFilterSettings", default_factory=dict)
+    decoration: DEXDecoration
+    display_id: str = Field(alias="displayId", default_factory=uuid.uuid4)
+    filter_settings: Optional[DEXFilterSettings] = Field(alias="filterSettings")
+    filters: Optional[DEXFilterSettings]
+    id: str  # is either 'first-view' or some UUID
+    view_sizes: Optional[dict] = Field(alias="viewSizes", default_factory=dict)
+    views: list[DEXDashboardViewConfig]
+    views_ignoring_dashboard_filters: dict = Field(
+        alias="viewsIgnoringDashboardFilters", default_factory=dict
+    )
+
+
+class DEXDashboard(DEXBaseModel):
+    multi_views: list[DEXDashboardView] = Field(alias="multiViews")
+
+
+class DEXField(DEXBaseModel):
+    column_position: int = Field(alias="columnPosition")
+    override_type: Optional[DEXFieldOverrideType] = Field(alias="overrideType")
+    format: Optional[str]
+
+
+class DEXStyleConfig(DEXBaseModel):
+    colors: list[str]
+
+
+class DEXView(DEXBaseModel):
+    annotation_rules: Optional[dict] = Field(alias="annotationRules", default_factory=dict)
+    chart: dict = Field(default_factory=dict)
+    chart_mode: DEXChartMode = Field(alias="chartMode", default="grid")
+    confo_rules: Optional[list[DEXConditionalFormatRule]] = Field(
+        alias="confoRules", default_factory=list
+    )
+    decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
+    filter_settings: Optional[DEXFilterSettings] = Field(
+        alias="filterSettings", default_factory=DEXFilterSettings
+    )
+    id: str = Field(default_factory=uuid.uuid4)
+    is_comment: bool = Field(alias="isComment", default=False)
+    is_default: bool = Field(alias="isDefault", default=False)
+    is_transitory: Optional[bool] = Field(alias="isTransitory", default=False)
+    type: DEXViewType = Field(default="public")
+    user_id: str = Field(alias="userId", default="")
+    variable_name: Optional[str] = Field(alias="variableName")
+
+    @validator("id", pre=True, always=True)
+    def validate_id(cls, val):
+        return str(val)
+
+
+class DEXMetadata(DEXBaseModel):
+    annotations_rules_by_id: Optional[dict] = Field(alias="annotationsRulesById")
+    dashboard: Optional[DEXDashboard]
+    decoration: Optional[dict]
+    field_metadata: Optional[dict[str, DEXField]] = Field(
+        alias="fieldMetadata", default_factory=dict
+    )
+    filters: Optional[dict]
+    mode: Optional[DEXMode]
+    simple_table: Optional[bool] = Field(alias="simpleTable", default=False)
+    styles: Optional[DEXStyleConfig]
+    updated: int = Field(default_factory=time.time)
+    views: Optional[list[DEXView]] = Field(default_factory=list)
+
+    @validator("updated", pre=True, always=True)
+    def validate_updated(cls, val):
+        val = time.time()
+        return int(val)
+
+    def add_view(self, **kwargs):
+        is_default = kwargs.pop("is_default", False)
+        if not self.views:
+            is_default = True
+        new_view = DEXView(is_default=is_default, **kwargs,)
+        kwargs.pop("is_transitory", None)
+        transitory_view = DEXView(
+            id=new_view.id,
+            is_transitory=True,
+            is_default=is_default,
+            **kwargs,
+        )
+        self.views.append(new_view)
+        self.views.append(transitory_view)

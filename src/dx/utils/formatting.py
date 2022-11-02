@@ -3,6 +3,7 @@ import structlog
 
 from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
+from dx.types import DEXMetadata
 
 logger = structlog.get_logger(__name__)
 
@@ -213,11 +214,13 @@ def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info
 
     filters = []
     sample_history = []
+    dex_metadata = DEXMetadata()
 
     # pull the topmost-parent dataframe's metadata, if available
     if (parent_dxdf := DXDF_CACHE.get(display_id)) is not None:
         existing_metadata = parent_dxdf.metadata
         parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
+        dex_metadata = DEXMetadata.parse_obj(existing_metadata.get("dx", {}))
         if parent_dataframe_info:
             # if this comes after a resampling operation, we need to make sure the
             # original dimensions aren't overwritten by this new dataframe_info,
@@ -249,6 +252,7 @@ def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
             "variable_name": variable_name,
         },
+        "dx": dex_metadata.dict(),
         "display_id": display_id,
     }
     logger.debug(f"{metadata=}")
