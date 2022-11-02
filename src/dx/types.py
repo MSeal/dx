@@ -228,14 +228,14 @@ class DEXDashboardView(DEXBaseModel):
     filters: Optional[DEXFilterSettings]
     id: str  # is either 'first-view' or some UUID
     view_sizes: Optional[dict] = Field(alias="viewSizes", default_factory=dict)
-    views: list[DEXDashboardViewConfig]
+    views: List[DEXDashboardViewConfig]
     views_ignoring_dashboard_filters: dict = Field(
         alias="viewsIgnoringDashboardFilters", default_factory=dict
     )
 
 
 class DEXDashboard(DEXBaseModel):
-    multi_views: list[DEXDashboardView] = Field(alias="multiViews")
+    multi_views: List[DEXDashboardView] = Field(alias="multiViews")
 
 
 class DEXField(DEXBaseModel):
@@ -245,14 +245,14 @@ class DEXField(DEXBaseModel):
 
 
 class DEXStyleConfig(DEXBaseModel):
-    colors: list[str]
+    colors: List[str]
 
 
 class DEXView(DEXBaseModel):
     annotation_rules: Optional[dict] = Field(alias="annotationRules", default_factory=dict)
     chart: dict = Field(default_factory=dict)
     chart_mode: DEXChartMode = Field(alias="chartMode", default="grid")
-    confo_rules: Optional[list[DEXConditionalFormatRule]] = Field(
+    confo_rules: Optional[List[DEXConditionalFormatRule]] = Field(
         alias="confoRules", default_factory=list
     )
     decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
@@ -284,7 +284,7 @@ class DEXMetadata(DEXBaseModel):
     simple_table: Optional[bool] = Field(alias="simpleTable", default=False)
     styles: Optional[DEXStyleConfig]
     updated: int = Field(default_factory=time.time)
-    views: Optional[list[DEXView]] = Field(default_factory=list)
+    views: Optional[List[DEXView]] = Field(default_factory=list)
 
     @validator("updated", pre=True, always=True)
     def validate_updated(cls, val):
@@ -295,7 +295,10 @@ class DEXMetadata(DEXBaseModel):
         is_default = kwargs.pop("is_default", False)
         if not self.views:
             is_default = True
-        new_view = DEXView(is_default=is_default, **kwargs,)
+        new_view = DEXView(
+            is_default=is_default,
+            **kwargs,
+        )
         kwargs.pop("is_transitory", None)
         transitory_view = DEXView(
             id=new_view.id,
