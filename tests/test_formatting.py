@@ -50,38 +50,27 @@ class TestMediaTypes:
 
 
 class TestDuplicateIndexValues:
+    @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
     @pytest.mark.parametrize("datalink_enabled", [True, False])
-    def test_simple_nonunique_index_succeeds(
+    def test_nonunique_index_succeeds(
         self,
         sample_dataframe: pd.DataFrame,
         get_ipython: TerminalInteractiveShell,
         datalink_enabled: bool,
+        display_mode: str,
     ):
         """
-        Test "simple" display mode formatting doesn't fail while formatting
-        a dataframe with duplicate series and index values.
+        Test simple/enhanced display modes succeed while formatting
+        a dataframe with duplicate series and index values, and
+        the resulting payload represents a dataframe after a .reset_index()
+        so the index values going to the frontend have unique values.
         """
         double_df = pd.concat([sample_dataframe, sample_dataframe])
         try:
-            with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
-                handle_format(double_df, ipython_shell=get_ipython)
-        except Exception as e:
-            assert False, f"{e}"
-
-    @pytest.mark.parametrize("datalink_enabled", [True, False])
-    def test_enhanced_nonunique_index_succeeds(
-        self,
-        sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
-        datalink_enabled: bool,
-    ):
-        """
-        Test "enhanced" formatting doesn't fail while formatting
-        a dataframe with duplicate series and index values.
-        """
-        double_df = pd.concat([sample_dataframe, sample_dataframe])
-        try:
-            with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
+            with settings_context(
+                enable_datalink=datalink_enabled,
+                display_mode=display_mode,
+            ):
                 handle_format(double_df, ipython_shell=get_ipython)
         except Exception as e:
             assert False, f"{e}"
