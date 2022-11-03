@@ -266,6 +266,7 @@ class DEXView(DEXBaseModel):
         alias="confoRules", default_factory=list
     )
     decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
+    display_id: str = Field(alias="displayId", default_factory=uuid.uuid4)
     filter_settings: Optional[DEXFilterSettings] = Field(
         alias="filterSettings", default_factory=DEXFilterSettings
     )
