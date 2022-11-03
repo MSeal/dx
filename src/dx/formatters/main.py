@@ -56,7 +56,7 @@ def datalink_processing(
         dxdf.df,
         update=parent_display_id,
         display_id=dxdf.display_id,
-        has_default_index=default_index_used,
+        default_index_used=default_index_used,
         with_ipython_display=with_ipython_display,
         variable_name=dxdf.variable_name,
     )
@@ -88,7 +88,7 @@ def handle_format(
         obj = normalize_index_and_columns(obj)
         payload, metadata = format_output(
             obj,
-            has_default_index=default_index_used,
+            default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
         )
         return payload, metadata
@@ -105,7 +105,7 @@ def handle_format(
         # fall back to default processing
         payload, metadata = format_output(
             obj,
-            has_default_index=default_index_used,
+            default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
         )
 
@@ -127,13 +127,14 @@ class DXDisplayFormatter(DisplayFormatter):
 def generate_body(
     df: pd.DataFrame,
     display_id: Optional[str] = None,
+    default_index_used: bool = True,
 ) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and transformed tabular data based on the current
     display mode.
     """
-    schema = build_table_schema(df)
+    schema = build_table_schema(df, index=default_index_used)
     logger.debug(f"{schema=}")
 
     # This is a little odd, but it allows replacing `pd.NA` and np.nan
@@ -161,7 +162,7 @@ def format_output(
     df: pd.DataFrame,
     update: bool = False,
     display_id: Optional[str] = None,
-    has_default_index: bool = True,
+    default_index_used: bool = True,
     with_ipython_display: bool = True,
     variable_name: str = "",
 ) -> tuple:
@@ -172,10 +173,14 @@ def format_output(
     df = sample_if_too_big(df, display_id=display_id)
     sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
 
-    payload = generate_body(df, display_id=display_id)
+    payload = generate_body(
+        df,
+        display_id=display_id,
+        default_index_used=default_index_used,
+    )
 
     dataframe_info = {
-        "default_index_used": has_default_index,
+        "default_index_used": default_index_used,
         **orig_df_dimensions,
         **sampled_df_dimensions,
     }
