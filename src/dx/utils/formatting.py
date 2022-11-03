@@ -84,7 +84,8 @@ def groupby_series_index_name(index: pd.MultiIndex) -> str:
 def is_default_index(index: pd.Index) -> bool:
     """
     Returns True if the index have no specified name,
-    are of `int` type, and are a pd.Index (instead of pd.MultiIndex).
+    are of `int` type, are a pd.Index (instead of pd.MultiIndex),
+    and are unique.
     """
     if isinstance(index, pd.MultiIndex):
         return False
@@ -93,6 +94,12 @@ def is_default_index(index: pd.Index) -> bool:
         return False
 
     if index.name is not None:
+        return False
+
+    if not index.is_unique:
+        # if DataFrames with default indexes are concatenated,
+        # we may pass every check above, but have duplicate
+        # index values
         return False
 
     # we aren't checking for 0-n row values because any kind of
