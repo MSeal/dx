@@ -134,7 +134,7 @@ def generate_body(
     table schema and transformed tabular data based on the current
     display mode.
     """
-    schema = build_table_schema(df, index=default_index_used)
+    schema = build_table_schema(df)
     logger.debug(f"{schema=}")
 
     # This is a little odd, but it allows replacing `pd.NA` and np.nan
