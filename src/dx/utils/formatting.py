@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 import structlog
 
@@ -209,7 +211,12 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     return s
 
 
-def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info):
+def generate_metadata(
+    display_id: str,
+    variable_name: str = "",
+    extra_metadata: Optional[dict] = None,
+    **dataframe_info,
+):
     from dx.utils.tracking import DXDF_CACHE
 
     filters = []
@@ -221,6 +228,7 @@ def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info
         existing_metadata = parent_dxdf.metadata
         parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
         dex_metadata = DEXMetadata.parse_obj(existing_metadata.get("dx", {}))
+        logger.debug(f"{dex_metadata=}")
         if parent_dataframe_info:
             # if this comes after a resampling operation, we need to make sure the
             # original dimensions aren't overwritten by this new dataframe_info,
@@ -235,6 +243,15 @@ def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info
         # these are set whenever store_sample_to_history() is called after a filter action from the frontend
         sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
         filters = [dex_filter.dict() for dex_filter in parent_dxdf.filters]
+
+    if not dex_metadata.views:
+        logger.debug("no views found, adding default view")
+        dex_metadata.add_view(
+            variable_name=variable_name,
+            display_id=display_id,
+        )
+
+    dex_metadata = handle_extra_metadata(dex_metadata, variable_name, extra_metadata)
 
     metadata = {
         "datalink": {
@@ -276,3 +293,31 @@ def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f"handling columns found in index names: {intersecting_names}")
     column_renames = {column: f"{column}.value" for column in intersecting_names}
     return df.rename(columns=column_renames)
+
+
+def handle_extra_metadata(
+    metadata: DEXMetadata,
+    variable_name: str,
+    extra_metadata: dict,
+) -> DEXMetadata:
+    if not extra_metadata:
+        return metadata
+
+    # TODO: make this more elegant
+    # determine whether extra_metadata belongs to the top-level metadata
+    # or if it needs to be matched to a view
+    try:
+        if "decoration" not in extra_metadata:
+            for view in metadata.views:
+                if view.variable_name == variable_name:
+                    logger.debug(f"updating view with {extra_metadata=}")
+                    view = view.copy(update=extra_metadata)
+            else:
+                logger.debug(f"adding view with {extra_metadata=}")
+                metadata.add_view(**extra_metadata)
+        else:
+            logger.debug(f"updating metadata with {extra_metadata=}")
+            metadata.update(**extra_metadata)
+    except Exception as e:
+        logger.debug(f'error updating metadata: "{e}"')
+    return metadata

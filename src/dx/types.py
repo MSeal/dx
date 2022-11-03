@@ -74,6 +74,15 @@ class DEXFieldOverrideType(enum.Enum):
     string = "string"
 
 
+class DEXTrendlineType(enum.Enum):
+    linear = "linear"
+    exponential = "exponential"
+    logarithmic = "logarithmic"
+    power = "power"
+    polynomial = "polynomial"
+    none = "none"
+
+
 class DEXDateFilter(BaseModel):
     column: str
     type: Literal["DATE_FILTER"] = "DATE_FILTER"
@@ -209,7 +218,8 @@ DEXConditionalFormatRule = dict
 class DEXDecoration(BaseModel):
     footer: str = ""
     subtitle: str = ""
-    title: str = "Table"
+    # TODO: change this back to "Table" before merging
+    title: str = "🐼 hello from dx"
 
 
 class DEXDashboardViewConfig(BaseModel):
@@ -299,12 +309,4 @@ class DEXMetadata(DEXBaseModel):
             is_default=is_default,
             **kwargs,
         )
-        kwargs.pop("is_transitory", None)
-        transitory_view = DEXView(
-            id=new_view.id,
-            is_transitory=True,
-            is_default=is_default,
-            **kwargs,
-        )
         self.views.append(new_view)
-        self.views.append(transitory_view)

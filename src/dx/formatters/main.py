@@ -41,14 +41,13 @@ def datalink_processing(
     default_index_used: bool,
     ipython_shell: Optional[InteractiveShell] = None,
     with_ipython_display: bool = True,
+    extra_metadata: Optional[dict] = None,
 ):
     dxdf = DXDataFrame(df)
-    logger.debug(f"{dxdf=}")
 
     parent_display_id = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
     if parent_display_id is None:
         DXDF_CACHE[dxdf.display_id] = dxdf
-        logger.debug(f"{DXDF_CACHE=}")
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
 
@@ -56,9 +55,10 @@ def datalink_processing(
         dxdf.df,
         update=parent_display_id,
         display_id=dxdf.display_id,
-        has_default_index=default_index_used,
+        default_index_used=default_index_used,
         with_ipython_display=with_ipython_display,
         variable_name=dxdf.variable_name,
+        extra_metadata=extra_metadata,
     )
 
     # this needs to happen after sending to the frontend
@@ -74,6 +74,7 @@ def handle_format(
     obj,
     with_ipython_display: bool = True,
     ipython_shell: Optional[InteractiveShell] = None,
+    extra_metadata: Optional[dict] = None,
 ):
     ipython = ipython_shell or get_ipython()
 
@@ -88,8 +89,9 @@ def handle_format(
         obj = normalize_index_and_columns(obj)
         payload, metadata = format_output(
             obj,
-            has_default_index=default_index_used,
+            default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
         return payload, metadata
 
@@ -99,14 +101,16 @@ def handle_format(
             default_index_used,
             ipython_shell=ipython,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
     except Exception as e:
         logger.debug(f"Error in datalink_processing: {e}")
         # fall back to default processing
         payload, metadata = format_output(
             obj,
-            has_default_index=default_index_used,
+            default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
 
     return payload, metadata
@@ -127,13 +131,14 @@ class DXDisplayFormatter(DisplayFormatter):
 def generate_body(
     df: pd.DataFrame,
     display_id: Optional[str] = None,
+    default_index_used: bool = True,
 ) -> tuple:
     """
     Transforms the dataframe to a payload dictionary containing the
     table schema and transformed tabular data based on the current
     display mode.
     """
-    schema = build_table_schema(df)
+    schema = build_table_schema(df, index=default_index_used)
     logger.debug(f"{schema=}")
 
     # This is a little odd, but it allows replacing `pd.NA` and np.nan
@@ -161,9 +166,10 @@ def format_output(
     df: pd.DataFrame,
     update: bool = False,
     display_id: Optional[str] = None,
-    has_default_index: bool = True,
+    default_index_used: bool = True,
     with_ipython_display: bool = True,
     variable_name: str = "",
+    extra_metadata: Optional[dict] = None,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
 
@@ -172,16 +178,21 @@ def format_output(
     df = sample_if_too_big(df, display_id=display_id)
     sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
 
-    payload = generate_body(df, display_id=display_id)
+    payload = generate_body(
+        df,
+        display_id=display_id,
+        default_index_used=default_index_used,
+    )
 
     dataframe_info = {
-        "default_index_used": has_default_index,
+        "default_index_used": default_index_used,
         **orig_df_dimensions,
         **sampled_df_dimensions,
     }
     metadata = generate_metadata(
         display_id=display_id,
         variable_name=variable_name,
+        extra_metadata=extra_metadata,
         **dataframe_info,
     )
 
