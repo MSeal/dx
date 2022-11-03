@@ -2,7 +2,7 @@ import enum
 import time
 import uuid
 from datetime import datetime
-from typing import List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field, validator
@@ -286,7 +286,7 @@ class DEXMetadata(DEXBaseModel):
     annotations_rules_by_id: Optional[dict] = Field(alias="annotationsRulesById")
     dashboard: Optional[DEXDashboard]
     decoration: Optional[dict]
-    field_metadata: Optional[dict[str, DEXField]] = Field(
+    field_metadata: Optional[Dict[str, DEXField]] = Field(
         alias="fieldMetadata", default_factory=dict
     )
     filters: Optional[dict]
