@@ -190,6 +190,7 @@ def format_output(
         **sampled_df_dimensions,
     }
     metadata = generate_metadata(
+        df=df,
         display_id=display_id,
         variable_name=variable_name,
         extra_metadata=extra_metadata,

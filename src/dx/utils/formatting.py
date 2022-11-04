@@ -5,7 +5,7 @@ import structlog
 
 from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
-from dx.types import DEXMetadata
+from dx.types import DEXMetadata, DEXView
 
 logger = structlog.get_logger(__name__)
 
@@ -219,6 +219,7 @@ def clean_column_values(s: pd.Series) -> pd.Series:
 
 
 def generate_metadata(
+    df: pd.DataFrame,
     display_id: str,
     variable_name: str = "",
     extra_metadata: Optional[dict] = None,
@@ -258,7 +259,19 @@ def generate_metadata(
             display_id=display_id,
         )
 
-    dex_metadata = handle_extra_metadata(dex_metadata, variable_name, extra_metadata)
+    # metadata called from other convenience functions
+    dex_metadata = handle_extra_metadata(
+        dex_metadata,
+        variable_name,
+        extra_metadata,
+    )
+
+    # user-defined extra metadata overrides
+    dex_metadata = handle_extra_metadata(
+        dex_metadata,
+        variable_name,
+        df.attrs,
+    )
 
     metadata = {
         "datalink": {
@@ -276,7 +289,7 @@ def generate_metadata(
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
             "variable_name": variable_name,
         },
-        "dx": dex_metadata.dict(),
+        "dx": dex_metadata.dict(by_alias=True),
         "display_id": display_id,
     }
     logger.debug(f"{metadata=}")
@@ -310,21 +323,36 @@ def handle_extra_metadata(
     if not extra_metadata:
         return metadata
 
-    # TODO: make this more elegant
     # determine whether extra_metadata belongs to the top-level metadata
     # or if it needs to be matched to a view
     try:
-        if "decoration" not in extra_metadata:
+        if is_dex_view_metadata(extra_metadata):
             for view in metadata.views:
                 if view.variable_name == variable_name:
-                    logger.debug(f"updating view with {extra_metadata=}")
+                    logger.debug(f"updating {view.display_id=} with {extra_metadata=}")
                     view = view.copy(update=extra_metadata)
             else:
                 logger.debug(f"adding view with {extra_metadata=}")
                 metadata.add_view(**extra_metadata)
-        else:
+        elif is_dex_metadata(extra_metadata):
             logger.debug(f"updating metadata with {extra_metadata=}")
             metadata.update(**extra_metadata)
+        else:
+            logger.warning(f"not sure what to do with {extra_metadata=}")
     except Exception as e:
         logger.debug(f'error updating metadata: "{e}"')
     return metadata
+
+
+def is_dex_metadata(metadata: dict) -> bool:
+    new_metadata_keys = set(metadata.keys())
+    dex_metadata_keys = set(DEXMetadata().dict().keys())
+    dex_metadata_alias_keys = set(DEXMetadata().dict(by_alias=True).keys())
+    return bool(new_metadata_keys & (dex_metadata_keys | dex_metadata_alias_keys))
+
+
+def is_dex_view_metadata(metadata: dict) -> bool:
+    new_metadata_keys = set(metadata.keys())
+    dex_view_metadata_keys = set(DEXView().dict().keys())
+    dex_view_metadata_alias_keys = set(DEXView().dict(by_alias=True).keys())
+    return bool(new_metadata_keys & (dex_view_metadata_keys | dex_view_metadata_alias_keys))
