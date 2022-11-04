@@ -282,6 +282,10 @@ class DEXView(DEXBaseModel):
     def validate_id(cls, val):
         return str(val)
 
+    @validator("display_id", pre=True, always=True)
+    def validate_display_id(cls, val):
+        return str(val)
+
 
 class DEXMetadata(DEXBaseModel):
     annotations_rules_by_id: Optional[dict] = Field(alias="annotationsRulesById")
