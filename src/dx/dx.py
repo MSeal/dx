@@ -13,7 +13,7 @@ def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
     mode: DXDisplayMode = DXDisplayMode.simple,
     ipython_shell: Optional[InteractiveShell] = None,
-    **kwargs
+    **kwargs,
 ) -> None:
     """
     Display a single object with the DX display format.
