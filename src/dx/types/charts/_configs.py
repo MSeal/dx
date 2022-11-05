@@ -1,4 +1,3 @@
-import enum
 import uuid
 from typing import List, Optional
 
@@ -8,44 +7,45 @@ from pydantic.color import Color
 
 from dx.types.dex_metadata import DEXBaseModel
 from dx.types.filters import DEXDimensionFilter
+from dx.types.main import BaseEnum
 
 logger = structlog.get_logger(__name__)
 
 
 # --- Enums ---
-class DEXAreaType(enum.Enum):
+class DEXAreaType(BaseEnum):
     contour = "contour"
     heatmap = "heatmap"
     hexbin = "hexbin"
 
 
-class DEXBarGroupingType(enum.Enum):
+class DEXBarGroupingType(BaseEnum):
     clustered = "Clustered"
     stacked = "Stacked"
 
 
-class DEXBarLabelType(enum.Enum):
+class DEXBarLabelType(BaseEnum):
     none = "none"
     show = "show"
 
 
-class DEXBarProjectionTypes(enum.Enum):
+class DEXBarProjectionTypes(BaseEnum):
     horizontal = "horizontal"
     radial = "radial"
     vertical = "vertical"
 
 
-class DEXBigNumberComparison(enum.Enum):
+class DEXBigNumberComparison(BaseEnum):
     raw = "raw"
     percent = "percent"
 
 
-class DEXBoundingType(enum.Enum):
+class DEXBoundingType(BaseEnum):
     absolute = "absolute"
     relative = "relative"
 
 
-class DEXChartMode(enum.Enum):
+class DEXChartMode(BaseEnum):
     bar = "bar"
     bignumber = "bignumber"
     dimensionmatrix = "dimensionmatrix"
@@ -68,7 +68,7 @@ class DEXChartMode(enum.Enum):
     wordcloud = "wordcloud"
 
 
-class DEXCombinationMode(enum.Enum):
+class DEXCombinationMode(BaseEnum):
     avg = "AVG"
     count = "COUNT"
     max = "MAX"
@@ -77,23 +77,23 @@ class DEXCombinationMode(enum.Enum):
     sum = "SUM"
 
 
-class DEXEdgeModes(enum.Enum):
+class DEXEdgeModes(BaseEnum):
     edge_list = "edge list"
     adjacency_list = "adjacency list"
 
 
-class DEXFilteredDataOnly(enum.Enum):
+class DEXFilteredDataOnly(BaseEnum):
     all_data = "All Data"
     filtered_data_only = "Filtered Data Only"
 
 
-class DEXFormulaDisplay(enum.Enum):
+class DEXFormulaDisplay(BaseEnum):
     formula = "formula"
     none = "none"
     r2 = "r2"
 
 
-class DEXFunnelMode(enum.Enum):
+class DEXFunnelMode(BaseEnum):
     bar = "bar"
     flow = "flow"
     graphic = "graphic"
@@ -102,14 +102,14 @@ class DEXFunnelMode(enum.Enum):
     tree = "tree"
 
 
-class DEXHierarchyType(enum.Enum):
+class DEXHierarchyType(BaseEnum):
     dendrogram = "dendrogram"
     partition = "partition"
     sunburst = "sunburst"
     treemap = "treemap"
 
 
-class DEXLineSmoothing(enum.Enum):
+class DEXLineSmoothing(BaseEnum):
     hourly = "hourly"
     daily = "daily"
     seven_day_moving_average = "7dma"
@@ -118,7 +118,7 @@ class DEXLineSmoothing(enum.Enum):
     none = "none"
 
 
-class DEXLineType(enum.Enum):
+class DEXLineType(BaseEnum):
     bumparea = "bumparea"
     cumulative = "cumulative"
     line = "line"
@@ -127,20 +127,20 @@ class DEXLineType(enum.Enum):
     stackedpercent = "stackedpercent"
 
 
-class DEXNetworkLabelContents(enum.Enum):
+class DEXNetworkLabelContents(BaseEnum):
     id = "id"
     value = "value"
     id_value = "id-value"
 
 
-class DEXNetworkType(enum.Enum):
+class DEXNetworkType(BaseEnum):
     arc = "arc"
     force = "force"
     matrix = "matrix"
     sankey = "sankey"
 
 
-class DEXPieLabelContents(enum.Enum):
+class DEXPieLabelContents(BaseEnum):
     name = "name"
     value = "value"
     percent = "percent"
@@ -149,7 +149,7 @@ class DEXPieLabelContents(enum.Enum):
     value_percent = "value-percent"
 
 
-class DEXPieLabelType(enum.Enum):
+class DEXPieLabelType(BaseEnum):
     annotation = "annotation"
     stem = "stem"
     center = "center"
@@ -157,36 +157,36 @@ class DEXPieLabelType(enum.Enum):
     rim = "rim"
 
 
-class DEXPieceType(enum.Enum):
+class DEXPieceType(BaseEnum):
     bar = "bar"
     clusterbar = "clusterbar"
     point = "point"
     swarm = "swarm"
 
 
-class DEXPointType(enum.Enum):
+class DEXPointType(BaseEnum):
     bar = "Bar"
     dotplot = "Dot Plot"
     lollipop = "Lollipop"
 
 
-class DEXPointSizeMode(enum.Enum):
+class DEXPointSizeMode(BaseEnum):
     fixed = "fixed"
     functional = "functional"
 
 
-class DEXProBarModeType(enum.Enum):
+class DEXProBarModeType(BaseEnum):
     clustered = "Clustered"
     combined = "Combined"
     stacked = "Stacked"
 
 
-class DEXScale(enum.Enum):
+class DEXScale(BaseEnum):
     linear = "linear"
     log = "log"
 
 
-class DEXSortColumnsBy(enum.Enum):
+class DEXSortColumnsBy(BaseEnum):
     asc_col_string = "asc-col-string"
     asc_col_int = "asc-col-int"
     asc_col_date = "asc-col-date"
@@ -195,12 +195,12 @@ class DEXSortColumnsBy(enum.Enum):
     desc_col_date = "desc-col-date"
 
 
-class DEXSplomMode(enum.Enum):
+class DEXSplomMode(BaseEnum):
     contour = "contour"
     correlation = "correlation"
 
 
-class DEXSummaryType(enum.Enum):
+class DEXSummaryType(BaseEnum):
     boxplot = "boxplot"
     heatmap = "heatmap"
     histogram = "histogram"
@@ -211,12 +211,12 @@ class DEXSummaryType(enum.Enum):
     violin = "violin"
 
 
-class DEXSurveyDataType(enum.Enum):
+class DEXSurveyDataType(BaseEnum):
     row = "row"
     column = "column"
 
 
-class DEXTrendlineType(enum.Enum):
+class DEXTrendlineType(BaseEnum):
     exponential = "exponential"
     linear = "linear"
     logarithmic = "logarithmic"
@@ -252,7 +252,7 @@ class DEXPointSizeOptions(BaseModel):
     size_max: Optional[int] = Field(alias="sizeMax", gte=0, lte=10)
 
 
-class DEXLayerSettings(BaseModel):
+class DEXLayerSettings(DEXBaseModel):
     color: Optional[Color] = "#000000"
     size: Optional[int] = 2
     stroke: Optional[Color] = "#000000"
