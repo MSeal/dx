@@ -6,8 +6,8 @@ from typing import Dict, List, Optional
 import structlog
 from pydantic import BaseModel, Field, validator
 
+from dx.types.charts._configs import DEXChartMode
 from dx.types.dex_dashboards import DEXDashboard
-from dx.types.dex_plotting import DEXChartMode
 from dx.types.filters import DEXFilterSettings
 
 logger = structlog.get_logger(__name__)
