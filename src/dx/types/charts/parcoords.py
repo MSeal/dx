@@ -12,5 +12,5 @@ class DEXParcoordsChartConfig(DEXChartBase):
 
 
 class DEXParcoordsChartView(DEXView):
-    chart_type: Literal["parcoords"] = "parcoords"
+    chart_mode: Literal["parcoords"] = "parcoords"
     chart: DEXParcoordsChartConfig = Field(default_factory=DEXParcoordsChartConfig)

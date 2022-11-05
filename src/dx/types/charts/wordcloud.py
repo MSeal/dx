@@ -17,5 +17,5 @@ class DEXWordcloudChartConfig(DEXChartBase):
 
 
 class DEXWordcloudChartView(DEXView):
-    chart_type: Literal["wordcloud"] = "wordcloud"
+    chart_mode: Literal["wordcloud"] = "wordcloud"
     chart: DEXWordcloudChartConfig = Field(default_factory=DEXWordcloudChartConfig)

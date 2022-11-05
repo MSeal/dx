@@ -15,5 +15,5 @@ class DEXTilemapChartConfig(DEXChartBase):
 
 
 class DEXTilemapChartView(DEXView):
-    chart_type: Literal["tilemap"] = "tilemap"
+    chart_mode: Literal["tilemap"] = "tilemap"
     chart: DEXTilemapChartConfig = Field(default_factory=DEXTilemapChartConfig)

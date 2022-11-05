@@ -22,5 +22,5 @@ class DEXScatterChartConfig(DEXChartBase):
 
 
 class DEXScatterChartView(DEXView):
-    chart_type: Literal["scatter"] = "scatter"
+    chart_mode: Literal["scatter"] = "scatter"
     chart: DEXScatterChartConfig = Field(default_factory=DEXScatterChartConfig)

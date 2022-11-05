@@ -22,5 +22,5 @@ class DEXBarChartConfig(DEXChartBase):
 
 
 class DEXBarChartView(DEXView):
-    chart_type: Literal["bar"] = "bar"
+    chart_mode: Literal["bar"] = "bar"
     chart: DEXBarChartConfig = Field(default_factory=DEXBarChartConfig)

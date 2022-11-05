@@ -172,4 +172,4 @@ def chart_view():
         # map
     ]
 
-    return Annotated[DEXChartViews, Field(discriminator="chart_type")]
+    return Annotated[DEXChartViews, Field(discriminator="chart_mode")]

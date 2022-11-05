@@ -19,5 +19,5 @@ class DEXLineChartConfig(DEXChartBase):
 
 
 class DEXLineChartView(DEXView):
-    chart_type: Literal["line"] = "line"
+    chart_mode: Literal["line"] = "line"
     chart: DEXLineChartConfig = Field(default_factory=DEXLineChartConfig)

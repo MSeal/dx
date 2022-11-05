@@ -19,5 +19,5 @@ class DEXViolinChartConfig(DEXChartBase):
 
 
 class DEXViolinChartView(DEXView):
-    chart_type: Literal["violin"] = "violin"
+    chart_mode: Literal["violin"] = "violin"
     chart: DEXViolinChartConfig = Field(default_factory=DEXViolinChartConfig)

@@ -18,5 +18,5 @@ class DEXPieChartConfig(DEXChartBase):
 
 
 class DEXPieChartView(DEXView):
-    chart_type: Literal["pie"] = "pie"
+    chart_mode: Literal["pie"] = "pie"
     chart: DEXPieChartConfig = Field(default_factory=DEXPieChartConfig)
