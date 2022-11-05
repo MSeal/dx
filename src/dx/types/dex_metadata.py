@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 import structlog
 from pydantic import BaseModel, Field, validator
+from pydantic.color import Color
 
 from dx.types.filters import DEXFilterSettings
 
@@ -104,7 +105,7 @@ class DEXField(DEXBaseModel):
 
 
 class DEXStyleConfig(DEXBaseModel):
-    colors: List[str]
+    colors: List[Color]
 
 
 class DEXView(DEXBaseModel):

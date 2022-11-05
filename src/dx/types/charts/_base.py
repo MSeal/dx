@@ -1,6 +1,6 @@
 from typing import Annotated, List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from dx.types.charts._configs import (
     DEXAreaType,
@@ -30,10 +30,10 @@ from dx.types.charts._configs import (
     DEXSurveyResponses,
     DEXTrendlineType,
 )
-from dx.types.dex_metadata import DEXConditionalFormatRule
+from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
 
 
-class DEXChartBase(BaseModel):
+class DEXChartBase(DEXBaseModel):
     """
     Model to store all possible configs used by inherited models.
     This model should not be called directly.
@@ -140,10 +140,10 @@ class DEXChartBase(BaseModel):
     class Config:
         exclude_unset = True
         fields = {"exclude": "*"}
-        allow_population_by_field_name = True
 
 
 def chart_view():
+    # circular imports
     from dx.types.charts.bar import DEXBarChartView
     from dx.types.charts.line import DEXLineChartView
     from dx.types.charts.parcoords import DEXParcoordsChartView
