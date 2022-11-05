@@ -144,8 +144,9 @@ def line(
     if use_count:
         y_columns.append("DEX_COUNT")
 
-    if str(split_by) not in df.columns:
-        raise ValueError(f"Column '{split_by}' not found in DataFrame.")
+    if split_by is not None:
+        if str(split_by) not in df.columns:
+            raise ValueError(f"Column '{split_by}' not found in DataFrame.")
 
     chart_settings = {
         "bounding_type": bounding_type,
