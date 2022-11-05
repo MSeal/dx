@@ -2,11 +2,11 @@ from typing import List, Optional, Union
 
 import pandas as pd
 import structlog
-from pydantic import parse_as_obj
+from pydantic import parse_obj_as
 
+from dx.types.charts._base import chart_view
 from dx.types.charts._configs import (
     DEXBoundingType,
-    DEXChartView,
     DEXCombinationMode,
     DEXFormulaDisplay,
     DEXLineSmoothing,
@@ -87,8 +87,8 @@ def bar(
         chart_settings["second_bar_metric"] = y2
         chart_settings["pro_bar_mode"] = pro_bar_mode
 
-    view_metadata = parse_as_obj(
-        DEXChartView,
+    view_metadata = parse_obj_as(
+        chart_view(),
         {
             "chart_mode": "bar",
             "chart": chart_settings,
@@ -159,8 +159,8 @@ def line(
     }
     logger.info(f"{chart_settings=}")
 
-    view_metadata = parse_as_obj(
-        DEXChartView,
+    view_metadata = parse_obj_as(
+        chart_view(),
         {
             "chart_mode": "line",
             "chart": chart_settings,
@@ -236,8 +236,8 @@ def scatterplot(
 
     logger.info(f"{chart_settings=}")
 
-    view_metadata = parse_as_obj(
-        DEXChartView,
+    view_metadata = parse_obj_as(
+        chart_view(),
         {
             "chart_mode": "scatter",
             "chart": chart_settings,

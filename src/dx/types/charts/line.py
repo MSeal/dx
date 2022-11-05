@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from dx.types.charts._configs import DEXChartBase
+from dx.types.charts._base import DEXChartBase
 from dx.types.dex_metadata import DEXView
 
 

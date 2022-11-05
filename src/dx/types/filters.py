@@ -6,8 +6,6 @@ import structlog
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
-from dx.utils.formatting import clean_pandas_query_column
-
 logger = structlog.get_logger(__name__)
 
 
@@ -110,3 +108,20 @@ class DEXResampleMessage(BaseModel):
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
     limit: int = 50_000
     cell_id: Optional[str] = None
+
+
+def clean_pandas_query_column(column: str) -> str:
+    """
+    Converts column names into a more pandas .query()-friendly format.
+    """
+    # pandas will raise errors if the columns are numeric
+    # e.g. "UndefinedVariableError: name 'BACKTICK_QUOTED_STRING_{column}' is not defined"
+    # so we have to refer to them as pd.Series object using `@df[column]` structure
+    # except we don't know the name of the variable here, so we pass {df_name} as a placeholder
+    # to be filled in by the kernel*
+    # ---
+    # *as of August 2022, the dx package is using this for Datalink processing and filling df_name
+    # as part of its internal tracking
+    if str(column).isdigit() or str(column).isdecimal():
+        return f"@{{df_name}}[{column}]"
+    return f"`{column}`"

@@ -1,3 +1,5 @@
+from ._base import *
+from ._configs import *
 from .bar import *
 from .line import *
 from .parcoords import *

@@ -390,20 +390,3 @@ def is_dex_view_metadata(metadata: dict) -> bool:
     dex_view_metadata_keys = set(DEXView().dict().keys())
     dex_view_metadata_alias_keys = set(DEXView().dict(by_alias=True).keys())
     return bool(new_metadata_keys & (dex_view_metadata_keys | dex_view_metadata_alias_keys))
-
-
-def clean_pandas_query_column(column: str) -> str:
-    """
-    Converts column names into a more pandas .query()-friendly format.
-    """
-    # pandas will raise errors if the columns are numeric
-    # e.g. "UndefinedVariableError: name 'BACKTICK_QUOTED_STRING_{column}' is not defined"
-    # so we have to refer to them as pd.Series object using `@df[column]` structure
-    # except we don't know the name of the variable here, so we pass {df_name} as a placeholder
-    # to be filled in by the kernel*
-    # ---
-    # *as of August 2022, the dx package is using this for Datalink processing and filling df_name
-    # as part of its internal tracking
-    if str(column).isdigit() or str(column).isdecimal():
-        return f"@{{df_name}}[{column}]"
-    return f"`{column}`"
