@@ -28,20 +28,21 @@ def disable_plotting_backend():
 def plot(df: dict, kind: str, **kwargs) -> None:
 
     if kind == "bar":
-        view_metadata = basic.bar(df, return_view=True, **kwargs)
+        view = basic.bar(df, return_view=True, **kwargs)
     elif kind == "line":
-        view_metadata = basic.line(df, return_view=True, **kwargs)
+        view = basic.line(df, return_view=True, **kwargs)
     elif kind == "pie":
-        view_metadata = basic.pie(df, return_view=True, **kwargs)
+        view = basic.pie(df, return_view=True, **kwargs)
     elif kind == "scatter":
-        view_metadata = basic.scatterplot(df, return_view=True, **kwargs)
+        view = basic.scatterplot(df, return_view=True, **kwargs)
     elif kind == "tilemap":
-        view_metadata = basic.tilemap(df, return_view=True, **kwargs)
+        view = basic.tilemap(df, return_view=True, **kwargs)
     elif kind == "violin":
-        view_metadata = basic.violin(df, return_view=True, **kwargs)
+        view = basic.violin(df, return_view=True, **kwargs)
     elif kind == "wordcloud":
-        view_metadata = basic.wordcloud(df, return_view=True, **kwargs)
+        view = basic.wordcloud(df, return_view=True, **kwargs)
     else:
         raise NotImplementedError(f"{kind=} not yet supported for plotting.backend='dx'")
 
+    view_metadata = view.dict(exclude_unset=True)
     handle_format(df, extra_metadata=view_metadata)
