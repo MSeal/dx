@@ -4,6 +4,7 @@ import pandas as pd
 import structlog
 from pydantic import parse_obj_as
 
+from dx.formatters.main import handle_format
 from dx.types.charts._base import chart_view
 from dx.types.charts._configs import (
     DEXBoundingType,
@@ -38,8 +39,9 @@ def bar(
     sort_columns_by: Optional[DEXSortColumnsBy] = "asc_col_string",
     pro_bar_mode: Optional[DEXProBarModeType] = "combined",
     combination_mode: Optional[DEXCombinationMode] = "avg",
+    return_view: bool = False,
     **kwargs,
-) -> DEXBarChartView:
+) -> Optional[DEXBarChartView]:
     """
     Generates a DEX bar plot from the given DataFrame.
 
@@ -98,7 +100,9 @@ def bar(
     )
     logger.info(f"{view_metadata=}")
 
-    return view_metadata
+    if return_view:
+        return view_metadata
+    handle_format(df, extra_metadata=view_metadata)
 
 
 def line(
@@ -112,8 +116,9 @@ def line(
     use_count: bool = False,
     bounding_type: Optional[DEXBoundingType] = "absolute",
     zero_base_line: Optional[bool] = False,
+    return_view: bool = False,
     **kwargs,
-) -> DEXLineChartView:
+) -> Optional[DEXLineChartView]:
     """
     Generates a DEX line plot from the given DataFrame.
 
@@ -194,10 +199,18 @@ def line(
     )
     logger.info(f"{view_metadata=}")
 
-    return view_metadata
+    if return_view:
+        return view_metadata
+    handle_format(df, extra_metadata=view_metadata)
 
 
-def pie(df, x: str, y: str, **kwargs) -> DEXPieChartView:
+def pie(
+    df,
+    x: str,
+    y: str,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXPieChartView]:
     """
     Generates a DEX pie plot from the given DataFrame.
 
@@ -211,6 +224,10 @@ def pie(df, x: str, y: str, **kwargs) -> DEXPieChartView:
     """
     raise NotImplementedError("Pie plots are not yet supported.")
 
+    # if return_view:
+    #     return view_metadata
+    # handle_format(df, extra_metadata=view_metadata)
+
 
 def scatterplot(
     df: pd.DataFrame,
@@ -220,8 +237,9 @@ def scatterplot(
     size: Optional[str] = None,
     marginal_graphics: Optional[DEXSummaryType] = None,
     formula_display: Optional[DEXFormulaDisplay] = None,
+    return_view: bool = False,
     **kwargs,
-) -> DEXScatterChartView:
+) -> Optional[DEXScatterChartView]:
     """
     Generates a DEX scatterplot from the given DataFrame.
 
@@ -271,10 +289,18 @@ def scatterplot(
     )
     logger.info(f"{view_metadata=}")
 
-    return view_metadata
+    if return_view:
+        return view_metadata
+    handle_format(df, extra_metadata=view_metadata)
 
 
-def tilemap(df, lat: str, lon: str, **kwargs) -> DEXTilemapChartView:
+def tilemap(
+    df,
+    lat: str,
+    lon: str,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXTilemapChartView]:
     """
     Generates a DEX tilemap from the given DataFrame.
 
@@ -288,8 +314,16 @@ def tilemap(df, lat: str, lon: str, **kwargs) -> DEXTilemapChartView:
     """
     raise NotImplementedError("Tilemaps are not yet supported.")
 
+    # if return_view:
+    #     return view_metadata
+    # handle_format(df, extra_metadata=view_metadata)
 
-def violin(df: pd.DataFrame) -> DEXViolinChartView:
+
+def violin(
+    df: pd.DataFrame,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXViolinChartView]:
     """
     Generates a DEX violin plot from the given DataFrame.
 
@@ -303,8 +337,16 @@ def violin(df: pd.DataFrame) -> DEXViolinChartView:
     """
     raise NotImplementedError("Violin plots are not yet supported.")
 
+    # if return_view:
+    #     return view_metadata
+    # handle_format(df, extra_metadata=view_metadata)
 
-def wordcloud(df: pd.DataFrame) -> DEXWordcloudChartView:
+
+def wordcloud(
+    df: pd.DataFrame,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXWordcloudChartView]:
     """
     Generates a DEX wordcloud from the given DataFrame.
 
@@ -317,3 +359,7 @@ def wordcloud(df: pd.DataFrame) -> DEXWordcloudChartView:
         Additional keyword arguments to pass to the plot view.
     """
     raise NotImplementedError("Wordclouds are not yet supported.")
+
+    # if return_view:
+    #     return view_metadata
+    # handle_format(df, extra_metadata=view_metadata)
