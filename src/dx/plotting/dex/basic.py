@@ -103,7 +103,7 @@ def bar(
 def line(
     df,
     x: str,
-    y_columns: Union[List[str], str],
+    y: Union[List[str], str],
     use_count: bool = False,
     split_by: Optional[str] = None,
     multi_axis: Optional[bool] = False,
@@ -121,7 +121,7 @@ def line(
         The DataFrame to plot.
     x: str
         The column to use for the x-axis.
-    y_columns: Union[List[str], str]
+    y: Union[List[str], str]
         The column(s) to use for the y-axis.
     split_by: Optional[str]
         The column to use for plotting multiple lines.
@@ -136,13 +136,13 @@ def line(
     if str(x) not in df.columns:
         raise ValueError(f"Column '{x}' not found in DataFrame.")
 
-    if isinstance(y_columns, str):
-        y_columns = [y_columns]
-    for y_col in y_columns:
+    if isinstance(y, str):
+        y = [y]
+    for y_col in y:
         if str(y_col) not in df.columns:
             raise ValueError(f"Column '{y_col}' not found in DataFrame.")
     if use_count:
-        y_columns.append("DEX_COUNT")
+        y.append("DEX_COUNT")
 
     if split_by is not None:
         if str(split_by) not in df.columns:
@@ -153,7 +153,7 @@ def line(
         "line_smoothing": smoothing,
         "line_type": "line",
         "multi_axis_line": multi_axis,
-        "selected_metrics": y_columns,
+        "selected_metrics": y,
         "split_lines_by": split_by,
         "timeseries_sort": x,
         "zero_base_line": zero_base_line,
