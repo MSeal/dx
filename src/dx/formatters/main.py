@@ -11,7 +11,7 @@ from pandas.io.json import build_table_schema
 
 from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
-from dx.types import DXDisplayMode
+from dx.types.main import DXDisplayMode
 from dx.utils.formatting import (
     generate_metadata,
     is_default_index,

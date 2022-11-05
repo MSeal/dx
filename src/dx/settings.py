@@ -9,7 +9,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
-from dx.types import DXDisplayMode, DXSamplingMethod
+from dx.types.main import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
 
@@ -73,6 +73,8 @@ class Settings(BaseSettings):
 
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
+
+    PLOTTING_MODE = "pandas"
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):

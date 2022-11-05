@@ -5,6 +5,7 @@ from .datatypes import *
 from .dx import *
 from .formatters import *
 from .loggers import *
+from .plotting import *
 from .settings import *
 from .utils import *
 

@@ -6,7 +6,7 @@ from IPython.core.interactiveshell import InteractiveShell
 
 from dx.formatters.main import handle_format
 from dx.settings import settings_context
-from dx.types import DXDisplayMode
+from dx.types.main import DXDisplayMode
 
 
 def display(

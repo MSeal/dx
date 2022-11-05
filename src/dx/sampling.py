@@ -5,7 +5,7 @@ import pandas as pd
 import structlog
 
 from dx.settings import settings
-from dx.types import DXSamplingMethod
+from dx.types.main import DXSamplingMethod
 
 logger = structlog.get_logger(__name__)
 

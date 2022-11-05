@@ -7,7 +7,7 @@ from IPython.testing import tools
 
 from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
-from dx.types import DEXFilterSettings
+from dx.types.filters import DEXFilterSettings
 from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDataFrame
 

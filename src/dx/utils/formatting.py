@@ -5,7 +5,7 @@ import structlog
 
 from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
-from dx.types import DEXMetadata, DEXView
+from dx.types.dex_metadata import DEXMetadata, DEXView
 
 logger = structlog.get_logger(__name__)
 
@@ -236,7 +236,7 @@ def generate_metadata(
         existing_metadata = parent_dxdf.metadata
         parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
         dex_metadata = DEXMetadata.parse_obj(existing_metadata.get("dx", {}))
-        logger.debug(f"{dex_metadata=}")
+        logger.info(f"existing {dex_metadata=}")
         if parent_dataframe_info:
             # if this comes after a resampling operation, we need to make sure the
             # original dimensions aren't overwritten by this new dataframe_info,
@@ -253,24 +253,24 @@ def generate_metadata(
         filters = [dex_filter.dict() for dex_filter in parent_dxdf.filters]
 
     if not dex_metadata.views:
-        logger.debug("no views found, adding default view")
+        logger.info("no views found, adding default view")
         dex_metadata.add_view(
             variable_name=variable_name,
             display_id=display_id,
         )
-
-    # metadata called from other convenience functions
-    dex_metadata = handle_extra_metadata(
-        dex_metadata,
-        variable_name,
-        extra_metadata,
-    )
 
     # user-defined extra metadata overrides
     dex_metadata = handle_extra_metadata(
         dex_metadata,
         variable_name,
         df.attrs,
+    )
+
+    # metadata called from other convenience functions
+    dex_metadata = handle_extra_metadata(
+        dex_metadata,
+        variable_name,
+        extra_metadata,
     )
 
     metadata = {
@@ -327,21 +327,55 @@ def handle_extra_metadata(
     # or if it needs to be matched to a view
     try:
         if is_dex_view_metadata(extra_metadata):
-            for view in metadata.views:
-                if view.variable_name == variable_name:
-                    logger.debug(f"updating {view.display_id=} with {extra_metadata=}")
-                    view = view.copy(update=extra_metadata)
-            else:
-                logger.debug(f"adding view with {extra_metadata=}")
-                metadata.add_view(**extra_metadata)
+            metadata = update_dex_view_metadata(metadata, variable_name, extra_metadata)
         elif is_dex_metadata(extra_metadata):
-            logger.debug(f"updating metadata with {extra_metadata=}")
-            metadata.update(**extra_metadata)
+            metadata = update_dex_metadata(metadata, extra_metadata)
         else:
             logger.warning(f"not sure what to do with {extra_metadata=}")
     except Exception as e:
-        logger.debug(f'error updating metadata: "{e}"')
+        logger.info(f'error updating metadata: "{e}"')
+    logger.info(f"done handling extra metadata, {metadata=}")
     return metadata
+
+
+def update_dex_view_metadata(
+    metadata: DEXMetadata,
+    variable_name: str,
+    extra_metadata: dict,
+) -> DEXMetadata:
+    # ensure original variable name is carried through
+    # if it isn't explicitly set
+    if "variable_name" not in extra_metadata:
+        extra_metadata["variable_name"] = variable_name
+
+    # assume the user wants this update to be shown
+    if "is_default" not in extra_metadata:
+        extra_metadata["is_default"] = True
+
+    # TODO: what if the variable matches more than one view?
+    updated_views = []
+    updated_existing_view = False
+    for view in metadata.views:
+        # disable other views from being shown by default
+        view = view.copy(update={"is_default": False})
+        if not updated_existing_view and view.variable_name == variable_name:
+            logger.info(f"updating {view.display_id=} with {extra_metadata=}")
+            view = view.copy(update=extra_metadata)
+            updated_existing_view = True
+        updated_views.append(view)
+
+    if not updated_existing_view:
+        logger.info(f"didn't match to existing view; adding new view with {extra_metadata=}")
+        metadata.add_view(**extra_metadata)
+    else:
+        metadata.views = updated_views
+
+    return metadata
+
+
+def update_dex_metadata(metadata: DEXMetadata, extra_metadata: dict) -> DEXMetadata:
+    logger.info(f"updating metadata with {extra_metadata=}")
+    return metadata.copy(update=extra_metadata)
 
 
 def is_dex_metadata(metadata: dict) -> bool:
@@ -356,3 +390,20 @@ def is_dex_view_metadata(metadata: dict) -> bool:
     dex_view_metadata_keys = set(DEXView().dict().keys())
     dex_view_metadata_alias_keys = set(DEXView().dict(by_alias=True).keys())
     return bool(new_metadata_keys & (dex_view_metadata_keys | dex_view_metadata_alias_keys))
+
+
+def clean_pandas_query_column(column: str) -> str:
+    """
+    Converts column names into a more pandas .query()-friendly format.
+    """
+    # pandas will raise errors if the columns are numeric
+    # e.g. "UndefinedVariableError: name 'BACKTICK_QUOTED_STRING_{column}' is not defined"
+    # so we have to refer to them as pd.Series object using `@df[column]` structure
+    # except we don't know the name of the variable here, so we pass {df_name} as a placeholder
+    # to be filled in by the kernel*
+    # ---
+    # *as of August 2022, the dx package is using this for Datalink processing and filling df_name
+    # as part of its internal tracking
+    if str(column).isdigit() or str(column).isdecimal():
+        return f"@{{df_name}}[{column}]"
+    return f"`{column}`"

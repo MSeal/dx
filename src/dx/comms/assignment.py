@@ -5,7 +5,7 @@ from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
 from dx.filtering import resample_from_db
-from dx.types import DEXFilterSettings
+from dx.types.filters import DEXFilterSettings
 
 logger = structlog.get_logger(__name__)
 
