@@ -2,10 +2,8 @@ from typing import List, Optional, Union
 
 import pandas as pd
 import structlog
-from pydantic import parse_obj_as
 
-from dx.formatters.main import handle_format
-from dx.types.charts._base import chart_view
+from dx.plotting.dex.main import handle_view
 from dx.types.charts._configs import (
     DEXBoundingType,
     DEXCombinationMode,
@@ -90,19 +88,7 @@ def bar(
         chart_settings["second_bar_metric"] = y2
         chart_settings["pro_bar_mode"] = pro_bar_mode
 
-    view_metadata = parse_obj_as(
-        chart_view(),
-        {
-            "chart_mode": "bar",
-            "chart": chart_settings,
-            **kwargs,
-        },
-    )
-    logger.info(f"{view_metadata=}")
-
-    if return_view:
-        return view_metadata
-    handle_format(df, extra_metadata=view_metadata)
+    return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def line(
@@ -188,20 +174,7 @@ def line(
         "zero_base_line": zero_base_line,
     }
     logger.info(f"{chart_settings=}")
-
-    view_metadata = parse_obj_as(
-        chart_view(),
-        {
-            "chart_mode": "line",
-            "chart": chart_settings,
-            **kwargs,
-        },
-    )
-    logger.info(f"{view_metadata=}")
-
-    if return_view:
-        return view_metadata
-    handle_format(df, extra_metadata=view_metadata)
+    return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def pie(
@@ -224,9 +197,7 @@ def pie(
     """
     raise NotImplementedError("Pie plots are not yet supported.")
 
-    # if return_view:
-    #     return view_metadata
-    # handle_format(df, extra_metadata=view_metadata)
+    # return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def scatterplot(
@@ -277,21 +248,7 @@ def scatterplot(
     if formula_display is not None:
         chart_settings["chart"]["formulaDisplay"] = formula_display
 
-    logger.info(f"{chart_settings=}")
-
-    view_metadata = parse_obj_as(
-        chart_view(),
-        {
-            "chart_mode": "scatter",
-            "chart": chart_settings,
-            **kwargs,
-        },
-    )
-    logger.info(f"{view_metadata=}")
-
-    if return_view:
-        return view_metadata
-    handle_format(df, extra_metadata=view_metadata)
+    return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def tilemap(
@@ -314,9 +271,7 @@ def tilemap(
     """
     raise NotImplementedError("Tilemaps are not yet supported.")
 
-    # if return_view:
-    #     return view_metadata
-    # handle_format(df, extra_metadata=view_metadata)
+    # return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def violin(
@@ -337,9 +292,7 @@ def violin(
     """
     raise NotImplementedError("Violin plots are not yet supported.")
 
-    # if return_view:
-    #     return view_metadata
-    # handle_format(df, extra_metadata=view_metadata)
+    # return handle_view(df, chart_settings, return_view, **kwargs)
 
 
 def wordcloud(
@@ -360,6 +313,4 @@ def wordcloud(
     """
     raise NotImplementedError("Wordclouds are not yet supported.")
 
-    # if return_view:
-    #     return view_metadata
-    # handle_format(df, extra_metadata=view_metadata)
+    # return handle_view(df, chart_settings, return_view, **kwargs)
