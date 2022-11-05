@@ -60,7 +60,6 @@ class DEXConditionalFormatRule(DEXBaseModel):
 
 
 class DEXDecoration(BaseModel):
-    # ✅ DONE ✅
     footer: str = ""
     subtitle: str = ""
     # TODO: change this back to "Table" before merging
@@ -68,7 +67,6 @@ class DEXDecoration(BaseModel):
 
 
 class DEXField(DEXBaseModel):
-    # ✅ DONE ✅
     aggregation: Optional[str]
     column_position: int = Field(alias="columnPosition")
     date_format: Optional[str] = Field(alias="dateFormat")
