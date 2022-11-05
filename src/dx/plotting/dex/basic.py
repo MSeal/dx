@@ -10,6 +10,7 @@ from dx.types.charts._configs import (
     DEXCombinationMode,
     DEXFormulaDisplay,
     DEXLineSmoothing,
+    DEXLineType,
     DEXProBarModeType,
     DEXSortColumnsBy,
     DEXSummaryType,
@@ -104,11 +105,12 @@ def line(
     df,
     x: str,
     y: Union[List[str], str],
-    use_count: bool = False,
+    line_type: Optional[DEXLineType] = "line",
     split_by: Optional[str] = None,
     multi_axis: Optional[bool] = False,
-    bounding_type: Optional[DEXBoundingType] = "absolute",
     smoothing: Optional[DEXLineSmoothing] = "none",
+    use_count: bool = False,
+    bounding_type: Optional[DEXBoundingType] = "absolute",
     zero_base_line: Optional[bool] = False,
     **kwargs,
 ) -> DEXLineChartView:
@@ -123,12 +125,34 @@ def line(
         The column to use for the x-axis.
     y: Union[List[str], str]
         The column(s) to use for the y-axis.
+    line_type: Optional[DEXLineType]
+        The line type to use:
+            - bumparea
+            - cumulative
+            - line (default)
+            - linepercent
+            - stackedarea
+            - stackedpercent
     split_by: Optional[str]
-        The column to use for plotting multiple lines.
+        The column to use for splitting the lines.
+    multi_axis: Optional[bool]
+        Whether to use multiple y-axes. (default: False)
+    smoothing: Optional[DEXLineSmoothing]
+        The line smoothing to use:
+            - none (default)
+            - hourly
+            - daily
+            - weekly
+            - seven_day_moving_average
+            - monthly
+    use_count: bool
+        Whether to use the DEX_COUNT column for the y-axis. (default: False)
     bounding_type: Optional[DEXBoundingType]
-        The bounding type to use (absolute or relative).
-    smoothing: Optional[str]
-
+        The bounding type to use:
+            - absolute (default)
+            - relative
+    zero_base_line: Optional[bool]
+        Whether to use a zero base line. (default: False)
 
     **kwargs
         Additional keyword arguments to pass to the metadata update.
@@ -151,7 +175,7 @@ def line(
     chart_settings = {
         "bounding_type": bounding_type,
         "line_smoothing": smoothing,
-        "line_type": "line",
+        "line_type": line_type,
         "multi_axis_line": multi_axis,
         "selected_metrics": y,
         "split_lines_by": split_by,
