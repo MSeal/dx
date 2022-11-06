@@ -30,14 +30,6 @@ from dx.types.charts._configs import (
     DEXSurveyResponses,
     DEXTrendlineType,
 )
-from dx.types.charts.bar import DEXBarChartView
-from dx.types.charts.line import DEXLineChartView
-from dx.types.charts.parcoords import DEXParcoordsChartView
-from dx.types.charts.pie import DEXPieChartView
-from dx.types.charts.scatter import DEXScatterChartView
-from dx.types.charts.tilemap import DEXTilemapChartView
-from dx.types.charts.violin import DEXViolinChartView
-from dx.types.charts.wordcloud import DEXWordcloudChartView
 from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
 
 
@@ -150,17 +142,18 @@ class DEXChartBase(DEXBaseModel):
         fields = {"exclude": "*"}
 
 
+# importing these creates circular import issues
 DEXChartViews = Union[
     # basic
-    DEXBarChartView,
-    DEXLineChartView,
-    DEXPieChartView,
-    DEXScatterChartView,
-    DEXTilemapChartView,
-    DEXViolinChartView,
-    DEXWordcloudChartView,
+    "DEXBarChartView",
+    "DEXLineChartView",
+    "DEXPieChartView",
+    "DEXScatterChartView",
+    "DEXTilemapChartView",
+    "DEXViolinChartView",
+    "DEXWordcloudChartView",
     # comparison
-    DEXParcoordsChartView,
+    "DEXParcoordsChartView",
     # time series
     # relationship
     # part to whole
