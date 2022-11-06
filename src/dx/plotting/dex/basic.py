@@ -168,7 +168,7 @@ def line(
 
     chart_settings = {
         "bounding_type": bounding_type,
-        "combination_mode": combination_mode,
+        "combination_mode": str(combination_mode).upper(),
         "line_smoothing": smoothing,
         "line_type": line_type,
         "multi_axis_line": multi_axis,
