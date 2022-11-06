@@ -12,8 +12,11 @@ class DEXLineChartConfig(DEXChartBase):
             "bounding_type": {"include": True},
             "combination_mode": {"include": True},
             "line_smoothing": {"include": True},
-            "line_width": {"include": True},
+            "line_type": {"include": True},
+            "multi_axis_line": {"include": True},
             "selected_metrics": {"include": True},
+            "split_lines_by": {"include": True},
+            "timeseries_sort": {"include": True},
             "zero_base_line": {"include": True},
         }
 
