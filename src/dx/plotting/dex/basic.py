@@ -80,7 +80,7 @@ def bar(
         "bar_projection": "horizontal" if horizontal else "vertical",
         "sort_columns_by": sort_columns_by,
         "group_other": group_other,
-        "combination_mode": combination_mode,
+        "combination_mode": str(combination_mode).upper(),
     }
     if bar_width is not None:
         chart_settings["metric3"] = bar_width
