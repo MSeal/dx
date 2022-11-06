@@ -88,7 +88,13 @@ def bar(
         chart_settings["second_bar_metric"] = y2
         chart_settings["pro_bar_mode"] = pro_bar_mode
 
-    return handle_view(df, chart_settings, return_view, **kwargs)
+    return handle_view(
+        df,
+        chart_mode="bar",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
 
 
 def line(
@@ -178,7 +184,13 @@ def line(
         "zero_base_line": zero_base_line,
     }
     logger.info(f"{chart_settings=}")
-    return handle_view(df, chart_settings, return_view, **kwargs)
+    return handle_view(
+        df,
+        chart_mode="line",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
 
 
 def pie(
@@ -201,7 +213,13 @@ def pie(
     """
     raise NotImplementedError("Pie plots are not yet supported.")
 
-    # return handle_view(df, chart_settings, return_view, **kwargs)
+    # return handle_view(
+    #     df,
+    #     chart_mode="pie",
+    #     chart=chart_settings,
+    #     return_view=return_view,
+    #     **kwargs,
+    # )
 
 
 def scatterplot(
@@ -252,7 +270,13 @@ def scatterplot(
     if formula_display is not None:
         chart_settings["chart"]["formulaDisplay"] = formula_display
 
-    return handle_view(df, chart_settings, return_view, **kwargs)
+    return handle_view(
+        df,
+        chart_mode="scatter",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
 
 
 def tilemap(
@@ -275,7 +299,13 @@ def tilemap(
     """
     raise NotImplementedError("Tilemaps are not yet supported.")
 
-    # return handle_view(df, chart_settings, return_view, **kwargs)
+    # return handle_view(
+    #     df,
+    #     chart_mode="tilemap",
+    #     chart=chart_settings,
+    #     return_view=return_view,
+    #     **kwargs,
+    # )
 
 
 def violin(
@@ -296,7 +326,13 @@ def violin(
     """
     raise NotImplementedError("Violin plots are not yet supported.")
 
-    # return handle_view(df, chart_settings, return_view, **kwargs)
+    # return handle_view(
+    #     df,
+    #     chart_mode="violin",
+    #     chart=chart_settings,
+    #     return_view=return_view,
+    #     **kwargs,
+    # )
 
 
 def wordcloud(
@@ -317,4 +353,10 @@ def wordcloud(
     """
     raise NotImplementedError("Wordclouds are not yet supported.")
 
-    # return handle_view(df, chart_settings, return_view, **kwargs)
+    # return handle_view(
+    #     df,
+    #     chart_mode="wordcloud",
+    #     chart=chart_settings,
+    #     return_view=return_view,
+    #     **kwargs,
+    # )
