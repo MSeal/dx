@@ -103,6 +103,7 @@ def line(
     bounding_type: Optional[DEXBoundingType] = "absolute",
     zero_base_line: Optional[bool] = False,
     return_view: bool = False,
+    combination_mode: Optional[DEXCombinationMode] = "avg",
     **kwargs,
 ) -> Optional[DEXLineChartView]:
     """
@@ -144,6 +145,8 @@ def line(
             - relative
     zero_base_line: Optional[bool]
         Whether to use a zero base line. (default: False)
+    combination_mode: Optional[DEXCombinationMode]
+        The combination mode to use (avg, sum, min, median, max, or count).
 
     **kwargs
         Additional keyword arguments to pass to the metadata update.
@@ -165,6 +168,7 @@ def line(
 
     chart_settings = {
         "bounding_type": bounding_type,
+        "combination_mode": combination_mode,
         "line_smoothing": smoothing,
         "line_type": line_type,
         "multi_axis_line": multi_axis,
