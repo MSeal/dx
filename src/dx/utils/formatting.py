@@ -333,7 +333,7 @@ def handle_extra_metadata(
         else:
             logger.warning(f"not sure what to do with {extra_metadata=}")
     except Exception as e:
-        logger.info(f'error updating metadata: "{e}"')
+        logger.error(f'error updating metadata: "{e}"')
     logger.info(f"done handling extra metadata, {metadata=}")
     return metadata
 
