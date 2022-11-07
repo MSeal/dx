@@ -85,7 +85,7 @@ class DEXChartBase(DEXBaseModel):
     group_other: Optional[bool] = Field(alias="groupOther")
     hierarchy_type: Optional[DEXHierarchyType] = Field(alias="hierarchyType")
     is_brushing: Optional[bool] = Field(alias="isBrushing")
-    layer_settings: Optional[DEXLayerSettings] = Field(alias="layerSettings")
+    layer_settings: Optional[List[DEXLayerSettings]] = Field(alias="layerSettings")
     line_brush: Optional[dict] = Field(alias="lineBrush")
     line_smoothing: Optional[DEXLineSmoothing] = Field(alias="lineSmoothing")
     line_type: Optional[DEXLineType] = Field(alias="lineType", default="line")
