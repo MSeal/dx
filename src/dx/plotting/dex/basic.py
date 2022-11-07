@@ -4,7 +4,7 @@ import pandas as pd
 import structlog
 from pydantic.color import Color
 
-from dx.plotting.dex.main import handle_view
+from dx.plotting.main import handle_view
 from dx.types.charts._configs import (
     DEXBoundingType,
     DEXCombinationMode,
