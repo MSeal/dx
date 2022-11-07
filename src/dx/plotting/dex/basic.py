@@ -281,13 +281,13 @@ def scatterplot(
     }
     # if these are present but set to `None`, DEX gets angry
     if trend_line is not None:
-        chart_settings["chart"]["trendLine"] = trend_line
+        chart_settings["trendLine"] = trend_line
     if size is not None:
-        chart_settings["chart"]["scatterplotSize"] = size
+        chart_settings["scatterplotSize"] = size
     if marginal_graphics is not None:
-        chart_settings["chart"]["marginalGraphics"] = marginal_graphics
+        chart_settings["marginalGraphics"] = marginal_graphics
     if formula_display is not None:
-        chart_settings["chart"]["formulaDisplay"] = formula_display
+        chart_settings["formulaDisplay"] = formula_display
 
     return handle_view(
         df,
