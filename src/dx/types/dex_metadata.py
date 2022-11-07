@@ -1,7 +1,7 @@
 import enum
 import time
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import structlog
 from pydantic import BaseModel, Field, validator
@@ -105,7 +105,16 @@ class DEXField(DEXBaseModel):
 
 
 class DEXStyleConfig(DEXBaseModel):
-    colors: List[Color]
+    colors: List[Union[str, Color]]
+
+    @validator("colors", pre=True, always=True)
+    def validate_color(cls, v):
+        colors = []
+        for color in v:
+            if not isinstance(color, Color):
+                color = Color(color)
+            colors.append(color.as_hex())
+        return colors
 
 
 class DEXView(DEXBaseModel):

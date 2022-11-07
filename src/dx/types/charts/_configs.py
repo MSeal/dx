@@ -1,8 +1,8 @@
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import structlog
-from pydantic import BaseModel, Field
+from pydantic import Field, validator
 from pydantic.color import Color
 
 from dx.types.dex_metadata import DEXBaseModel
@@ -248,12 +248,12 @@ class DEXChartFacet(DEXBaseModel):
     filtering: DEXChartFacetFilter
 
 
-class DEXHoverOptions(BaseModel):
+class DEXHoverOptions(DEXBaseModel):
     dims: Optional[List[str]] = Field(default_factory=list)
     mets: Optional[List[str]] = Field(default_factory=list)
 
 
-class DEXPointSizeOptions(BaseModel):
+class DEXPointSizeOptions(DEXBaseModel):
     mode: Optional[DEXPointSizeMode]
     size: Optional[int]
     met: Optional[str]
@@ -265,17 +265,23 @@ class DEXPointSizeOptions(BaseModel):
 
 
 class DEXLayerSettings(DEXBaseModel):
-    color: Optional[Color] = "#000000"
+    color: Optional[Union[str, Color]] = "#000000"
     size: Optional[int] = 2
-    stroke: Optional[Color] = "#000000"
+    stroke: Optional[Union[str, Color]] = "#000000"
     stroke_width: Optional[int] = Field(alias="strokeWidth", default=2, gte=0, lte=10)
     transparency: Optional[float] = Field(gte=0.1, lte=1.0)
     type: Optional[str] = "point"
     lat_dim: str = Field(alias="latDim")
     long_dim: str = Field(alias="longDim")
     id: str = Field(default_factory=uuid.uuid4)
-    hover_opts: Optional[DEXHoverOptions] = Field(default_factory=DEXHoverOptions)
-    point_size_opts: Optional[DEXPointSizeOptions] = Field(default_factory=dict)
+    hover_opts: Optional[DEXHoverOptions] = Field(alias="hoverOpts")
+    point_size_opts: Optional[DEXPointSizeOptions] = Field(alias="pointSizeOpts")
+
+    @validator("color", "stroke", pre=True, always=True)
+    def validate_color(cls, v):
+        if not isinstance(v, Color):
+            v = Color(v)
+        return v.as_hex()
 
 
 class DEXSurveyResponses(DEXBaseModel):
