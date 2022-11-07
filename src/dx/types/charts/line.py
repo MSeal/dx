@@ -17,7 +17,7 @@ class DEXLineChartConfig(DEXChartBase):
             "selected_metrics": {"include": True},
             "split_lines_by": {"include": True},
             "timeseries_sort": {"include": True},
-            "zero_base_line": {"include": True},
+            "zero_baseline": {"include": True},
         }
 
 

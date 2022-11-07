@@ -107,7 +107,7 @@ def line(
     smoothing: Optional[DEXLineSmoothing] = "none",
     use_count: bool = False,
     bounding_type: Optional[DEXBoundingType] = "absolute",
-    zero_base_line: Optional[bool] = False,
+    zero_baseline: Optional[bool] = False,
     return_view: bool = False,
     combination_mode: Optional[DEXCombinationMode] = "avg",
     **kwargs,
@@ -149,7 +149,7 @@ def line(
         The bounding type to use:
             - absolute (default)
             - relative
-    zero_base_line: Optional[bool]
+    zero_baseline: Optional[bool]
         Whether to use a zero base line. (default: False)
     combination_mode: Optional[DEXCombinationMode]
         The combination mode to use (avg, sum, min, median, max, or count).
@@ -181,7 +181,7 @@ def line(
         "selected_metrics": y,
         "split_lines_by": split_by,
         "timeseries_sort": x,
-        "zero_base_line": zero_base_line,
+        "zero_baseline": zero_baseline,
     }
     logger.info(f"{chart_settings=}")
     return handle_view(

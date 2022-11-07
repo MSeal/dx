@@ -135,7 +135,7 @@ class DEXChartBase(DEXBaseModel):
     word_rotate: Optional[str] = Field(alias="wordRotate")
     word_color: Optional[str] = Field(alias="wordColor")
     word_data: Optional[str] = Field(alias="wordData")
-    zero_base_line: Optional[bool] = Field(alias="zeroBaseLine")
+    zero_baseline: Optional[bool] = Field(alias="zeroBaseline")
 
     class Config:
         exclude_unset = True
