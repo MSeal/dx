@@ -28,6 +28,7 @@ from dx.types.charts._configs import (
     DEXSummaryType,
     DEXSurveyDataType,
     DEXSurveyResponses,
+    DEXTextDataFormat,
     DEXTrendlineType,
 )
 from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
@@ -100,8 +101,10 @@ class DEXChartBase(DEXBaseModel):
     network_type: Optional[DEXNetworkType] = Field(alias="networkType")
     override_point_size: Optional[int] = Field(alias="overridePointSize")
     par_coords_color: Optional[str] = Field(alias="parCoordsColor")
-    pie_label_contents: Optional[DEXPieLabelContents] = Field(alias="pieLabelContents")
-    pie_label_type: Optional[DEXPieLabelType] = Field(alias="pieLabelType")
+    pie_label_contents: Optional[DEXPieLabelContents] = Field(
+        alias="pieLabelContents", default="name"
+    )
+    pie_label_type: Optional[DEXPieLabelType] = Field(alias="pieLabelType", default="rim")
     piece_type: Optional[DEXPieceType] = Field(alias="pieceType")
     point_bar_mode: Optional[str] = Field(alias="pointBarMode")
     point_type: Optional[DEXPointType] = Field(alias="pointType")
@@ -127,7 +130,9 @@ class DEXChartBase(DEXBaseModel):
     summary_type: Optional[DEXSummaryType] = Field(alias="summaryType")
     survey_data_type: Optional[DEXSurveyDataType] = Field(alias="surveyDataType")
     survey_responses: Optional[DEXSurveyResponses] = Field(alias="surveyResponses")
-    text_data_format: Optional[str] = Field(alias="textDataFormat")
+    text_data_format: Optional[DEXTextDataFormat] = Field(
+        alias="textDataFormat", default="sentence"
+    )
     timeseries_sort: Optional[str] = Field(alias="timeseriesSort")
     token_metric: Optional[str] = Field(alias="tokenMetric")
     trend_line: Optional[DEXTrendlineType] = Field(alias="trendLine")
