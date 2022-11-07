@@ -11,8 +11,9 @@ class DEXWordcloudChartConfig(DEXChartBase):
         fields = {
             "text_data_format": {"include": True},
             "token_metric": {"include": True},
-            "word_rotate": {"include": True},
             "word_color": {"include": True},
+            "word_data": {"include": True},
+            "word_rotate": {"include": True},
         }
 
 

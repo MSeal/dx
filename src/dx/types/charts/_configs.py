@@ -225,6 +225,18 @@ class DEXTrendlineType(BaseEnum):
     power = "power"
 
 
+class DEXTextDataFormat(BaseEnum):
+    sentence = "sentence"
+    token = "token"
+
+
+class DEXWordRotate(BaseEnum):
+    r45 = 45
+    r90 = 90
+    jitter = "jitter"
+    none = "none"
+
+
 # --- Models ---
 class DEXChartFacetFilter(DEXBaseModel):
     filter: DEXDimensionFilter
