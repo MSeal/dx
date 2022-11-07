@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
 
-    PLOTTING_MODE = "pandas"
+    GENERATE_DEX_METADATA: bool = True
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):

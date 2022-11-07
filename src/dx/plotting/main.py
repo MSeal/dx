@@ -4,7 +4,7 @@ from pydantic import parse_obj_as
 
 from dx.formatters.main import handle_format
 from dx.plotting.dex import basic
-from dx.settings import get_settings
+from dx.settings import get_settings, settings_context
 from dx.types.charts._base import chart_view_ref
 
 logger = structlog.get_logger(__name__)
@@ -17,7 +17,6 @@ def enable_plotting_backend():
     Enables the plotting backend for pandas.
     """
     global settings
-    settings.PLOTTING_MODE = "dex"
     pd.options.plotting.backend = "dx"
 
 
@@ -26,7 +25,6 @@ def disable_plotting_backend():
     Disables the plotting backend for pandas.
     """
     global settings
-    settings.PLOTTING_MODE = "matplotlib"
     pd.options.plotting.backend = "matplotlib"
 
 
@@ -50,7 +48,12 @@ def plot(df: dict, kind: str, **kwargs) -> None:
         raise NotImplementedError(f"{kind=} not yet supported for plotting.backend='dx'")
 
     view_metadata = view.dict(exclude_unset=True)
-    handle_format(df, extra_metadata=view_metadata)
+
+    with settings_context(generate_dex_metadata=True):
+        # if someone is calling one of these functions with the dx plotting backend,
+        # there isn't any way around persisting frontend-generated metadata,
+        # so anything existing will be replaced with the new metadata here
+        handle_format(df, extra_metadata=view_metadata)
 
 
 def handle_view(

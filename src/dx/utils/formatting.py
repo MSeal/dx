@@ -252,27 +252,6 @@ def generate_metadata(
         sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
         filters = [dex_filter.dict() for dex_filter in parent_dxdf.filters]
 
-    if not dex_metadata.views:
-        logger.info("no views found, adding default view")
-        dex_metadata.add_view(
-            variable_name=variable_name,
-            display_id=display_id,
-        )
-
-    # user-defined extra metadata overrides
-    dex_metadata = handle_extra_metadata(
-        dex_metadata,
-        variable_name,
-        df.attrs,
-    )
-
-    # metadata called from other convenience functions
-    dex_metadata = handle_extra_metadata(
-        dex_metadata,
-        variable_name,
-        extra_metadata,
-    )
-
     metadata = {
         "datalink": {
             "dataframe_info": dataframe_info,
@@ -289,9 +268,19 @@ def generate_metadata(
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
             "variable_name": variable_name,
         },
-        "dx": dex_metadata.dict(by_alias=True),
         "display_id": display_id,
     }
+
+    if settings.GENERATE_DEX_METADATA:
+        metadata = add_dex_metadata(
+            display_id=display_id,
+            variable_name=variable_name,
+            metadata=metadata,
+            attrs_metadata=df.attrs,
+            extra_metadata=extra_metadata,
+            dex_metadata=dex_metadata,
+        )
+
     logger.debug(f"{metadata=}")
     return metadata
 
@@ -313,6 +302,39 @@ def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f"handling columns found in index names: {intersecting_names}")
     column_renames = {column: f"{column}.value" for column in intersecting_names}
     return df.rename(columns=column_renames)
+
+
+def add_dex_metadata(
+    display_id: str,
+    metadata: dict,
+    extra_metadata: dict,
+    attrs_metadata: dict,
+    dex_metadata: DEXMetadata,
+    variable_name: str,
+) -> dict:
+    if not dex_metadata.views:
+        logger.info("no views found, adding default view")
+        dex_metadata.add_view(
+            variable_name=variable_name,
+            display_id=display_id,
+        )
+
+    # user-defined extra metadata overrides in `pd.DataFrame.attrs`
+    if noteable_metadata := attrs_metadata.get("noteable", {}):
+        dex_metadata = handle_extra_metadata(
+            dex_metadata,
+            variable_name,
+            noteable_metadata,
+        )
+    # metadata called from other convenience functions
+    dex_metadata = handle_extra_metadata(
+        dex_metadata,
+        variable_name,
+        extra_metadata,
+    )
+
+    metadata["dx"] = dex_metadata.dict(by_alias=True)
+    return metadata
 
 
 def handle_extra_metadata(
