@@ -1,6 +1,7 @@
-from typing import Annotated, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from pydantic import Field
+from typing_extensions import Annotated
 
 from dx.types.charts._configs import (
     DEXAreaType,
