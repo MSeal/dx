@@ -1,3 +1,4 @@
+import random
 from decimal import Decimal
 
 import numpy as np
@@ -8,16 +9,20 @@ logger = structlog.get_logger(__name__)
 
 
 ### Generator helper functions ###
-def generate_integer_series(num_rows: int) -> pd.Series:
-    return pd.Series([np.random.randint(-100, 100) for _ in range(num_rows)])
+def generate_integer_series(
+    num_rows: int, value_min: int = -100, value_max: int = 100
+) -> pd.Series:
+    return pd.Series([np.random.randint(value_min, value_max) for _ in range(num_rows)])
 
 
-def generate_float_series(num_rows: int) -> pd.Series:
-    return pd.Series([np.random.rand() for _ in range(num_rows)])
+def generate_float_series(num_rows: int, value_min: int = 0, value_max: int = 0) -> pd.Series:
+    return pd.Series(
+        [random.randint(value_min, value_max) + np.random.rand() for _ in range(num_rows)]
+    )
 
 
-def generate_decimal_series(num_rows: int) -> pd.Series:
-    return pd.Series([Decimal(np.random.rand()) for _ in range(num_rows)])
+def generate_decimal_series(num_rows: int, value_min: int = 0, value_max: int = 0) -> pd.Series:
+    return generate_float_series(num_rows, value_min, value_max).apply(lambda x: Decimal(x))
 
 
 def generate_complex_number_series(num_rows: int) -> pd.Series:
