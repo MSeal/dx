@@ -13,7 +13,7 @@ DX_DATATYPES = {
     "dtype_column": True,
     "integer_column": True,
     "float_column": True,
-    "bool_column": False,
+    "bool_column": True,
     "decimal_column": False,
     "datetime_column": True,
     "date_column": False,
