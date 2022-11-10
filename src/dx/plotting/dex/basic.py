@@ -14,11 +14,13 @@ from dx.types.charts._configs import (
     DEXPieLabelContents,
     DEXPieLabelType,
     DEXProBarModeType,
+    DEXScale,
     DEXSortColumnsBy,
     DEXSummaryType,
     DEXTextDataFormat,
     DEXTrendlineType,
     DEXWordRotate,
+    mapbox_tile_layer_conversion,
 )
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.line import DEXLineChartView
@@ -305,10 +307,12 @@ def tilemap(
     icon_fill_color: Color = "#000000",
     icon_opacity: float = 1.0,
     icon_size: int = 2,
+    icon_size_scale: DEXScale = "linear",
     icon_type: str = "point",
     stroke_color: Color = "#000000",
     stroke_width: int = 2,
     map_mode: str = "tile",
+    tile_layer: str = "streets",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXTilemapChartView]:
@@ -324,11 +328,15 @@ def tilemap(
     lon: str
         The column to use for the longitude.
     icon_fill_color: Color
-        The color to use for the icon fill.
+        The color to use for the icon fill. (default: "#000000"/black)
     icon_opacity: float
-        The opacity to use for the icon (0.0 to 1.0).
-    icon_size: int
-        The size to use for the icon. (0 to 10; default: 2)
+        The opacity to use for the icon (0.0 to 1.0; default 1.0).
+    icon_size: Union[int, str]
+        Either:
+        - int: a fixed size to use for the icon (0 to 10; default: 2)
+        - str: a column name to use for functional sizing
+    icon_size_scale: str
+        The scale to use for functional sizing ("linear" or "log"; default: "linear")
     icon_type: str
         The type of icon to use. One of "point", "circle", "square", "diamond", "triangle", "star", "cross", or "x".
     stroke_color: Color
@@ -337,6 +345,8 @@ def tilemap(
         The width to use for the icon stroke.
     map_mode: str
         The type of map to use. One of "tile" or "satellite".
+    tile_layer: str
+        The type of tile layer to use. One of "streets", "outdoors", "light", "dark", or "satellite" (default: "streets")
 
     **kwargs
         Additional keyword arguments to pass to the plot view.
@@ -345,6 +355,36 @@ def tilemap(
         raise ValueError(f"Column '{lat}' not found in DataFrame.")
     if str(lon) != "index" and str(lon) not in df.columns:
         raise ValueError(f"Column '{lon}' not found in DataFrame.")
+
+    if isinstance(icon_size, str):
+        # referencing a column, treat as functional sizing
+        point_size_opts = {
+            "mode": "functional",
+            "size": 2,
+            "met": icon_size,
+            "scale": icon_size_scale.title(),
+            "min": df[icon_size].min(),
+            "max": df[icon_size].max(),
+            "sizeMin": 1,
+            "sizeMax": 10,
+        }
+    elif isinstance(icon_size, int):
+        # fixed sizing, shouldn't matter what we put in here
+        point_size_opts = {
+            "mode": "fixed",
+            "size": icon_size,
+            "met": str(lon),
+            "scale": "Linear",
+            "min": df[str(lon)].min(),
+            "max": df[str(lon)].max(),
+            "sizeMin": 1,
+            "sizeMax": 10,
+        }
+    else:
+        raise ValueError(f"`{type(icon_size)}` is not a valid type for `icon_size`.")
+
+    dimension_cols = [c for c in df.columns if df[c].dtype == "object"]
+    metric_cols = [c for c in df.columns if c not in dimension_cols]
 
     layer_settings = {
         "lat_dim": lat,
@@ -355,8 +395,12 @@ def tilemap(
         "type": icon_type,
         "stroke": stroke_color,
         "stroke_width": stroke_width,
-        # "hover_opts": {},
-        # "point_size_opts": {}
+        "point_size_opts": point_size_opts,
+        "hover_opts": {
+            "dims": dimension_cols,
+            "mets": metric_cols,
+        },
+        "tile_layer": mapbox_tile_layer_conversion(tile_layer),
     }
     chart_settings = {
         "map_mode": map_mode,

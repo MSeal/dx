@@ -127,6 +127,23 @@ class DEXLineType(BaseEnum):
     stackedpercent = "stackedpercent"
 
 
+mapbox_tile_layer_conversion = {
+    "streets": "streets-v11",
+    "outdoors": "outdoors-v11",
+    "light": "light-v10",
+    "dark": "dark-v10",
+    "satellite": "satellite-v9",
+}
+
+
+class DEXMapBoxTileLayer(BaseEnum):
+    streets = "streets"
+    outdoors = "outdoors"
+    light = "light"
+    dark = "dark"
+    satellite = "satellite"
+
+
 class DEXNetworkLabelContents(BaseEnum):
     id = "id"
     value = "value"
@@ -182,8 +199,8 @@ class DEXProBarModeType(BaseEnum):
 
 
 class DEXScale(BaseEnum):
-    linear = "linear"
-    log = "log"
+    linear = "Linear"
+    log = "Log"
 
 
 class DEXSortColumnsBy(BaseEnum):
@@ -266,7 +283,7 @@ class DEXPointSizeOptions(DEXBaseModel):
 
 class DEXLayerSettings(DEXBaseModel):
     color: Optional[Union[str, Color]] = "#000000"
-    size: Optional[int] = 2
+    size: Optional[Union[str, int]] = 2
     stroke: Optional[Union[str, Color]] = "#000000"
     stroke_width: Optional[int] = Field(alias="strokeWidth", default=2, gte=0, lte=10)
     transparency: Optional[float] = Field(gte=0.1, lte=1.0)
@@ -276,6 +293,9 @@ class DEXLayerSettings(DEXBaseModel):
     id: str = Field(default_factory=uuid.uuid4)
     hover_opts: Optional[DEXHoverOptions] = Field(alias="hoverOpts")
     point_size_opts: Optional[DEXPointSizeOptions] = Field(alias="pointSizeOpts")
+    tile_layer: Optional[DEXMapBoxTileLayer] = Field(
+        alias="tileLayer", default=DEXMapBoxTileLayer.streets
+    )
 
     @validator("color", "stroke", pre=True, always=True)
     def validate_color(cls, v):
