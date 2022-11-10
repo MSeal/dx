@@ -15,6 +15,20 @@ if GEOPANDAS_INSTALLED:
 logger = structlog.get_logger(__name__)
 
 
+def generate_lat_float_series(self, num_rows):
+    """
+    Creates a series of latitude values as floats.
+    """
+    return pd.Series([random.randint(-90, 89) + np.random.rand() for _ in range(num_rows)])
+
+
+def generate_lon_float_series(self, num_rows):
+    """
+    Creates a series of longitude values as floats.
+    """
+    return pd.Series([random.randint(-180, 179) + np.random.rand() for _ in range(num_rows)])
+
+
 def generate_latlon_series(num_rows: int):
     """
     Creates a series of shapely.geometry.Point values for latitude and longitude.

@@ -58,7 +58,7 @@ def random_dataframe(
     dtype_column: bool = True,
     integer_column: bool = True,
     float_column: bool = True,
-    bool_column: bool = False,
+    bool_column: bool = True,
     decimal_column: bool = False,
     datetime_column: bool = True,
     date_column: bool = False,
@@ -71,6 +71,8 @@ def random_dataframe(
     dict_column: bool = False,
     list_column: bool = False,
     nested_tabular_column: bool = False,
+    lat_float_column: bool = False,
+    lon_float_column: bool = False,
     latlon_point_column: bool = False,
     filled_geojson_column: bool = False,
     exterior_geojson_column: bool = False,
@@ -145,6 +147,12 @@ def random_dataframe(
         )
 
     # geopandas/shapely columns
+    if lat_float_column:
+        df["lat_float_column"] = geometry.generate_lat_float_series(num_rows)
+
+    if lon_float_column:
+        df["lon_float_column"] = geometry.generate_lon_float_series(num_rows)
+
     if latlon_point_column:
         df["latlon_point_column"] = geometry.generate_latlon_series(num_rows)
 
