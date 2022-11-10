@@ -14,17 +14,15 @@ settings = get_settings()
 
 def enable_plotting_backend():
     """
-    Enables the plotting backend for pandas.
+    Convenience toggle for enabling the dx plotting backend for pandas.
     """
-    global settings
     pd.options.plotting.backend = "dx"
 
 
 def disable_plotting_backend():
     """
-    Disables the plotting backend for pandas.
+    Convenience toggle for disabling the dx plotting backend for pandas and reverting to matplotlib.
     """
-    global settings
     pd.options.plotting.backend = "matplotlib"
 
 
