@@ -1,11 +1,25 @@
-from typing import Optional
+from datetime import datetime
+from typing import List, Optional, Union
 
 import pandas as pd
 import structlog
+from pydantic.color import Color
 
 from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
-from dx.types.dex_metadata import DEXMetadata, DEXView
+from dx.types.dex_metadata import (
+    DEXColorMode,
+    DEXColorScheme,
+    DEXConfoScale,
+    DEXFixedColorOptions,
+    DEXFunctionalColorOptions,
+    DEXFunctionalCondition,
+    DEXGradient,
+    DEXGradientColorOptions,
+    DEXMetadata,
+    DEXThresholdColorOptions,
+    DEXView,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -412,3 +426,89 @@ def is_dex_view_metadata(metadata: dict) -> bool:
     dex_view_metadata_keys = set(DEXView().dict().keys())
     dex_view_metadata_alias_keys = set(DEXView().dict(by_alias=True).keys())
     return bool(new_metadata_keys & (dex_view_metadata_keys | dex_view_metadata_alias_keys))
+
+
+def create_fixed_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    color: Color,
+) -> DEXFixedColorOptions:
+    return DEXFixedColorOptions(
+        min=min_val,
+        max=max_val,
+        color=color,
+    )
+
+
+def create_functional_conditional_formatting_rule(
+    min_val: Union[bool, int, float, str, datetime],
+    max_val: Union[bool, int, float, str, datetime],
+    color: Color,
+    condition: DEXFunctionalCondition,
+) -> DEXFunctionalColorOptions:
+    return DEXFixedColorOptions(
+        min=min_val,
+        max=max_val,
+        color=color,
+        cond=condition,
+    )
+
+
+def create_gradient_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    gradient: DEXGradient,
+    scale: DEXConfoScale = DEXConfoScale.linear,
+) -> DEXGradientColorOptions:
+    return DEXGradientColorOptions(
+        min=min_val,
+        max=max_val,
+        gradient=gradient,
+        scale=scale,
+    )
+
+
+def create_threshold_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    threshold_values: List[float],
+    threshold_colors: DEXColorScheme = DEXColorScheme.red_yellow_green,
+) -> DEXThresholdColorOptions:
+    return DEXThresholdColorOptions(
+        min=min_val,
+        max=max_val,
+        threshold_colors=threshold_colors,
+        threshold_values=threshold_values,
+    )
+
+
+def create_conditional_formatting_rule(
+    df: pd.DataFrame,
+    color_column: str,
+    color_mode: DEXColorMode,
+    **kwargs,
+):
+    min_val = df[color_column].min()
+    max_val = df[color_column].max()
+    if color_mode == DEXColorMode.fixed:
+        return create_fixed_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.functional:
+        return create_functional_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.gradient:
+        return create_gradient_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.threshold:
+        threshold_values = kwargs.pop("threshold_values", get_default_thresholds(df[color_column]))
+        return create_threshold_conditional_formatting_rule(
+            min_val,
+            max_val,
+            threshold_values=threshold_values,
+            **kwargs,
+        )
+    else:
+        raise ValueError(f"invalid {color_mode=}")
+
+
+def get_default_thresholds(s: pd.Series, bins: int = 5):
+    cuts = pd.cut(s, bins)
+    thresholds = [t.right for t in cuts.cat.categories[:-1]]
+    return thresholds

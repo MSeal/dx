@@ -1,7 +1,8 @@
 import enum
 import time
 import uuid
-from typing import Dict, List, Optional, Union
+from datetime import datetime
+from typing import Annotated, Dict, List, Literal, Optional, Union
 
 import structlog
 from pydantic import BaseModel, Field, validator
@@ -13,9 +14,58 @@ logger = structlog.get_logger(__name__)
 
 
 # --- Enums ---
+
+
+class DEXColorMode(enum.Enum):
+    fixed = "fixed"
+    gradient = "gradient"
+    threshold = "threshold"
+    functional = "functional"
+
+
+class DEXFunctionalCondition(enum.Enum):
+    contains = "contains"
+    # TODO: flesh this out
+
+
+class DEXGradient(enum.Enum):
+    turbo = "turbo"
+
+    # TODO: flesh this out
+    def __str__(self):
+        return str(self.value).title()
+
+
+color_schemes = {
+    "blues": "blues5",
+    "reds": "reds5",
+    "purple_orange": "PuOr5",
+    "red_yellow_green": "RdYlGn5",
+    # TODO: flesh this out
+}
+
+
+class DEXColorScheme(enum.Enum):
+    blues = "blues5"
+    reds = "reds5"
+    purple_orange = "purple_orange"
+    red_yellow_green = "red_yellow_green"
+
+    def __str__(self):
+        return color_schemes(self.value)
+
+
 class DEXMode(enum.Enum):
     exploration = "exploration"
     presentation = "presentation"
+
+
+class DEXConfoScale(enum.Enum):
+    linear = "linear"
+    log = "log"
+
+    def __str__(self):
+        return str(self.value).title()
 
 
 class DEXViewType(enum.Enum):
@@ -43,17 +93,58 @@ class DEXColorOptions(DEXBaseModel):
     gradient: Optional[str]
     max: Optional[float]
     min: Optional[float]
-    mode: Optional[str]
+    mode: DEXColorMode = DEXColorMode.fixed
     threshold_colors: Optional[str] = Field(alias="thresholdColors")
     threshold_values: Optional[List[float]] = Field(alias="thresholdValues", default_factory=list)
     scale: Optional[str]
 
 
+class DEXFixedColorOptions(DEXColorOptions):
+    mode: Literal["fixed"] = "fixed"
+    color: Color
+    min: Union[float, int]
+    max: Union[float, int]
+
+
+class DEXFunctionalColorOptions(DEXColorOptions):
+    mode: Literal["functional"] = "functional"
+    color: Color
+    cond: DEXFunctionalCondition
+    min: Union[bool, int, float, str, datetime]
+    max: Union[bool, int, float, str, datetime]
+
+
+class DEXGradientColorOptions(DEXColorOptions):
+    mode: Literal["gradient"] = "gradient"
+    gradient: DEXGradient
+    min: Union[float, int]
+    max: Union[float, int]
+    scale: DEXConfoScale = DEXConfoScale.linear
+
+
+class DEXThresholdColorOptions(DEXColorOptions):
+    mode: Literal["threshold"] = "threshold"
+    min: Union[float, int]
+    max: Union[float, int]
+    threshold_colors: DEXColorScheme = DEXColorScheme.red_yellow_green
+    threshold_values: List[float] = Field(default_factory=list)
+
+
+ColorOpts = Union[
+    DEXFixedColorOptions,
+    DEXFunctionalColorOptions,
+    DEXGradientColorOptions,
+    DEXThresholdColorOptions,
+]
+
+
 class DEXConditionalFormatRule(DEXBaseModel):
-    color_opts: DEXColorOptions = Field(alias="colorOpts")
+    color_opts: List[Annotated[ColorOpts, Field(discriminator="mode")]] = Field(
+        alias="colorOpts", default_factory=list
+    )
     column_type: str = Field(alias="columnType")
     field_name: str = Field(alias="fieldName")
-    id: str
+    id: str = Field(default_factory=uuid.uuid4)
     index: int
     name: str = Field(default="")
 
