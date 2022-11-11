@@ -94,7 +94,7 @@ FilterTypes = Union[DEXDateFilter, DEXDimensionFilter, DEXMetricFilter]
 
 class DEXFilterSettings(BaseModel):
     SHOW_FILTER_PANEL: Optional[bool] = True
-    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = Field(default_factory=list)
 
     def to_sql_query(self) -> str:
         return " AND ".join([f.sql_filter for f in self.filters])
@@ -105,7 +105,7 @@ class DEXFilterSettings(BaseModel):
 
 class DEXResampleMessage(BaseModel):
     display_id: str
-    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = Field(default_factory=list)
     limit: int = 50_000
     cell_id: Optional[str] = None
 
