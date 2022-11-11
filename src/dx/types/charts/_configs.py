@@ -1,3 +1,4 @@
+import enum
 import uuid
 from typing import List, Optional, Union
 
@@ -20,8 +21,11 @@ class DEXAreaType(BaseEnum):
 
 
 class DEXBarGroupingType(BaseEnum):
-    clustered = "Clustered"
-    stacked = "Stacked"
+    clustered = "clustered"
+    stacked = "stacked"
+
+    def __str__(self):
+        return str(self.value).title()
 
 
 class DEXBarLabelType(BaseEnum):
@@ -69,12 +73,15 @@ class DEXChartMode(BaseEnum):
 
 
 class DEXCombinationMode(BaseEnum):
-    avg = "AVG"
-    count = "COUNT"
-    max = "MAX"
-    med = "MED"
-    min = "MIN"
-    sum = "SUM"
+    avg = "avg"
+    count = "count"
+    max = "max"
+    med = "med"
+    min = "min"
+    sum = "sum"
+
+    def __str__(self):
+        return str(self.value).upper()
 
 
 class DEXEdgeModes(BaseEnum):
@@ -85,6 +92,9 @@ class DEXEdgeModes(BaseEnum):
 class DEXFilteredDataOnly(BaseEnum):
     all_data = "All Data"
     filtered_data_only = "Filtered Data Only"
+
+    def __str__(self):
+        return str(self.value).title()
 
 
 class DEXFormulaDisplay(BaseEnum):
@@ -143,6 +153,9 @@ class DEXMapBoxTileLayer(BaseEnum):
     dark = "dark"
     satellite = "satellite"
 
+    def __str__(self):
+        return mapbox_tile_layer_conversion[self.value]
+
 
 class DEXNetworkLabelContents(BaseEnum):
     id = "id"
@@ -182,9 +195,12 @@ class DEXPieceType(BaseEnum):
 
 
 class DEXPointType(BaseEnum):
-    bar = "Bar"
-    dotplot = "Dot Plot"
-    lollipop = "Lollipop"
+    bar = "bar"
+    dotplot = "dot plot"
+    lollipop = "lollipop"
+
+    def __str__(self):
+        return str(self.value).title()
 
 
 class DEXPointSizeMode(BaseEnum):
@@ -193,14 +209,31 @@ class DEXPointSizeMode(BaseEnum):
 
 
 class DEXProBarModeType(BaseEnum):
-    clustered = "Clustered"
-    combined = "Combined"
-    stacked = "Stacked"
+    clustered = "clustered"
+    combined = "combined"
+    stacked = "stacked"
+
+    def __str__(self):
+        return str(self.value).title()
 
 
 class DEXScale(BaseEnum):
-    linear = "Linear"
-    log = "Log"
+    linear = "linear"
+    log = "log"
+
+    def __str__(self):
+        return str(self.value).title()
+
+
+class DEXSortColumnsByOrder(enum.Enum):
+    asc = "asc"
+    desc = "desc"
+
+
+class DEXSortColumnsByType(enum.Enum):
+    int = "int"
+    date = "date"
+    string = "string"
 
 
 class DEXSortColumnsBy(BaseEnum):

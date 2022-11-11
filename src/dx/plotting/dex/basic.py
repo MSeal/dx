@@ -15,12 +15,12 @@ from dx.types.charts._configs import (
     DEXPieLabelType,
     DEXProBarModeType,
     DEXScale,
-    DEXSortColumnsBy,
+    DEXSortColumnsByOrder,
+    DEXSortColumnsByType,
     DEXSummaryType,
     DEXTextDataFormat,
     DEXTrendlineType,
     DEXWordRotate,
-    mapbox_tile_layer_conversion,
 )
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.line import DEXLineChartView
@@ -41,7 +41,8 @@ def bar(
     horizontal: bool = False,
     bar_width: Optional[str] = None,
     group_other: Optional[bool] = False,
-    sort_columns_by: Optional[DEXSortColumnsBy] = "asc-col-string",
+    column_sort_order: Optional[DEXSortColumnsByOrder] = DEXSortColumnsByOrder.asc,
+    column_sort_type: Optional[DEXSortColumnsByType] = DEXSortColumnsByType.string,
     pro_bar_mode: Optional[DEXProBarModeType] = "combined",
     combination_mode: Optional[DEXCombinationMode] = "avg",
     return_view: bool = False,
@@ -85,7 +86,7 @@ def bar(
         "dim1": x,
         "metric1": y,
         "bar_projection": "horizontal" if horizontal else "vertical",
-        "sort_columns_by": sort_columns_by,
+        "sort_columns_by": f"{column_sort_order}-col-{column_sort_type}",
         "group_other": group_other,
         "combination_mode": str(combination_mode).upper(),
     }
@@ -400,7 +401,7 @@ def tilemap(
             "dims": dimension_cols,
             "mets": metric_cols,
         },
-        "tile_layer": mapbox_tile_layer_conversion(tile_layer),
+        "tile_layer": tile_layer,
     }
     chart_settings = {
         "map_mode": map_mode,
@@ -422,7 +423,8 @@ def violin(
     bin_count: int = 30,
     show_interquartile_range: bool = False,
     horizontal: bool = False,
-    sort_columns_by: Optional[DEXSortColumnsBy] = "asc-col-string",
+    column_sort_order: Optional[DEXSortColumnsByOrder] = DEXSortColumnsByOrder.asc,
+    column_sort_type: Optional[DEXSortColumnsByType] = DEXSortColumnsByType.string,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXViolinChartView]:
@@ -462,7 +464,7 @@ def violin(
         "summary_type": "violin",
         "summary_bins": bin_count,
         "violin_iqr": show_interquartile_range,
-        "sort_columns_by": sort_columns_by,
+        "sort_columns_by": f"{column_sort_order}-col-{column_sort_type}",
     }
 
     return handle_view(
