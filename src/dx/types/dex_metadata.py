@@ -2,11 +2,12 @@ import enum
 import time
 import uuid
 from datetime import datetime
-from typing import Annotated, Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import structlog
 from pydantic import BaseModel, Field, validator
 from pydantic.color import Color
+from typing_extensions import Annotated
 
 from dx.types.filters import DEXFilterSettings
 
