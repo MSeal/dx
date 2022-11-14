@@ -1,3 +1,3 @@
 # Default settings
 
-::: dx.settings.Settings
+::: src.dx.settings.Settings
