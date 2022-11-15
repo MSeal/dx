@@ -1,6 +1,7 @@
 import sys
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 import structlog
 
@@ -208,9 +209,13 @@ def get_df_dimensions(df: pd.DataFrame, prefix: Optional[str] = None) -> dict:
     else:
         prefix = ""
 
+    df_bytes_size: pd.Series = df.memory_usage()
+    # casting to int to allow json serializing later
+    df_total_bytes_size: np.int64 = int(df_bytes_size.sum())
+
     num_rows, num_cols = df.shape
     return {
-        f"{prefix}size_bytes": df.memory_usage().sum(),
+        f"{prefix}size_bytes": df_total_bytes_size,
         f"{prefix}num_rows": num_rows,
         f"{prefix}num_cols": num_cols,
     }
