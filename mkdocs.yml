@@ -2,6 +2,8 @@
 site_name: DX
 nav:
   - Home: index.md
+  - Reference:
+      - "Plotting with DEX": reference/dex_plotting.md
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
 edit_uri: edit/main/docs/
@@ -33,7 +35,6 @@ theme:
     # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
     - navigation.instant
 
-
 # plugins
 plugins:
   - search
@@ -41,7 +42,8 @@ plugins:
       handlers:
         python:
           options:
-            docstring_style: 'numpy'
+            docstring_style: "numpy"
+        #     show_source: False
   - mkdocs-jupyter:
       include_source: True
 
