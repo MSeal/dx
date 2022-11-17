@@ -356,6 +356,13 @@ def handle_extra_metadata(
     variable_name: str,
     extra_metadata: dict,
 ) -> DEXMetadata:
+    if not isinstance(extra_metadata, dict):
+        # maybe pydantic model?
+        try:
+            extra_metadata = extra_metadata.dict(by_alias=True)
+        except AttributeError:
+            extra_metadata = None
+            pass
     if not extra_metadata:
         return metadata
 
@@ -379,6 +386,7 @@ def update_dex_view_metadata(
     variable_name: str,
     extra_metadata: dict,
 ) -> DEXMetadata:
+    """Convenience method to look up and update DEX view metadata."""
     # ensure original variable name is carried through
     # if it isn't explicitly set
     if "variable_name" not in extra_metadata:
@@ -391,25 +399,40 @@ def update_dex_view_metadata(
     # TODO: what if the variable matches more than one view?
     updated_views = []
     updated_existing_view = False
-    for view in metadata.views:
+    for i, view in enumerate(metadata.views):
         # disable other views from being shown by default
         view = view.copy(update={"is_default": False})
-        if not updated_existing_view and view.variable_name == variable_name:
+
+        if extra_metadata.get("id") == view.id:
+            view = view.copy(update=extra_metadata)
+            metadata.views[i] = extra_metadata
+            updated_existing_view = True
+        elif not updated_existing_view and view.variable_name == variable_name:
             logger.info(f"updating {view.display_id=} with {extra_metadata=}")
             view = view.copy(update=extra_metadata)
             updated_existing_view = True
+        else:
+            # we didn't match a view, either by id or by variable name
+            pass
+
         updated_views.append(view)
 
     if not updated_existing_view:
         logger.info(f"didn't match to existing view; adding new view with {extra_metadata=}")
         metadata.add_view(**extra_metadata)
-    else:
+    elif updated_views:
         metadata.views = updated_views
+    else:
+        # one view existed, but was updated inplace
+        pass
 
     return metadata
 
 
 def update_dex_metadata(metadata: DEXMetadata, extra_metadata: dict) -> DEXMetadata:
+    """
+    Convenience method to update top-level DEX metadata; similar to update_dex_view_metadata().
+    """
     logger.info(f"updating metadata with {extra_metadata=}")
     return metadata.copy(update=extra_metadata)
 

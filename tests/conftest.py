@@ -7,6 +7,7 @@ from IPython.testing import tools
 
 from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
+from dx.types.dex_metadata import DEXMetadata, DEXView
 from dx.types.filters import DEXFilterSettings
 from dx.utils.formatting import normalize_index_and_columns
 from dx.utils.tracking import DXDataFrame
@@ -242,3 +243,13 @@ def sample_dxdataframe(
         df=sample_random_dataframe,
         ipython_shell=get_ipython,
     )
+
+
+@pytest.fixture
+def sample_dex_view_metadata():
+    return DEXView(decoration={"title": "test 123"})
+
+
+@pytest.fixture
+def sample_dex_metadata(sample_dex_view_metadata: DEXView):
+    return DEXMetadata(views=[sample_dex_view_metadata])
