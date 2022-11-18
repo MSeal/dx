@@ -142,5 +142,5 @@ class TestStructure:
             assert metadata["dx"][key] == dex_metadata_dict[key]
 
 
-class TestDEXPlottingMetadata:
+class TestPlottingMetadata:
     pass
