@@ -466,8 +466,8 @@ def violin(
     bin_count: int = 30,
     show_interquartile_range: bool = False,
     horizontal: bool = False,
-    column_sort_order: Optional[DEXSortColumnsByOrder] = "asc",
-    column_sort_type: Optional[DEXSortColumnsByType] = "string",
+    column_sort_order: DEXSortColumnsByOrder = "asc",
+    column_sort_type: DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXViolinChartView]:
@@ -488,9 +488,9 @@ def violin(
         Whether to show the interquartile range.
     horizontal: bool
         Whether to plot the violin horizontally.
-    column_sort_order: Optional[DEXSortColumnsByOrder]
+    column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: Optional[DEXSortColumnsByType]
+    column_sort_type: DEXSortColumnsByType
         The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
     return_view: bool
         Whether to return a DEXView object instead of render.
@@ -525,7 +525,7 @@ def wordcloud(
     df: pd.DataFrame,
     word_column: str,
     size_column: str,
-    text_format: Optional[DEXTextDataFormat] = "sentence",
+    text_format: DEXTextDataFormat = "sentence",
     word_rotation: Optional[DEXWordRotate] = None,
     random_coloring: bool = False,
     return_view: bool = False,
@@ -542,7 +542,7 @@ def wordcloud(
         The column to use for the words in the cloud.
     size_column: str
         The column to use for the size of the words in the cloud.
-    text_format: Optional[DEXTextDataFormat]
+    text_format: DEXTextDataFormat
         The format of the text data. Either `"sentence"` or `"token"`.
     word_rotation: Optional[DEXWordRotate]
         The rotation to use for the words in the cloud (`45`, `90`, `"jitter"`, or `None`).
