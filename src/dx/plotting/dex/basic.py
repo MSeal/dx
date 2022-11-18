@@ -91,7 +91,7 @@ def bar(
         "bar_projection": "horizontal" if horizontal else "vertical",
         "sort_columns_by": f"{column_sort_order}-col-{column_sort_type}",
         "group_other": group_other,
-        "combination_mode": str(combination_mode).upper(),
+        "combination_mode": combination_mode,
     }
     if bar_width is not None:
         chart_settings["metric3"] = bar_width
@@ -186,7 +186,7 @@ def line(
 
     chart_settings = {
         "bounding_type": bounding_type,
-        "combination_mode": str(combination_mode).upper(),
+        "combination_mode": combination_mode,
         "line_smoothing": smoothing or "none",
         "line_type": line_type,
         "multi_axis_line": multi_axis,
