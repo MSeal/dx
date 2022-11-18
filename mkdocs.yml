@@ -2,8 +2,12 @@
 site_name: DX
 nav:
   - Home: index.md
+  - "Plotting with DEX":
+      - "Overview": plotting/overview.md
+      - "Basic Charts": plotting/basic_charts.md
   - Reference:
-      - "Plotting with DEX": reference/dex_plotting.md
+      - "Generating Data": reference/data_generation.md
+      - "Basic Charts": reference/basic_charts.md
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
 edit_uri: edit/main/docs/
@@ -43,7 +47,7 @@ plugins:
         python:
           options:
             docstring_style: "numpy"
-        #     show_source: False
+            show_root_heading: False
   - mkdocs-jupyter:
       include_source: True
 
