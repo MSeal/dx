@@ -53,6 +53,8 @@ plugins:
 
 markdown_extensions:
   # code highlighting
+  - admonition
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences

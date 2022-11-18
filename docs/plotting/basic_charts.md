@@ -2,15 +2,26 @@
 
 Here we'll talk about how to plot some basic chart in DEX types using `dx`.
 
+!!! note "Initial dataset"
+
+    We will be using our own built-in DataFrame generation function for these visualizations.
+    The values you see may be different if you run the same code in a cell, but the column structure should be very similar (if not identical).
+    ```python
+    df = dx.random_dataframe(100)
+    ```
+    ::: src.dx.random_dataframe
+
 ## [Bar](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.bar)
 ### Basic
 ```python
-df = dx.random_dataframe(100)
 dx.bar(df, x='keyword_column', y='integer_column')
+```
+```
+INSERT SCREENSHOT
 ```
 ### More options
 ```python
-df = dx.random_dataframe(100)
+
 dx.bar(
     df, 
     x='keyword_column', 
@@ -25,34 +36,66 @@ dx.bar(
     combination_mode="max",
 )
 ```
-<iframe src="https://app.noteable.io/f/677f51aa-cc42-4066-b7fe-ce1d9b0cef51/dx-demo-notebook.ipynb?cellID=6374edfb-0a75-4e59-b5bd-eb9d8c290f6e"/>
+```
+INSERT SCREENSHOT
+```
 
 ## [Line](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.line)
 
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
 ## [Pie](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.pie)
 
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
 ## [Scatterplot](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.scatterplot)
 
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
 ## [Tilemap](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.tilemap)
 
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
 ## [Violin](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.violin)
 
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
 ## [Wordcloud](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.wordcloud)
+### Basic
+```
+INSERT SCREENSHOT
+```
+### More options
 ```
 INSERT SCREENSHOT
 ```
