@@ -45,6 +45,8 @@ theme:
   features:
     # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
     - navigation.instant
+    - navigation.tabs
+    - navigation.top
 
 # plugins
 plugins:
@@ -65,6 +67,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
 
