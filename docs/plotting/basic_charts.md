@@ -19,25 +19,23 @@ dx.bar(df, x='keyword_column', y='integer_column')
 ![](../screenshots/plotting_bar_simple1.png)
 ### More options
 ```python
-
 dx.bar(
     df, 
     x='keyword_column', 
     y='integer_column',
     y2='float_column',
+    y2_style='dot',
     horizontal=True,
     bar_width='index',
     group_other=True,
     column_sort_order="desc",
     column_sort_type="string",
-    pro_bar_mode="stacked",
+    pro_bar_mode="combined",
     combination_mode="max",
-    show_bar_label=True,
+    show_bar_labels=True,
 )
 ```
-```
-INSERT SCREENSHOT
-```
+![](../screenshots/plotting_bar_custom1.png)
 
 ## [Line](../../reference/dex_plotting/#src.dx.plotting.dex.basic.line)
 
