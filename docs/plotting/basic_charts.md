@@ -1,8 +1,8 @@
 # Basic Charts
 
-Here we'll talk about how to plot some basic chart in DEX types using `dx`.
+Here we'll talk about how to plot some basic chart types in DEX using `dx`.
 
-!!! note "Initial dataset"
+!!! example "Initial dataset"
 
     We will be using our own built-in DataFrame generation function for these visualizations.
     The values you see may be different if you run the same code in a cell, but the column structure should be very similar (if not identical).
@@ -11,14 +11,12 @@ Here we'll talk about how to plot some basic chart in DEX types using `dx`.
     ```
     ::: src.dx.random_dataframe
 
-## [Bar](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.bar)
+## [Bar](../../reference/basic_charts/#src.dx.plotting.dex.basic.bar)
 ### Basic
 ```python
 dx.bar(df, x='keyword_column', y='integer_column')
 ```
-```
-INSERT SCREENSHOT
-```
+![](../screenshots/plotting_bar_simple1.png)
 ### More options
 ```python
 
@@ -34,13 +32,14 @@ dx.bar(
     column_sort_type="string",
     pro_bar_mode="stacked",
     combination_mode="max",
+    show_bar_label=True,
 )
 ```
 ```
 INSERT SCREENSHOT
 ```
 
-## [Line](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.line)
+## [Line](../../reference/dex_plotting/#src.dx.plotting.dex.basic.line)
 
 ### Basic
 ```
@@ -50,7 +49,7 @@ INSERT SCREENSHOT
 ```
 INSERT SCREENSHOT
 ```
-## [Pie](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.pie)
+## [Pie](../../reference/dex_plotting/#src.dx.plotting.dex.basic.pie)
 
 ### Basic
 ```
@@ -60,7 +59,7 @@ INSERT SCREENSHOT
 ```
 INSERT SCREENSHOT
 ```
-## [Scatterplot](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.scatterplot)
+## [Scatter](../../reference/dex_plotting/#src.dx.plotting.dex.basic.scatterplot)
 
 ### Basic
 ```
@@ -70,7 +69,7 @@ INSERT SCREENSHOT
 ```
 INSERT SCREENSHOT
 ```
-## [Tilemap](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.tilemap)
+## [Tilemap](../../reference/dex_plotting/#src.dx.plotting.dex.basic.tilemap)
 
 ### Basic
 ```
@@ -80,7 +79,7 @@ INSERT SCREENSHOT
 ```
 INSERT SCREENSHOT
 ```
-## [Violin](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.violin)
+## [Violin](../../reference/dex_plotting/#src.dx.plotting.dex.basic.violin)
 
 ### Basic
 ```
@@ -90,7 +89,7 @@ INSERT SCREENSHOT
 ```
 INSERT SCREENSHOT
 ```
-## [Wordcloud](https://noteable-io.github.io/dx/reference/dex_plotting/#src.dx.plotting.dex.basic.wordcloud)
+## [Wordcloud](../../reference/dex_plotting/#src.dx.plotting.dex.basic.wordcloud)
 ### Basic
 ```
 INSERT SCREENSHOT

@@ -2,9 +2,16 @@
 site_name: DX
 nav:
   - Home: index.md
-  - "Plotting with DEX":
+  - "Using with DEX":
       - "Overview": plotting/overview.md
       - "Basic Charts": plotting/basic_charts.md
+      - "Comparison Charts": plotting/comparison_charts.md
+      - "Time Series Charts": plotting/time_series_charts.md
+      - "Relationship Charts": plotting/relationship_charts.md
+      - "Part-to-whole Charts": plotting/part_to_whole_charts.md
+      - "Funnel Charts": plotting/funnel_charts.md
+      - "Summary Charts": plotting/summary_charts.md
+      - "Maps": plotting/maps.md
   - Reference:
       - "Generating Data": reference/data_generation.md
       - "Basic Charts": reference/basic_charts.md
@@ -22,7 +29,7 @@ theme:
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: cyan
-      accent: lime
+      accent: yellow
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
@@ -30,7 +37,7 @@ theme:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: cyan
-      accent: lime
+      accent: yellow
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -58,6 +65,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 extra:
   social:
