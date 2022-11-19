@@ -9,15 +9,19 @@ from dx.types.dex_metadata import DEXView
 class DEXBarChartConfig(DEXChartBase):
     class Config:
         fields = {
+            "bar_label": {"include": True},
             "bar_projection": {"include": True},
-            "second_bar_metric": {"include": True},
+            "bar_subcategory": {"include": True},
+            "combination_mode": {"include": True},
             "dim1": {"include": True},
-            "metric1": {"include": True},
             "group_other": {"include": True},
-            "sort_columns_by": {"include": True},
+            "metric1": {"include": True},
             "metric3": {"include": True},
             "pro_bar_mode": {"include": True},
-            "bar_label": {"include": True},
+            "selected_bar_metrics": {"include": True},
+            "sort_columns_by": {"include": True},
+            "second_bar_metric": {"include": True},
+            "second_metric_style": {"include": True},
         }
 
 
