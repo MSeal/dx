@@ -36,6 +36,9 @@ def get_default_renderable_types():
 class Settings(BaseSettings):
     LOG_LEVEL: Union[int, str] = logging.WARNING
 
+    # IPython.display.JSON payload/metadata during handle_format()
+    DEV_MODE: bool = True
+
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
     HTML_TABLE_SCHEMA: bool = False

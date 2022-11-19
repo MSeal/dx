@@ -1,7 +1,5 @@
-# TODO: remove this later
 import pandas as pd
 import structlog
-from IPython.display import JSON, display
 from pydantic import parse_obj_as
 
 from dx.formatters.main import handle_format
@@ -60,9 +58,6 @@ def plot(df: dict, kind: str, **kwargs) -> None:
         # so anything existing will be replaced with the new metadata here
         handle_format(df, extra_metadata=view_metadata)
 
-    # TODO: remove this later
-    display(JSON(view_metadata))
-
 
 def handle_view(
     df: pd.DataFrame,
@@ -101,6 +96,3 @@ def handle_view(
         df,
         extra_metadata=view_metadata,
     )
-
-    # TODO: remove this later
-    display(JSON(view_metadata))

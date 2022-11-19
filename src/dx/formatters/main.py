@@ -200,6 +200,9 @@ def format_output(
     payload = {settings.MEDIA_TYPE: payload}
     metadata = {settings.MEDIA_TYPE: metadata}
 
+    if settings.DEV_MODE:
+        dev_display(payload, metadata)
+
     # this needs to happen so we can update by display_id as needed
     if with_ipython_display:
         with pd.option_context("html.table_schema", settings.HTML_TABLE_SCHEMA):
@@ -213,3 +216,11 @@ def format_output(
             )
 
     return (payload, metadata)
+
+
+def dev_display(payload, metadata):
+
+    from IPython.display import JSON, display
+
+    display(JSON(payload))
+    display(JSON(metadata))
