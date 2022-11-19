@@ -8,7 +8,6 @@ from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
 
 TITLECASE_OPTIONS = [
     "bar_grouping",
-    "bar_label",
     "filtered_data_only",
     "point_type",
     "pro_bar_mode",

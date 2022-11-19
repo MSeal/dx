@@ -26,8 +26,8 @@ class DEXBarGroupingType(BaseEnum):
 
 
 class DEXBarLabelType(BaseEnum):
-    none = "None"
-    show = "Show"
+    none = "none"
+    show = "show"
 
 
 class DEXBarProjectionTypes(BaseEnum):
