@@ -74,11 +74,6 @@ def handle_view(
         **kwargs,
     }
 
-    # TODO: remove this later
-    from IPython.display import JSON, display
-
-    display(JSON(view_params))
-
     view = parse_obj_as(
         chart_view_ref(),
         view_params,
@@ -92,6 +87,12 @@ def handle_view(
         by_alias=True,
     )
     logger.info(f"{view_metadata=}")
+
+    # TODO: remove this later
+    from IPython.display import JSON, display
+
+    display(JSON(view_metadata))
+
     handle_format(
         df,
         extra_metadata=view_metadata,
