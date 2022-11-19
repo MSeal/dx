@@ -1,5 +1,7 @@
+# TODO: remove this later
 import pandas as pd
 import structlog
+from IPython.display import JSON, display
 from pydantic import parse_obj_as
 
 from dx.formatters.main import handle_format
@@ -45,13 +47,21 @@ def plot(df: dict, kind: str, **kwargs) -> None:
     else:
         raise NotImplementedError(f"{kind=} not yet supported for plotting.backend='dx'")
 
-    view_metadata = view.dict(exclude_unset=True)
+    view_metadata = view.dict(
+        exclude_unset=True,
+        exclude_none=True,
+        by_alias=True,
+    )
+    logger.info(f"{view_metadata=}")
 
     with settings_context(generate_dex_metadata=True):
         # if someone is calling one of these functions with the dx plotting backend,
         # there isn't any way around persisting frontend-generated metadata,
         # so anything existing will be replaced with the new metadata here
         handle_format(df, extra_metadata=view_metadata)
+
+    # TODO: remove this later
+    display(JSON(view_metadata))
 
 
 def handle_view(
@@ -87,13 +97,10 @@ def handle_view(
         by_alias=True,
     )
     logger.info(f"{view_metadata=}")
-
-    # TODO: remove this later
-    from IPython.display import JSON, display
-
-    display(JSON(view_metadata))
-
     handle_format(
         df,
         extra_metadata=view_metadata,
     )
+
+    # TODO: remove this later
+    display(JSON(view_metadata))
