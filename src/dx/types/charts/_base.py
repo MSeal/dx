@@ -1,10 +1,19 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import Field
+from pydantic import Field, validator
 from typing_extensions import Annotated
 
 from dx.types.charts import options
 from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
+
+TITLECASE_OPTIONS = [
+    "bar_grouping",
+    "bar_label",
+    "filtered_data_only",
+    "point_type",
+    "pro_bar_mode",
+]
+UPPERCASE_OPTIONS = ["combination_mode"]
 
 
 class DEXChartBase(DEXBaseModel):
@@ -124,18 +133,13 @@ class DEXChartBase(DEXBaseModel):
     word_data: Optional[str] = Field(alias="wordData")
     zero_baseline: Optional[bool] = Field(alias="zeroBaseline")
 
-    class Config:
-        use_enum_values = True
-        json_encoders = {
-            options.DEXBarGroupingType: lambda v: v.value.title(),
-            options.DEXBarLabelType: lambda v: v.value.title(),
-            options.DEXCombinationMode: lambda v: v.value.upper(),
-            options.DEXFilteredDataOnly: lambda v: v.value.title(),
-            options.DEXMapBoxTileLayer: lambda v: options.mapbox_tile_layer_conversion[v],
-            options.DEXPointType: lambda v: v.value.title(),
-            options.DEXProBarModeType: lambda v: v.value.title(),
-            options.DEXScale: lambda v: v.value.title(),
-        }
+    @validator(*TITLECASE_OPTIONS, pre=True, always=True)
+    def validate_title_case(cls, v):
+        return str(v).title()
+
+    @validator(*UPPERCASE_OPTIONS, pre=True, always=True)
+    def validate_upper_case(cls, v):
+        return str(v).upper()
 
 
 def chart_view_ref():

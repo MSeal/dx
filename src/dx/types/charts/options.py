@@ -21,13 +21,13 @@ class DEXAreaType(BaseEnum):
 
 
 class DEXBarGroupingType(BaseEnum):
-    clustered = "clustered"
-    stacked = "stacked"
+    clustered = "Clustered"
+    stacked = "Stacked"
 
 
 class DEXBarLabelType(BaseEnum):
-    none = "none"
-    show = "show"
+    none = "None"
+    show = "Show"
 
 
 class DEXBarProjectionTypes(BaseEnum):
@@ -70,12 +70,12 @@ class DEXChartMode(BaseEnum):
 
 
 class DEXCombinationMode(BaseEnum):
-    avg = "avg"
-    count = "count"
-    max = "max"
-    med = "med"
-    min = "min"
-    sum = "sum"
+    avg = "AVG"
+    count = "COUNT"
+    max = "MAX"
+    med = "MED"
+    min = "MIN"
+    sum = "SUM"
 
 
 class DEXEdgeModes(BaseEnum):
@@ -183,9 +183,9 @@ class DEXPieceType(BaseEnum):
 
 
 class DEXPointType(BaseEnum):
-    bar = "bar"
-    dotplot = "dot plot"
-    lollipop = "lollipop"
+    bar = "Bar"
+    dotplot = "Dot Plot"
+    lollipop = "Lollipop"
 
 
 class DEXPointSizeMode(BaseEnum):
@@ -194,14 +194,14 @@ class DEXPointSizeMode(BaseEnum):
 
 
 class DEXProBarModeType(BaseEnum):
-    clustered = "clustered"
-    combined = "combined"
-    stacked = "stacked"
+    clustered = "Clustered"
+    combined = "Combined"
+    stacked = "Stacked"
 
 
 class DEXScale(BaseEnum):
-    linear = "linear"
-    log = "log"
+    linear = "Linear"
+    log = "Log"
 
 
 class DEXSecondMetricstyle(BaseEnum):
@@ -297,6 +297,10 @@ class DEXPointSizeOptions(DEXBaseModel):
     size_min: Optional[int] = Field(alias="sizeMin", gte=0, lte=10)
     size_max: Optional[int] = Field(alias="sizeMax", gte=0, lte=10)
 
+    @validator("scale", pre=True, always=True)
+    def validate_scale(cls, v):
+        return str(v).title()
+
 
 class DEXLayerSettings(DEXBaseModel):
     color: Optional[Union[str, Color]] = "#000000"
@@ -319,6 +323,10 @@ class DEXLayerSettings(DEXBaseModel):
         if not isinstance(v, Color):
             v = Color(v)
         return v.as_hex()
+
+    @validator("tile_layer", pre=True, always=True)
+    def validate_tile_layer(cls, v):
+        return mapbox_tile_layer_conversion[v]
 
 
 class DEXSurveyResponses(DEXBaseModel):

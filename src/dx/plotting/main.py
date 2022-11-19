@@ -1,5 +1,3 @@
-import json
-
 import pandas as pd
 import structlog
 from pydantic import parse_obj_as
@@ -88,7 +86,7 @@ def handle_view(
     if return_view:
         return view
 
-    view_metadata = view.json(
+    view_metadata = view.dict(
         exclude_unset=True,
         exclude_none=True,
         by_alias=True,
@@ -96,5 +94,5 @@ def handle_view(
     logger.info(f"{view_metadata=}")
     handle_format(
         df,
-        extra_metadata=json.loads(view_metadata),
+        extra_metadata=view_metadata,
     )
