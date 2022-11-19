@@ -87,7 +87,7 @@ def bar(
         "group_other": group_other,
         "combination_mode": combination_mode,
         "bar_label": "show" if show_bar_labels else "none",
-        "selected_metrics": y,
+        "selected_bar_metrics": y,
     }
     if bar_width is not None:
         chart_settings["metric3"] = bar_width
