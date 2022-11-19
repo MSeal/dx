@@ -35,7 +35,7 @@ This is still **very** experimental. Any of the charts checked below indicate ba
     * [x] [Connected Scatterplot](../plotting/basic_charts.md#scatterplot)
     * [ ] Scatterplot Matrix
     * [ ] Correlation Matrix
-    * [ ] [Bar](#)
+    * [x] [Bar](../plotting/basic_charts.md#bar)
     * [ ] Dot Plot
     * [ ] Radar Plot
     * [ ] Diverging Bar
