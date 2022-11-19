@@ -72,12 +72,13 @@ def bar(
     """
     if str(x) != "index" and str(x) not in df.columns:
         raise ValueError(f"Column '{x}' not found in DataFrame.")
-    if str(y) != "index" and str(y) not in df.columns:
-        raise ValueError(f"Column '{y}' not found in DataFrame.")
 
-    y1 = y
-    if isinstance(y, list):
-        y1 = y[0]
+    if not isinstance(y, list):
+        y = [y]
+    for ycol in y:
+        if str(ycol) != "index" and str(ycol) not in df.columns:
+            raise ValueError(f"Column '{ycol}' not found in DataFrame.")
+    y1 = y[0]
 
     chart_settings = {
         "dim1": x,
