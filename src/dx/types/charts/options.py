@@ -32,6 +32,9 @@ class DEXBarLabelType(BaseEnum):
     none = "none"
     show = "show"
 
+    def __str__(self):
+        return str(self.value).title()
+
 
 class DEXBarProjectionTypes(BaseEnum):
     horizontal = "horizontal"
@@ -223,6 +226,11 @@ class DEXScale(BaseEnum):
 
     def __str__(self):
         return str(self.value).title()
+
+
+class DEXSecondMetricstyle(BaseEnum):
+    bar = "bar"
+    dot = "dot"
 
 
 class DEXSortColumnsByOrder(enum.Enum):

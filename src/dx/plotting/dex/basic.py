@@ -5,23 +5,7 @@ import structlog
 from pydantic.color import Color
 
 from dx.plotting.main import handle_view
-from dx.types.charts._configs import (
-    DEXBoundingType,
-    DEXCombinationMode,
-    DEXFormulaDisplay,
-    DEXLineSmoothing,
-    DEXLineType,
-    DEXPieLabelContents,
-    DEXPieLabelType,
-    DEXProBarModeType,
-    DEXScale,
-    DEXSortColumnsByOrder,
-    DEXSortColumnsByType,
-    DEXSummaryType,
-    DEXTextDataFormat,
-    DEXTrendlineType,
-    DEXWordRotate,
-)
+from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
@@ -38,14 +22,16 @@ def bar(
     x: str,
     y: str,
     y2: Optional[str] = None,
+    y2_style: options.DEXSecondMetricstyle = "bar",
     horizontal: bool = False,
     bar_width: Optional[str] = None,
     group_other: bool = False,
-    column_sort_order: DEXSortColumnsByOrder = "asc",
-    column_sort_type: DEXSortColumnsByType = "string",
-    pro_bar_mode: DEXProBarModeType = "combined",
-    combination_mode: DEXCombinationMode = "avg",
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    pro_bar_mode: options.DEXProBarModeType = "combined",
+    combination_mode: options.DEXCombinationMode = "avg",
     return_view: bool = False,
+    show_bar_labels: bool = False,
     **kwargs,
 ) -> Optional[DEXBarChartView]:
     """
@@ -57,10 +43,12 @@ def bar(
         The DataFrame to plot.
     x: str
         The column to use for the x-axis.
-    y: str
-        The column to use for the y-axis.
+    y: List[str]
+        The column(s) to use for the primary y-axis.
     y2: Optional[str]
         The column to use for the secondary y-axis.
+    y2_style: DEXSecondMetricstyle
+        The style to use for the secondary y-axis. (`"bar"` or `"dot"`)
     horizontal: bool
         Whether to plot the bars horizontally.
     bar_width: Optional[str]
@@ -75,8 +63,10 @@ def bar(
         The bar mode to use (`"clustered"`, `"combined"`, or `"stacked"`).
     combination_mode: DEXCombinationMode
         The combination mode to use (`"avg"`, `"sum"`, `"min"`, `"median"`, `"max"`, or `"count"`).
+    show_bar_labels: bool
+        Whether to show the bar values as labels.
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -85,19 +75,26 @@ def bar(
     if str(y) != "index" and str(y) not in df.columns:
         raise ValueError(f"Column '{y}' not found in DataFrame.")
 
+    y1 = y
+    if isinstance(y, list):
+        y1 = y[0]
+
     chart_settings = {
         "dim1": x,
-        "metric1": y,
+        "metric1": y1,
         "bar_projection": "horizontal" if horizontal else "vertical",
         "sort_columns_by": f"{column_sort_order}-col-{column_sort_type}",
         "group_other": group_other,
         "combination_mode": combination_mode,
+        "bar_label": "show" if show_bar_labels else "none",
+        "selected_metrics": y,
     }
     if bar_width is not None:
         chart_settings["metric3"] = bar_width
     if y2 is not None:
         chart_settings["second_bar_metric"] = y2
-        chart_settings["pro_bar_mode"] = str(pro_bar_mode).title()
+        chart_settings["pro_bar_mode"] = pro_bar_mode
+        chart_settings["second_metric_style"] = y2_style
 
     return handle_view(
         df,
@@ -112,15 +109,15 @@ def line(
     df,
     x: str,
     y: Union[List[str], str],
-    line_type: DEXLineType = "line",
+    line_type: options.DEXLineType = "line",
     split_by: Optional[str] = None,
     multi_axis: bool = False,
-    smoothing: Optional[DEXLineSmoothing] = None,
+    smoothing: Optional[options.DEXLineSmoothing] = None,
     use_count: bool = False,
-    bounding_type: DEXBoundingType = "absolute",
+    bounding_type: options.DEXBoundingType = "absolute",
     zero_baseline: bool = False,
     return_view: bool = False,
-    combination_mode: DEXCombinationMode = "avg",
+    combination_mode: options.DEXCombinationMode = "avg",
     **kwargs,
 ) -> Optional[DEXLineChartView]:
     """
@@ -165,7 +162,7 @@ def line(
     combination_mode: DEXCombinationMode
         The combination mode to use (`"avg"`, `"sum"`, `"min"`, `"median"`, `"max"`, or `"count"`).
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -210,8 +207,8 @@ def pie(
     split_slices_by: str,
     slice_size: str,
     show_total: bool = True,
-    pie_label_type: DEXPieLabelType = "rim",
-    pie_label_contents: DEXPieLabelContents = "name",
+    pie_label_type: options.DEXPieLabelType = "rim",
+    pie_label_contents: options.DEXPieLabelContents = "name",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXPieChartView]:
@@ -244,7 +241,7 @@ def pie(
             - `"name_percent"`
             - `"value_percent"`
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -274,9 +271,9 @@ def scatterplot(
     x: str,
     y: str,
     size: Optional[str] = None,
-    trend_line: Optional[DEXTrendlineType] = None,
-    marginal_graphics: Optional[DEXSummaryType] = None,
-    formula_display: Optional[DEXFormulaDisplay] = None,
+    trend_line: Optional[options.DEXTrendlineType] = None,
+    marginal_graphics: Optional[options.DEXSummaryType] = None,
+    formula_display: Optional[options.DEXFormulaDisplay] = None,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXScatterChartView]:
@@ -297,7 +294,6 @@ def scatterplot(
         The type of trendline to use. One of `"linear"`, `"exponential"`, `"polynomial"`, `"power"`, or `"logarithmic"`.
     marginal_graphics: Optional[DEXSummaryType]
         The marginal graphics to use:
-            - `none` (default)
             - `boxplot`
             - `heatmap`
             - `histogram`
@@ -307,11 +303,10 @@ def scatterplot(
             - `violin`
     formula_display: Optional[DEXFormulaDisplay]
         The formula display to use:
-            - `none` (default)
             - `r2`
             - `formula`
     return_view: bool
-        Whether to return a DEXView object instead of render. (default: False)
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -350,7 +345,7 @@ def tilemap(
     icon_fill_color: Color = "#000000",
     icon_opacity: float = 1.0,
     icon_size: int = 2,
-    icon_size_scale: DEXScale = "linear",
+    icon_size_scale: options.DEXScale = "linear",
     icon_type: str = "point",
     stroke_color: Color = "#000000",
     stroke_width: int = 2,
@@ -391,7 +386,7 @@ def tilemap(
     tile_layer: str
         The type of tile layer to use. One of `"streets"`, `"outdoors"`, `"light"`, `"dark"`, or `"satellite"`
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -427,8 +422,8 @@ def tilemap(
     else:
         raise ValueError(f"`{type(icon_size)}` is not a valid type for `icon_size`.")
 
-    dimension_cols = [c for c in df.columns if df[c].dtype == "object"]
-    metric_cols = [c for c in df.columns if c not in dimension_cols]
+    dimension_cols = [_configs for _configs in df.columns if df[_configs].dtype == "object"]
+    metric_cols = [_configs for _configs in df.columns if _configs not in dimension_cols]
 
     layer_settings = {
         "lat_dim": lat,
@@ -466,8 +461,8 @@ def violin(
     bin_count: int = 30,
     show_interquartile_range: bool = False,
     horizontal: bool = False,
-    column_sort_order: DEXSortColumnsByOrder = "asc",
-    column_sort_type: DEXSortColumnsByType = "string",
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXViolinChartView]:
@@ -493,7 +488,7 @@ def violin(
     column_sort_type: DEXSortColumnsByType
         The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
@@ -525,8 +520,8 @@ def wordcloud(
     df: pd.DataFrame,
     word_column: str,
     size_column: str,
-    text_format: DEXTextDataFormat = "sentence",
-    word_rotation: Optional[DEXWordRotate] = None,
+    text_format: options.DEXTextDataFormat = "sentence",
+    word_rotation: Optional[options.DEXWordRotate] = None,
     random_coloring: bool = False,
     return_view: bool = False,
     **kwargs,
@@ -549,7 +544,7 @@ def wordcloud(
     random_coloring: bool
         Whether to use random coloring for the words in the cloud.
     return_view: bool
-        Whether to return a DEXView object instead of render.
+        Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
