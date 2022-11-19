@@ -135,10 +135,14 @@ class DEXChartBase(DEXBaseModel):
 
     @validator(*TITLECASE_OPTIONS, pre=True, always=True)
     def validate_title_case(cls, v):
+        if v is None:
+            return v
         return str(v).title()
 
     @validator(*UPPERCASE_OPTIONS, pre=True, always=True)
     def validate_upper_case(cls, v):
+        if v is None:
+            return v
         return str(v).upper()
 
 
