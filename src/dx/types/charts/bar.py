@@ -18,10 +18,10 @@ class DEXBarChartConfig(DEXChartBase):
             "metric1": {"include": True},
             "metric3": {"include": True},
             "pro_bar_mode": {"include": True},
-            "selected_bar_metrics": {"include": True},
-            "sort_columns_by": {"include": True},
             "second_bar_metric": {"include": True},
             "second_metric_style": {"include": True},
+            "selected_bar_metrics": {"include": True},
+            "sort_columns_by": {"include": True},
         }
 
 
