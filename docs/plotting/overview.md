@@ -14,9 +14,11 @@ df.attrs = {
 }
 df
 ```
+![](../screenshots/attrs_view1.png)
 
 ## Plotting
 
+This is still **very** experimental. Any of the charts checked below indicate basic rendering should work (and allow manual user interactions in DEX), but not all combinations of plot arguments have been tested. Feedback welcome!
 ### Supported Charts
 
 - #### [Basic Charts](../plotting/basic_charts.md)
