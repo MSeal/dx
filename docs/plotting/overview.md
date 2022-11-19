@@ -17,16 +17,17 @@ df
 
 ## Plotting
 
-Supported chart types:
+### Supported Charts
 
-- [x] [Basic Charts](../plotting/basic_charts.md)
+- #### [Basic Charts](../plotting/basic_charts.md)
     * [x] [Bar](../plotting/basic_charts.md#bar)
     * [x] [Line](../plotting/basic_charts.md#line)
     * [x] [Pie](../plotting/basic_charts.md#pie)
     * [x] [Scatterplot](../plotting/basic_charts.md#scatterplot)
     * [x] [Violin](../plotting/basic_charts.md#violin)
     * [x] [Wordcloud](../plotting/basic_charts.md#wordcloud)
-- [ ] [Comparison Charts](../plotting/comparison_charts.md)
+
+- #### [Comparison Charts](../plotting/comparison_charts.md)
     * [ ] Parallel Coordinates
     * [x] [Scatterplot](../plotting/basic_charts.md#scatterplot)
     * [x] [Connected Scatterplot](../plotting/basic_charts.md#scatterplot)
@@ -36,33 +37,38 @@ Supported chart types:
     * [ ] Dot Plot
     * [ ] Radar Plot
     * [ ] Diverging Bar
-- [ ] [Time Series Charts](../plotting/time_series_charts.md)
+  
+- #### [Time Series Charts](../plotting/time_series_charts.md)
     * [x] [Line](../plotting/basic_charts.md#line)
     * [ ] Cumulative
     * [ ] Stacked Area
     * [ ] Line Percent
     * [ ] Stacked Percent
     * [ ] Candlestick
-- [ ] [Relationship Charts](../plotting/relationship_charts.md)
+
+- #### [Relationship Charts](../plotting/relationship_charts.md)
     * [ ] Force-directed Network
     * [ ] Sankey
     * [ ] Arc Diagram
     * [ ] Adjacency Matrix
     * [ ] Dendrogram
-- [ ] [Part-to-whole Charts](../plotting/part_to_whole_charts.md)
+
+- #### [Part-to-whole Charts](../plotting/part_to_whole_charts.md)
     * [x] [Pie](../plotting/basic_charts.md#pie)
     * [ ] Donut
     * [ ] Sunburst
     * [ ] Treemap
     * [ ] Partition
-- [ ] [Funnel Charts](../plotting/funnel_charts.md)
+
+- #### [Funnel Charts](../plotting/funnel_charts.md)
     * [ ] Funnel
     * [ ] Funnel Chart
     * [ ] Funnel Tree
     * [ ] Funnel Sunburst
     * [ ] Flow Diagram
     * [ ] Arc Flow
-- [ ] [Summary Charts](../plotting/summary_charts.md)
+
+- #### [Summary Charts](../plotting/summary_charts.md)
     * [ ] Big Number
     * [x] [Wordcloud](../plotting/basic_charts.md#wordcloud)
     * [ ] Dimension Matrix
@@ -73,11 +79,12 @@ Supported chart types:
     * [ ] Ridgeline
     * [ ] Horizon
     * [ ] Hexbin
-- [ ] [Maps](../plotting/maps.md)
+
+- #### [Maps](../plotting/maps.md)
     * [ ] Choropleth
     * [x] [Tilemap](../plotting/basic_charts.md#tilemap)
 
-### Using pandas plotting backend
+### Enabling pandas plotting backend
 To enable the `dx` plotting backend and use `DataFrame.plot._____` syntax, you can run either of the following:
 ```python
 dx.enable_plotting_backend()
