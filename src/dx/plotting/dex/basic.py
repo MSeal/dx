@@ -30,8 +30,8 @@ def bar(
     column_sort_type: options.DEXSortColumnsByType = "string",
     pro_bar_mode: options.DEXProBarModeType = "combined",
     combination_mode: options.DEXCombinationMode = "avg",
-    return_view: bool = False,
     show_bar_labels: bool = False,
+    return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXBarChartView]:
     """
@@ -117,8 +117,8 @@ def line(
     use_count: bool = False,
     bounding_type: options.DEXBoundingType = "absolute",
     zero_baseline: bool = False,
-    return_view: bool = False,
     combination_mode: options.DEXCombinationMode = "avg",
+    return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXLineChartView]:
     """
