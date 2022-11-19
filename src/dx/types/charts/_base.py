@@ -125,8 +125,17 @@ class DEXChartBase(DEXBaseModel):
     zero_baseline: Optional[bool] = Field(alias="zeroBaseline")
 
     class Config:
-        exclude_unset = True
-        fields = {"exclude": "*"}
+        use_enum_values = True
+        json_encoders = {
+            options.DEXBarGroupingType: lambda v: v.value.title(),
+            options.DEXBarLabelType: lambda v: v.value.title(),
+            options.DEXCombinationMode: lambda v: v.value.upper(),
+            options.DEXFilteredDataOnly: lambda v: v.value.title(),
+            options.DEXMapBoxTileLayer: lambda v: options.mapbox_tile_layer_conversion[v],
+            options.DEXPointType: lambda v: v.value.title(),
+            options.DEXProBarModeType: lambda v: v.value.title(),
+            options.DEXScale: lambda v: v.value.title(),
+        }
 
 
 def chart_view_ref():

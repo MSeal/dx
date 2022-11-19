@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 import structlog
 from pydantic import parse_obj_as
@@ -68,21 +70,31 @@ def handle_view(
     """
     logger.info(f"{chart=}")
 
+    view_params = {
+        "chart_mode": chart_mode,
+        "chart": chart,
+        **kwargs,
+    }
+
+    # TODO: remove this later
+    from IPython.display import JSON, display
+
+    display(JSON(view_params))
+
     view = parse_obj_as(
         chart_view_ref(),
-        {
-            "chart_mode": chart_mode,
-            "chart": chart,
-            **kwargs,
-        },
+        view_params,
     )
-    view_metadata = view.dict(
+    if return_view:
+        return view
+
+    view_metadata = view.json(
         exclude_unset=True,
         exclude_none=True,
         by_alias=True,
     )
     logger.info(f"{view_metadata=}")
-
-    if return_view:
-        return view_metadata
-    handle_format(df, extra_metadata=view_metadata)
+    handle_format(
+        df,
+        extra_metadata=json.loads(view_metadata),
+    )

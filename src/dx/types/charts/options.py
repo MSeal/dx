@@ -24,16 +24,10 @@ class DEXBarGroupingType(BaseEnum):
     clustered = "clustered"
     stacked = "stacked"
 
-    def __str__(self):
-        return str(self.value).title()
-
 
 class DEXBarLabelType(BaseEnum):
     none = "none"
     show = "show"
-
-    def __str__(self):
-        return str(self.value).title()
 
 
 class DEXBarProjectionTypes(BaseEnum):
@@ -83,9 +77,6 @@ class DEXCombinationMode(BaseEnum):
     min = "min"
     sum = "sum"
 
-    def __str__(self):
-        return str(self.value).upper()
-
 
 class DEXEdgeModes(BaseEnum):
     edge_list = "edge list"
@@ -95,9 +86,6 @@ class DEXEdgeModes(BaseEnum):
 class DEXFilteredDataOnly(BaseEnum):
     all_data = "All Data"
     filtered_data_only = "Filtered Data Only"
-
-    def __str__(self):
-        return str(self.value).title()
 
 
 class DEXFormulaDisplay(BaseEnum):
@@ -156,9 +144,6 @@ class DEXMapBoxTileLayer(BaseEnum):
     dark = "dark"
     satellite = "satellite"
 
-    def __str__(self):
-        return mapbox_tile_layer_conversion[self.value]
-
 
 class DEXNetworkLabelContents(BaseEnum):
     id = "id"
@@ -202,9 +187,6 @@ class DEXPointType(BaseEnum):
     dotplot = "dot plot"
     lollipop = "lollipop"
 
-    def __str__(self):
-        return str(self.value).title()
-
 
 class DEXPointSizeMode(BaseEnum):
     fixed = "fixed"
@@ -216,16 +198,10 @@ class DEXProBarModeType(BaseEnum):
     combined = "combined"
     stacked = "stacked"
 
-    def __str__(self):
-        return str(self.value).title()
-
 
 class DEXScale(BaseEnum):
     linear = "linear"
     log = "log"
-
-    def __str__(self):
-        return str(self.value).title()
 
 
 class DEXSecondMetricstyle(BaseEnum):
