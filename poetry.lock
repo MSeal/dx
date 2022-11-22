@@ -960,7 +960,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "nox"
-version = "2022.8.7"
+version = "2022.11.21"
 description = "Flexible test automation."
 category = "dev"
 optional = false
@@ -970,7 +970,6 @@ python-versions = ">=3.7"
 argcomplete = ">=1.9.4,<3.0"
 colorlog = ">=2.6.1,<7.0.0"
 packaging = ">=20.9"
-py = ">=1.4,<2.0.0"
 virtualenv = ">=14"
 
 [package.extras]
@@ -1141,7 +1140,7 @@ name = "py"
 version = "1.11.0"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
@@ -1652,7 +1651,7 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstr
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f6925e450e7fce5d1be801572e9c5621879bc29bc1e414d7fc66cc0dd94ff545"
+content-hash = "886d31ee6be1b0547721349703737feab5ecd2eac84886f19b45e303ab3b6c58"
 
 [metadata.files]
 appnope = [
@@ -2292,8 +2291,8 @@ nest-asyncio = [
     {file = "nest_asyncio-1.5.6.tar.gz", hash = "sha256:d267cc1ff794403f7df692964d1d2a3fa9418ffea2a3f6859a439ff482fef290"},
 ]
 nox = [
-    {file = "nox-2022.8.7-py3-none-any.whl", hash = "sha256:96cca88779e08282a699d672258ec01eb7c792d35bbbf538c723172bce23212c"},
-    {file = "nox-2022.8.7.tar.gz", hash = "sha256:1b894940551dc5c389f9271d197ca5d655d40bdc6ccf93ed6880e4042760a34b"},
+    {file = "nox-2022.11.21-py3-none-any.whl", hash = "sha256:0e41a990e290e274cb205a976c4c97ee3c5234441a8132c8c3fd9ea3c22149eb"},
+    {file = "nox-2022.11.21.tar.gz", hash = "sha256:e21c31de0711d1274ca585a2c5fde36b1aa962005ba8e9322bf5eeed16dcd684"},
 ]
 nox-poetry = [
     {file = "nox-poetry-1.0.2.tar.gz", hash = "sha256:22bc397979393a0283f5161af708a3a430e1c7e0cc2be274c7b27e9e46de0412"},
