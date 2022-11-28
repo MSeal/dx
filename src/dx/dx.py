@@ -2,6 +2,7 @@ import pathlib
 from typing import List, Optional, Union
 
 import pandas as pd
+from IPython import display as ipydisplay
 from IPython.core.interactiveshell import InteractiveShell
 
 from dx.formatters.main import handle_format
@@ -33,8 +34,12 @@ def display(
     with settings_context(display_mode=mode, ipython_shell=ipython_shell):
         handle_format(df, **kwargs)
 
-    return
 
-
-# backwards-compatibility
-dx = display
+def show_docs(
+    src: str = "https://noteable-io.github.io/dx/",
+    width: str = "100%",
+    height: str = "400px",
+) -> None:
+    """Renders the dx documentation in an IFrame for use in a notebook environment."""
+    docs_iframe = ipydisplay.IFrame(src=src, width=width, height=height)
+    ipydisplay.display(docs_iframe)
