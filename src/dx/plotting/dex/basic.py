@@ -4,7 +4,7 @@ import pandas as pd
 import structlog
 from pydantic.color import Color
 
-from dx.plotting.main import handle_view
+from dx.plotting.main import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.line import DEXLineChartView
@@ -70,14 +70,11 @@ def bar(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(x) != "index" and str(x) not in df.columns:
-        raise ValueError(f"Column '{x}' not found in DataFrame.")
+    raise_for_missing_columns(x, df.columns)
 
     if not isinstance(y, list):
         y = [y]
-    for ycol in y:
-        if str(ycol) != "index" and str(ycol) not in df.columns:
-            raise ValueError(f"Column '{ycol}' not found in DataFrame.")
+    raise_for_missing_columns(y, df.columns)
     y1 = y[0]
 
     chart_settings = {
@@ -167,14 +164,11 @@ def line(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(x) != "index" and str(x) not in df.columns:
-        raise ValueError(f"Column '{x}' not found in DataFrame.")
+    raise_for_missing_columns(x, df.columns)
 
     if isinstance(y, str):
         y = [y]
-    for y_col in y:
-        if str(y_col) != "index" and str(y_col) not in df.columns:
-            raise ValueError(f"Column '{y_col}' not found in DataFrame.")
+    raise_for_missing_columns(y, df.columns)
     if use_count:
         y.append("DEX_COUNT")
 
@@ -205,8 +199,8 @@ def line(
 
 def pie(
     df,
-    split_slices_by: str,
-    slice_size: str,
+    y: str,
+    split_slices_by: Optional[str] = None,
     show_total: bool = True,
     pie_label_type: options.DEXPieLabelType = "rim",
     pie_label_contents: options.DEXPieLabelContents = "name",
@@ -220,10 +214,10 @@ def pie(
     ----------
     df: pd.DataFrame
         The DataFrame to plot.
-    split_slices_by: str
-        The column to use for splitting the slices.
-    slice_size: str
+    y: str
         The column to use for the slice size.
+    split_slices_by: Optional[str]
+        The column to use for splitting the slices. If not provided, slices will be split and sized by `y`.
     show_total: bool
         Whether to show the total.
     pie_label_type: DEXPieLabelType
@@ -246,14 +240,13 @@ def pie(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(split_slices_by) != "index" and str(split_slices_by) not in df.columns:
-        raise ValueError(f"Column '{split_slices_by}' not found in DataFrame.")
-    if str(split_slices_by) != "index" and str(slice_size) not in df.columns:
-        raise ValueError(f"Column '{slice_size}' not found in DataFrame.")
+    if split_slices_by is None:
+        split_slices_by = y
+    raise_for_missing_columns([y, split_slices_by], df.columns)
 
     chart_settings = {
         "dim1": split_slices_by,
-        "metric1": slice_size,
+        "metric1": y,
         "show_total": show_total,
         "pie_label_type": pie_label_type,
         "pie_label_contents": pie_label_contents,
@@ -311,10 +304,7 @@ def scatterplot(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(x) != "index" and str(x) not in df.columns:
-        raise ValueError(f"Column '{x}' not found in DataFrame.")
-    if str(y) != "index" and str(y) not in df.columns:
-        raise ValueError(f"Column '{y}' not found in DataFrame.")
+    raise_for_missing_columns([x, y], df.columns)
 
     chart_settings = {
         "metric1": x,
@@ -391,10 +381,7 @@ def tilemap(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(lat) != "index" and str(lat) not in df.columns:
-        raise ValueError(f"Column '{lat}' not found in DataFrame.")
-    if str(lon) != "index" and str(lon) not in df.columns:
-        raise ValueError(f"Column '{lon}' not found in DataFrame.")
+    raise_for_missing_columns([lon, lat], df.columns)
 
     if isinstance(icon_size, str):
         # referencing a column, treat as functional sizing
@@ -423,6 +410,7 @@ def tilemap(
     else:
         raise ValueError(f"`{type(icon_size)}` is not a valid type for `icon_size`.")
 
+    # determine which columns are numeric and which ones are strings/mixed/etc
     dimension_cols = [_configs for _configs in df.columns if df[_configs].dtype == "object"]
     metric_cols = [_configs for _configs in df.columns if _configs not in dimension_cols]
 
@@ -493,10 +481,7 @@ def violin(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(x) != "index" and str(x) not in df.columns:
-        raise ValueError(f"Column '{x}' not found in DataFrame.")
-    if str(y) != "index" and str(y) not in df.columns:
-        raise ValueError(f"Column '{y}' not found in DataFrame.")
+    raise_for_missing_columns([x, y], df.columns)
 
     chart_settings = {
         "dim1": x,
@@ -549,10 +534,7 @@ def wordcloud(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    if str(word_column) != "index" and str(word_column) not in df.columns:
-        raise ValueError(f"Column '{word_column}' not found in DataFrame.")
-    if str(size_column) != "index" and str(size_column) not in df.columns:
-        raise ValueError(f"Column '{size_column}' not found in DataFrame.")
+    raise_for_missing_columns([word_column, size_column], df.columns)
 
     chart_settings = {
         "text_data_format": text_format,

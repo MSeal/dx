@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas as pd
 import structlog
 from pydantic import parse_obj_as
@@ -96,3 +98,19 @@ def handle_view(
         df,
         extra_metadata=view_metadata,
     )
+
+
+def raise_for_missing_columns(columns: List[str], existing_columns: pd.Index) -> None:
+    """
+    Checks if a column exists in a dataframe or is "index".
+    If both fail, this raises a ValueError.
+    """
+    if isinstance(columns, str):
+        columns = [columns]
+
+    for column in columns:
+        if str(column) == "index":
+            return
+        if column in existing_columns:
+            return
+        raise ValueError(f"Column `{column}` not found in DataFrame")
