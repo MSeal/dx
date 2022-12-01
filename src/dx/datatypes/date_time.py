@@ -11,6 +11,14 @@ logger = structlog.get_logger(__name__)
 
 
 def generate_datetime_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `datetime.datetime` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             (
@@ -22,6 +30,14 @@ def generate_datetime_series(num_rows: int) -> pd.Series:
 
 
 def generate_date_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `datetime.date` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             (pd.Timestamp("now") + pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours")).date()
@@ -31,6 +47,14 @@ def generate_date_series(num_rows: int) -> pd.Series:
 
 
 def generate_time_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `datetime.time` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             (pd.Timestamp("now") + pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours")).time()
@@ -40,6 +64,14 @@ def generate_time_series(num_rows: int) -> pd.Series:
 
 
 def generate_time_period_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `pd.Period` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             (
@@ -51,6 +83,14 @@ def generate_time_period_series(num_rows: int) -> pd.Series:
 
 
 def generate_time_interval_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `pd.Interval` values with `pd.Timestamp` left/right values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             pd.Interval(
@@ -63,6 +103,14 @@ def generate_time_interval_series(num_rows: int) -> pd.Series:
 
 
 def generate_time_delta_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `pd.Timedelta` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours") for _ in range(num_rows)]
     )

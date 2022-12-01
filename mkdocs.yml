@@ -13,8 +13,26 @@ nav:
       - "Summary Charts": plotting/summary_charts.md
       - "Maps": plotting/maps.md
   - Reference:
-      - "Generating Data": reference/data_generation.md
-      - "Basic Charts": reference/basic_charts.md
+      - "Generating Data": 
+        - "Overview": reference/datatypes/overview.md
+        - "DataFrames": reference/datatypes/dataframes.md
+        - "Series": 
+          - "Numeric": reference/datatypes/numeric.md
+          - "Text": reference/datatypes/text.md
+          - "Datetime": reference/datatypes/datetime.md
+          - "Geospatial/Geometry": reference/datatypes/geometry.md
+          - "Misc": reference/datatypes/misc.md
+        - "Checking Compatibility": reference/datatypes/compatibility.md
+      - "Charts": 
+        - "Basic Charts": reference/charts/basic_charts.md
+        - "Comparison Charts": reference/charts/comparison_charts.md
+        - "Time Series Charts": reference/charts/time_series_charts.md
+        - "Relationship Charts": reference/charts/relationship_charts.md
+        - "Part-to-whole Charts": reference/charts/part_to_whole_charts.md
+        - "Funnel Charts": reference/charts/funnel_charts.md
+        - "Summary Charts": reference/charts/summary_charts.md
+        - "Maps": reference/charts/maps.md
+          
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
 edit_uri: edit/main/docs/
@@ -56,7 +74,7 @@ plugins:
         python:
           options:
             docstring_style: "numpy"
-            show_root_heading: False
+            show_root_heading: True
   - mkdocs-jupyter:
       include_source: True
 
@@ -66,6 +84,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
+  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true

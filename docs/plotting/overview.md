@@ -34,7 +34,7 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
 - #### [Comparison Charts](../plotting/comparison_charts.md)
     * [ ] Parallel Coordinates
     * [x] [Scatterplot](../plotting/basic_charts.md#scatterplot)
-    * [x] [Connected Scatterplot](../plotting/basic_charts.md#scatterplot)
+    * [ ] Connected Scatterplot
     * [ ] Scatterplot Matrix
     * [ ] Correlation Matrix
     * [x] [Bar](../plotting/basic_charts.md#bar)

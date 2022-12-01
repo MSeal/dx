@@ -47,6 +47,17 @@ def quick_random_dataframe(
     """
     Convenience function wrapping `pd.DataFrame(np.random.rand( num_rows, num_columns ))`
     to create a dataframe of random 0.0-1.0 values.
+
+    Parameters
+    ----------
+    num_rows : int
+        Number of rows to generate
+    num_cols : int
+        Number of columns to generate
+    dtype : str
+        Data type to use for the generated dataframe values.
+    factor : float
+        Factor to multiply the generated values by.
     """
     data = np.random.rand(num_rows, num_cols) * factor
     df = pd.DataFrame(data)
@@ -83,7 +94,62 @@ def random_dataframe(
 ):  # noqa: C901
     """
     Convenience function to generate a dataframe of `num_rows` length
-    with mixed data types.
+    with randomly-generated values of mixed data types.
+
+    Parameters
+    ----------
+    num_rows : int
+        Number of rows to generate
+    dtype_column : bool
+        Whether to include a column of `type` values
+    integer_column : bool
+        Whether to include a column of `integer` values
+    float_column : bool
+        Whether to include a column of `float` values
+    bool_column : bool
+        Whether to include a column of `bool` values
+    decimal_column : bool
+        Whether to include a column of `decimal.Decimal` values
+    datetime_column : bool
+        Whether to include a column of `datetime.datetime` values
+    date_column : bool
+        Whether to include a column of `datetime.date` values
+    time_column : bool
+        Whether to include a column of `datetime.time` values
+    time_delta_column : bool
+        Whether to include a column of `pd.Timedelta` values
+    time_period_column : bool
+        Whether to include a column of `pd.Period` values
+    time_interval_column : bool
+        Whether to include a column of `pd.Interval` values
+    text_column : bool
+        Whether to include a column of long `str` values using `faker`
+    keyword_column : bool
+        Whether to include a column of short `str` values
+    dict_column : bool
+        Whether to include a column of `dict` values
+    list_column : bool
+        Whether to include a column of `list` values
+    nested_tabular_column : bool
+        Whether to include a column of `list` values with nested dictionaries
+    lat_float_column : bool
+        Whether to include a column of `float` values representing latitudes
+    lon_float_column : bool
+        Whether to include a column of `float` values representing longitudes
+    latlon_point_column : bool
+        Whether to include a `geopandas.GeoSeries` of `shapely.geometry.Point` values (requires `geopandas` to be installed)
+    filled_geojson_column : bool
+        Whether to include a `geopandas.GeoSeries` of circular `shapely.geometry.Polygon` values (requires `geopandas` to be installed)
+    exterior_geojson_column : bool
+        Whether to include a `geopandas.GeoSeries` of rectangular `shapely.geometry.LineString` values (requires `geopandas` to be installed)
+    bytes_column : bool
+        Whether to include a column of `bytes` values
+    ipv4_address_column : bool
+        Whether to include a column of `ipaddress.IPv4Address` values
+    ipv6_address_column : bool
+        Whether to include a column of `ipaddress.IPv6Address` values
+    complex_number_column : bool
+        Whether to include a column of `complex` values
     """
     df = pd.DataFrame(index=list(range(num_rows)))
 
@@ -177,6 +243,16 @@ def random_dataframe(
 
 # not adding this to datatypes/misc.py due to circular import
 def generate_nested_tabular_series(num_rows: int, num_nested_rows: int = 5, **kwargs) -> pd.Series:
+    """
+    Generate a series of random lists of nested dictionaries. (Uses `random_dataframe()`)
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    num_nested_rows: int
+        Number of rows to generate for each nested dictionary
+    """
     return pd.Series(
         [
             random_dataframe(num_rows=num_nested_rows, **kwargs).to_dict("records")
