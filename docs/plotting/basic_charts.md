@@ -1,8 +1,8 @@
 # Basic Charts
 
-<!-- --8<-- [start:intro] -->
 Here we'll talk about how to plot some basic chart types in DEX using `dx`.
 
+<!-- --8<-- [start:intro] -->
 We will be using our own built-in DataFrame generation function for these visualizations.
 The values you see may be different if you run the same code in a cell, but the column structure should be very similar (if not identical).
 ```python

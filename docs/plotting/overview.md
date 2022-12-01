@@ -32,61 +32,61 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
     * [x] [Wordcloud](../plotting/basic_charts.md#wordcloud)
 
 - #### [Comparison Charts](../plotting/comparison_charts.md)
-    * [ ] Parallel Coordinates
-    * [x] [Scatterplot](../plotting/basic_charts.md#scatterplot)
-    * [ ] Connected Scatterplot
-    * [ ] Scatterplot Matrix
-    * [ ] Correlation Matrix
-    * [x] [Bar](../plotting/basic_charts.md#bar)
-    * [ ] Dot Plot
-    * [ ] Radar Plot
-    * [ ] Diverging Bar
+    * [ ] [Parallel Coordinates](../plotting/comparison_charts.md#parallel_coordinates)
+    * [x] [Scatterplot](../plotting/comparison_charts.md#scatterplot)
+    * [ ] [Connected Scatterplot](../plotting/comparison_charts.md#connected_scatterplot)
+    * [ ] [Scatterplot Matrix](../plotting/comparison_charts.md#scatterplot_matrix)
+    * [ ] [Correlation Matrix](../plotting/comparison_charts.md#correlation_matrix)
+    * [x] [Bar](../plotting/comparison_charts.md#bar)
+    * [ ] [Dot Plot](../plotting/comparison_charts.md#dot_plot)
+    * [ ] [Radar Plot](../plotting/comparison_charts.md#radar_plot)
+    * [ ] [Diverging Bar](../plotting/comparison_charts.md#diverging_bar)
   
 - #### [Time Series Charts](../plotting/time_series_charts.md)
-    * [x] [Line](../plotting/basic_charts.md#line)
-    * [ ] Cumulative
-    * [ ] Stacked Area
-    * [ ] Line Percent
-    * [ ] Stacked Percent
-    * [ ] Candlestick
+    * [x] [Line](../plotting/time_series_charts.md#line)
+    * [ ] [Cumulative](../plotting/time_series_charts.md#cumulative)
+    * [ ] [Stacked Area](../plotting/time_series_charts.md#stacked_area)
+    * [ ] [Line Percent](../plotting/time_series_charts.md#line_percent)
+    * [ ] [Stacked Percent](../plotting/time_series_charts.md#stacked_percent)
+    * [ ] [Candlestick](../plotting/time_series_charts.md#candlestick)
 
 - #### [Relationship Charts](../plotting/relationship_charts.md)
-    * [ ] Force-directed Network
-    * [ ] Sankey
-    * [ ] Arc Diagram
-    * [ ] Adjacency Matrix
-    * [ ] Dendrogram
+    * [ ] [Force-directed Network](../plotting/relationship_charts.md#force_directed_network)
+    * [ ] [Sankey](../plotting/relationship_charts.md#sankey)
+    * [ ] [Arc Diagram](../plotting/relationship_charts.md#arc_diagram)
+    * [ ] [Adjacency Matrix](../plotting/relationship_charts.md#adjacency_matrix)
+    * [ ] [Dendrogram](../plotting/relationship_charts.md#dendrogram)
 
 - #### [Part-to-whole Charts](../plotting/part_to_whole_charts.md)
-    * [x] [Pie](../plotting/basic_charts.md#pie)
-    * [ ] Donut
-    * [ ] Sunburst
-    * [ ] Treemap
-    * [ ] Partition
+    * [x] [Pie](../plotting/part_to_whole_charts.md#pie)
+    * [ ] [Donut](../plotting/part_to_whole_charts.md#donut)
+    * [ ] [Sunburst](../plotting/part_to_whole_charts.md#sunburst)
+    * [ ] [Treemap](../plotting/part_to_whole_charts.md#treemap)
+    * [ ] [Partition](../plotting/part_to_whole_charts.md#partition)
 
 - #### [Funnel Charts](../plotting/funnel_charts.md)
-    * [ ] Funnel
-    * [ ] Funnel Chart
-    * [ ] Funnel Tree
-    * [ ] Funnel Sunburst
-    * [ ] Flow Diagram
-    * [ ] Arc Flow
+    * [ ] [Funnel](../plotting/funnel_charts.md#funnel)
+    * [ ] [Funnel Chart](../plotting/funnel_charts.md#funnel_chart)
+    * [ ] [Funnel Tree](../plotting/funnel_charts.md#funnel_tree)
+    * [ ] [Funnel Sunburst](../plotting/funnel_charts.md#funnel_sunburst)
+    * [ ] [Flow Diagram](../plotting/funnel_charts.md#flow_diagram)
+    * [ ] [Arc Flow](../plotting/funnel_charts.md#arc_flow)
 
 - #### [Summary Charts](../plotting/summary_charts.md)
-    * [ ] Big Number
-    * [x] [Wordcloud](../plotting/basic_charts.md#wordcloud)
-    * [ ] Dimension Matrix
-    * [x] [Violin](../plotting/basic_charts.md#violin)
-    * [ ] Box Plot
-    * [ ] Heat Map
-    * [ ] Histogram
-    * [ ] Ridgeline
-    * [ ] Horizon
-    * [ ] Hexbin
+    * [ ] [Big Number](../plotting/summary_charts.md#big_number)
+    * [x] [Wordcloud](../plotting/summary_charts.md#wordcloud)
+    * [ ] [Dimension Matrix](../plotting/summary_charts.md#dimension_matrix)
+    * [x] [Violin](../plotting/summary_charts.md#violin)
+    * [ ] [Box Plot](../plotting/summary_charts.md#box_plot)
+    * [ ] [Heat Map](../plotting/summary_charts.md#heat_map)
+    * [ ] [Histogram](../plotting/summary_charts.md#histogram)
+    * [ ] [Ridgeline](../plotting/summary_charts.md#ridgeline)
+    * [ ] [Horizon](../plotting/summary_charts.md#horizon)
+    * [ ] [Hexbin](../plotting/summary_charts.md#hexbin)
 
 - #### [Maps](../plotting/maps.md)
-    * [ ] Choropleth
-    * [x] [Tilemap](../plotting/basic_charts.md#tilemap)
+    * [ ] [Choropleth](../plotting/maps.md#choropleth)
+    * [x] [Tilemap](../plotting/maps.md#tilemap)
 
 ### Enabling pandas plotting backend
 To enable the `dx` plotting backend and use `DataFrame.plot._____` or `DataFrame.plot(kind=_____)` syntax, you can run either of the following:

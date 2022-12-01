@@ -1,5 +1,17 @@
 # Time Series Charts
 
-Coming soon!
+Here we'll talk about how to plot some time series chart types in DEX using `dx`.
 
-<img src="https://emoji.slack-edge.com/TQM6AQHSB/blobby/84f99dd2f53f9768.gif" width=50 />
+--8<-- "./docs/plotting/basic_charts:intro"
+
+--8<-- "./docs/_charts/line.md:usage"
+
+--8<-- "./docs/_charts/cumulative.md:usage"
+
+--8<-- "./docs/_charts/stacked_area.md:usage"
+
+--8<-- "./docs/_charts/line_percent.md:usage"
+
+--8<-- "./docs/_charts/stacked_percent.md:usage"
+
+--8<-- "./docs/_charts/candlestick.md:usage"

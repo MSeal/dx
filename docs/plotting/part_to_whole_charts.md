@@ -1,5 +1,15 @@
 # Part-to-whole Charts
 
-Coming soon!
+Here we'll talk about how to plot some part-to-whole chart types in DEX using `dx`.
 
-<img src="https://emoji.slack-edge.com/TQM6AQHSB/blobby/84f99dd2f53f9768.gif" width=50 />
+--8<-- "./docs/plotting/basic_charts:intro"
+
+--8<-- "./docs/_charts/pie.md:usage"
+
+--8<-- "./docs/_charts/donut.md:usage"
+
+--8<-- "./docs/_charts/sunburst.md:usage"
+
+--8<-- "./docs/_charts/treemap.md:usage"
+
+--8<-- "./docs/_charts/partition.md:usage"
