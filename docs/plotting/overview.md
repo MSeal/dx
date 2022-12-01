@@ -19,6 +19,8 @@ df
 ## Plotting
 
 This is still **very** experimental. Any of the charts checked below indicate basic rendering should work (and allow manual user interactions in DEX), but not all combinations of plot arguments have been tested. Feedback welcome!
+
+For official DEX chart documentation, visit https://docs.noteable.io/product-docs/visualize-data/dex-charts. 
 ### Supported Charts
 
 - #### [Basic Charts](../plotting/basic_charts.md)
@@ -87,7 +89,7 @@ This is still **very** experimental. Any of the charts checked below indicate ba
     * [x] [Tilemap](../plotting/basic_charts.md#tilemap)
 
 ### Enabling pandas plotting backend
-To enable the `dx` plotting backend and use `DataFrame.plot._____` syntax, you can run either of the following:
+To enable the `dx` plotting backend and use `DataFrame.plot._____` or `DataFrame.plot(kind=_____)` syntax, you can run either of the following:
 ```python
 dx.enable_plotting_backend()
 ```
@@ -98,7 +100,7 @@ pd.options.plotting.backend = "dx"
 (They currently do the same thing, but `dx.enable_plotting_backend()` may handle more convenience functionality in the future.)
 
 !!! warning
-    Not all chart options above can be called using the `DataFrame.plot.______()` pattern. Examples:
+    Not all chart options above can be called using the `DataFrame.plot.______()` pattern. Some examples:
 
     - `df.plot.violin(**kwargs)` should instead be `df.plot(kind='violin', **kwargs)`
     - `df.plot.wordcloud(**kwargs)` should instead be `df.plot(kind='wordcloud', **kwargs)`

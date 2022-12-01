@@ -5,6 +5,7 @@ from .options import *
 from .parcoords import *
 from .pie import *
 from .scatter import *
+from .summary import *
 from .tilemap import *
 from .violin import *
 from .wordcloud import *

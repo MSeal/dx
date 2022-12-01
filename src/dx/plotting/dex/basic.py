@@ -461,11 +461,10 @@ def tilemap(
 
 def violin(
     df: pd.DataFrame,
-    x: str,
-    y: str,
-    bin_count: int = 30,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
     show_interquartile_range: bool = False,
-    horizontal: bool = False,
     column_sort_order: options.DEXSortColumnsByOrder = "asc",
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
@@ -478,16 +477,14 @@ def violin(
     ----------
     df: pd.DataFrame
         The DataFrame to plot.
-    x: str
-        The column to use for the x-axis.
-    y: str
-        The column to use for the y-axis.
-    bin_count: int
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
         The number of bins to use for the violin plot.
     show_interquartile_range: bool
         Whether to show the interquartile range.
-    horizontal: bool
-        Whether to plot the violin horizontally.
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -497,21 +494,28 @@ def violin(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([x, y], df.columns)
+    raise_for_missing_columns([split_by, metric], df.columns)
+
+    # this is weird because the default is "desc" even though the values
+    # in DEX look like they go in ascending order from top->bottom in
+    # the horizontal view. if that changes, this will need to be removed/updated
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
 
     chart_settings = {
-        "dim1": x,
-        "metric1": y,
-        "horizontal": "horizontal" if horizontal else "vertical",
+        "dim1": split_by,
+        "metric1": metric,
         "summary_type": "violin",
-        "summary_bins": bin_count,
+        "summary_bins": bins,
         "violin_iqr": show_interquartile_range,
-        "sort_columns_by": f"{column_sort_order}-col-{column_sort_type}",
+        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
     }
 
     return handle_view(
         df,
-        chart_mode="violin",
+        chart_mode="summary",
         chart=chart_settings,
         return_view=return_view,
         **kwargs,

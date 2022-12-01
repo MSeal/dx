@@ -308,7 +308,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
 === "dx"
 
     ```python
-    dx.violin(df, x='keyword_column', y='integer_column')
+    dx.violin(df, split_by='keyword_column', metric='integer_column')
     ```
     ![](../screenshots/plotting_violin_simple1.png)
 
@@ -317,7 +317,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot(kind='violin', x='keyword_column', y='integer_column')
+    df.plot(kind='violin', split_by='keyword_column', metric='integer_column')
     ```
     _*Note you can't use `df.plot.violin()` directly_
 
@@ -328,9 +328,11 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     ```python
     dx.violin(
         df, 
-        x='float_column',
-        y='integer_column',
-        ...
+        split_by='keyword_column', 
+        metric='integer_column',
+        bins=5,
+        show_interquartile_range=True,
+        column_sort_order='desc',
     )
     ```
     ![](../screenshots/plotting_violin_custom1.png)
@@ -342,9 +344,11 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     ```python
     df.plot(
         kind='violin',
-        x='float_column',
-        y='integer_column',
-        ...
+        split_by='keyword_column', 
+        metric='integer_column',
+        bins=5,
+        show_interquartile_range=True,
+        column_sort_order='desc',
     )
     ```
     _*Note you can't use `df.plot.violin()` directly_
