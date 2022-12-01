@@ -134,6 +134,27 @@ def get_settings():
 settings = get_settings()
 
 
+def enable_dev_mode(debug_logs: bool = False) -> None:
+    """
+    Convenience function to display payload/metadata blobs with `IPython.display.JSON`
+    after `handle_format()` is called.
+
+    Parameters
+    ----------
+    debug_logs: bool
+        If True, set log level to DEBUG
+    """
+    set_option("DEV_MODE", True)
+    if debug_logs:
+        set_log_level("DEBUG")
+
+
+def disable_dev_mode() -> None:
+    set_option("DEV_MODE", False)
+    if settings.LOG_LEVEL == "DEBUG":
+        set_log_level("WARNING")
+
+
 def set_display_mode(
     mode: DXDisplayMode = DXDisplayMode.simple,
     ipython_shell: Optional[InteractiveShell] = None,
@@ -163,6 +184,7 @@ def set_display_mode(
 
 
 def set_log_level(level: int):
+    set_option("LOG_LEVEL", level)
     logging.getLogger("dx").setLevel(level)
 
 

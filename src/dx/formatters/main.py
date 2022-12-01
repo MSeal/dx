@@ -222,5 +222,5 @@ def dev_display(payload, metadata):
 
     from IPython.display import JSON, display
 
-    display(JSON(payload))
-    display(JSON(metadata))
+    display(JSON({"payload": payload}))
+    display(JSON({"metadata": metadata}))
