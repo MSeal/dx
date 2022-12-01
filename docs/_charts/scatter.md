@@ -13,13 +13,17 @@
 
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](../plotting/overview.md#enabling-pandas-plotting-backend) first."
 
+    !!! bug "Known Issue"
+        `df.plot.scatter()` can be used unless `size` is specified. If you wish to use pandas syntax and provide a `size` argument, please use `df.plot(kind='scatter', ...)`.
+
     ```python
-    df.plot.scatter(x='float_column', y='integer_column')
+    df.plot(kind='scatter', x='float_column', y='integer_column')
     ```
     ![](../screenshots/plotting_scatter_simple1_pd.png)
     
 ### Customized
 === "dx"
+
     ```python
     dx.scatter(
         df, 
@@ -37,8 +41,12 @@
 
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](../plotting/overview.md#enabling-pandas-plotting-backend) first."
 
+    !!! bug "Known Issue"
+        `df.plot.scatter()` can be used unless `size` is specified. If you wish to use pandas syntax and provide a `size` argument, please use `df.plot(kind='scatter', ...)`.
+
     ```python
-    df.plot.scatter(
+    df.plot(
+        kind='scatter',
         x='float_column', 
         y='integer_column',
         size='index',
