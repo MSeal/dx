@@ -294,8 +294,10 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.violin(x='keyword_column', y='integer_column')
+    df.plot(kind='violin', x='keyword_column', y='integer_column')
     ```
+    _*Note you can't use `df.plot.violin()` directly here_
+
     ![](../screenshots/plotting_violin_simple1_pd.png)
     
 ### Customized
@@ -315,12 +317,15 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.violin(
+    df.plot(
+        kind='violin',
         x='float_column',
         y='integer_column',
         ...
     )
     ```
+    _*Note you can't use `df.plot.violin()` directly here_
+
     ![](../screenshots/plotting_violin_custom1_pd.png)
 
 ## [Wordcloud](../../reference/dex_plotting/#src.dx.plotting.dex.basic.wordcloud)
@@ -337,8 +342,10 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.wordcloud(word_column='keyword_column', size='float_column')
+    df.plot(kind='wordcloud', word_column='keyword_column', size='float_column')
     ```
+    _*Note you can't use `df.plot.wordcloud()` directly here_
+
     ![](../screenshots/plotting_wordcloud_simple1_pd.png)
     
 ### Customized
@@ -346,9 +353,11 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     ```python
     dx.wordcloud(
         df, 
-        word_column='keyword_column',
+        word_column='dtype_column',
         size='float_column',
-        ...
+        text_format='token',
+        word_rotation='45',
+        random_coloring=True,
     )
     ```
     ![](../screenshots/plotting_wordcloud_custom1.png)
@@ -358,10 +367,16 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.wordcloud(
+    df.plot(
+        kind='wordcloud',
         word_column='keyword_column',
+        word_column='dtype_column',
         size='float_column',
-        ...
+        text_format='token',
+        word_rotation='45',
+        random_coloring=True,
     )
     ```
+    _*Note you can't use `df.plot.wordcloud()` directly here_
+
     ![](../screenshots/plotting_wordcloud_custom1_pd.png)
