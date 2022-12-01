@@ -96,3 +96,9 @@ Or
 pd.options.plotting.backend = "dx"
 ```
 (They currently do the same thing, but `dx.enable_plotting_backend()` may handle more convenience functionality in the future.)
+
+!!! warning
+    Not all chart options above can be called using the `DataFrame.plot.______()` pattern. Examples:
+
+    - `df.plot.violin(**kwargs)` should instead be `df.plot(kind='violin', **kwargs)`
+    - `df.plot.wordcloud(**kwargs)` should instead be `df.plot(kind='wordcloud', **kwargs)`

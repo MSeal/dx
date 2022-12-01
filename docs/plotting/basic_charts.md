@@ -237,6 +237,9 @@ Since `dx.random_dataframe()` returns `integer_column` values (`-100` to `100`) 
 ```python
 df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
 ```
+
+!!! info ""
+    More about how Noteable builds with Mapbox [here](https://www.mapbox.com/showcase/noteable). 🗺️
 ### Simple
 === "dx"
 
@@ -250,18 +253,27 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.tilemap(lon='lon_float_column', lat='lat_float_column')
+    df.plot(kind='tilemap', lon='lon_float_column', lat='lat_float_column')
     ```
+    _*Note you can't use `df.plot.tilemap()` directly_
+
     ![](../screenshots/plotting_tilemap_simple1_pd.png)
     
 ### Customized
 === "dx"
     ```python
     dx.tilemap(
-        df, 
-        lon='lon_float_column',
+        df,
         lat='lat_float_column',
-        ...
+        lon='lon_float_column',
+        icon_opacity=0.5,
+        icon_size='index',
+        icon_size_scale="log",
+        stroke_color="magenta",
+        stroke_width=5,
+        label_column='bytes_column',
+        tile_layer="dark",
+        hover_cols=['keyword_column', 'datetime_column'],
     )
     ```
     ![](../screenshots/plotting_tilemap_custom1.png)
@@ -271,12 +283,23 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     !!! info "Make sure you [enable `dx` as a pandas plotting backend](overview.md#enabling-pandas-plotting-backend) first."
 
     ```python
-    df.plot.tilemap(
-        lon='lon_float_column',
+    df.plot(
+        kind='tilemap',
         lat='lat_float_column',
-        ...
+        lon='lon_float_column',
+        icon_opacity=0.5,
+        icon_size='index',
+        icon_size_scale="log",
+        stroke_color="magenta",
+        stroke_width=5,
+        label_column='bytes_column',
+        tile_layer="dark",
+        hover_cols=['keyword_column', 'datetime_column'],
     )
+
     ```
+    _*Note you can't use `df.plot.tilemap()` directly_
+
     ![](../screenshots/plotting_tilemap_custom1_pd.png)
 
 ## [Violin](../../reference/dex_plotting/#src.dx.plotting.dex.basic.violin)
@@ -296,7 +319,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     ```python
     df.plot(kind='violin', x='keyword_column', y='integer_column')
     ```
-    _*Note you can't use `df.plot.violin()` directly here_
+    _*Note you can't use `df.plot.violin()` directly_
 
     ![](../screenshots/plotting_violin_simple1_pd.png)
     
@@ -324,7 +347,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
         ...
     )
     ```
-    _*Note you can't use `df.plot.violin()` directly here_
+    _*Note you can't use `df.plot.violin()` directly_
 
     ![](../screenshots/plotting_violin_custom1_pd.png)
 
@@ -344,7 +367,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     ```python
     df.plot(kind='wordcloud', word_column='keyword_column', size='float_column')
     ```
-    _*Note you can't use `df.plot.wordcloud()` directly here_
+    _*Note you can't use `df.plot.wordcloud()` directly_
 
     ![](../screenshots/plotting_wordcloud_simple1_pd.png)
     
@@ -377,6 +400,6 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
         random_coloring=True,
     )
     ```
-    _*Note you can't use `df.plot.wordcloud()` directly here_
+    _*Note you can't use `df.plot.wordcloud()` directly_
 
     ![](../screenshots/plotting_wordcloud_custom1_pd.png)
