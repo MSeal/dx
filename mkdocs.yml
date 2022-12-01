@@ -14,24 +14,24 @@ nav:
       - "Maps": plotting/maps.md
   - Reference:
       - "Generating Data": 
-        - "Overview": reference/datatypes/overview.md
-        - "DataFrames": reference/datatypes/dataframes.md
-        - "Series": 
-          - "Numeric": reference/datatypes/numeric.md
-          - "Text": reference/datatypes/text.md
-          - "Datetime": reference/datatypes/datetime.md
-          - "Geospatial/Geometry": reference/datatypes/geometry.md
-          - "Misc": reference/datatypes/misc.md
-        - "Checking Compatibility": reference/datatypes/compatibility.md
+          - "Overview": reference/datatypes/overview.md
+          - "DataFrames": reference/datatypes/dataframes.md
+          - "Series":
+              - "Numeric": reference/datatypes/numeric.md
+              - "Text": reference/datatypes/text.md
+              - "Datetime": reference/datatypes/datetime.md
+              - "Geospatial/Geometry": reference/datatypes/geometry.md
+              - "Misc": reference/datatypes/misc.md
+          - "Checking Compatibility": reference/datatypes/compatibility.md
       - "Charts": 
-        - "Basic Charts": reference/charts/basic_charts.md
-        - "Comparison Charts": reference/charts/comparison_charts.md
-        - "Time Series Charts": reference/charts/time_series_charts.md
-        - "Relationship Charts": reference/charts/relationship_charts.md
-        - "Part-to-whole Charts": reference/charts/part_to_whole_charts.md
-        - "Funnel Charts": reference/charts/funnel_charts.md
-        - "Summary Charts": reference/charts/summary_charts.md
-        - "Maps": reference/charts/maps.md
+          - "Basic Charts": reference/charts/basic_charts.md
+          - "Comparison Charts": reference/charts/comparison_charts.md
+          - "Time Series Charts": reference/charts/time_series_charts.md
+          - "Relationship Charts": reference/charts/relationship_charts.md
+          - "Part-to-whole Charts": reference/charts/part_to_whole_charts.md
+          - "Funnel Charts": reference/charts/funnel_charts.md
+          - "Summary Charts": reference/charts/summary_charts.md
+          - "Maps": reference/charts/maps.md
           
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
