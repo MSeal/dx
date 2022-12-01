@@ -21,6 +21,7 @@
     
 ### Customized
 === "dx"
+
     ```python
     dx.wordcloud(
         df, 

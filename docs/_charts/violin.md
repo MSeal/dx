@@ -22,6 +22,7 @@
     
 ### Customized
 === "dx"
+
     ```python
     dx.violin(
         df, 

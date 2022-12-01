@@ -28,6 +28,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
     
 ### Customized
 === "dx"
+
     ```python
     dx.tilemap(
         df,
@@ -39,7 +40,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
         stroke_color="magenta",
         stroke_width=5,
         label_column='bytes_column',
-        tile_layer="dark",
+        tile_layer="light",
         hover_cols=['keyword_column', 'datetime_column'],
     )
     ```
@@ -60,7 +61,7 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
         stroke_color="magenta",
         stroke_width=5,
         label_column='bytes_column',
-        tile_layer="dark",
+        tile_layer="light",
         hover_cols=['keyword_column', 'datetime_column'],
     )
 

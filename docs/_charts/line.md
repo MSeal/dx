@@ -22,6 +22,7 @@
 You may need to use a larger dataset to see the changes here. For these examples, we used `dx.random_dataframe(5000)`.
 
 === "dx"
+
     ```python
     dx.line(
         df, 
