@@ -78,7 +78,7 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
     * [ ] [Dimension Matrix](../plotting/summary_charts.md#dimension_matrix)
     * [x] [Violin](../plotting/summary_charts.md#violin)
     * [ ] [Box Plot](../plotting/summary_charts.md#box_plot)
-    * [ ] [Heat Map](../plotting/summary_charts.md#heat_map)
+    * [ ] [Heat Map](../plotting/summary_charts.md#heatmap)
     * [ ] [Histogram](../plotting/summary_charts.md#histogram)
     * [ ] [Ridgeline](../plotting/summary_charts.md#ridgeline)
     * [ ] [Horizon](../plotting/summary_charts.md#horizon)

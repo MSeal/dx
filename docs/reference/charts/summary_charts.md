@@ -10,7 +10,7 @@
 
 --8<-- "./docs/_charts/box_plot.md:ref"
 
---8<-- "./docs/_charts/heat_map.md:ref"
+--8<-- "./docs/_charts/heatmap.md:ref"
 
 --8<-- "./docs/_charts/histogram.md:ref"
 
