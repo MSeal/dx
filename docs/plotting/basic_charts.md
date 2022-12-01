@@ -206,9 +206,12 @@ You may need to use a larger dataset to see the changes here. For these examples
     ```python
     dx.scatter(
         df, 
-        x='float_column',
+        x='float_column', 
         y='integer_column',
-        ...
+        size='index',
+        trend_line='polynomial',
+        marginal_graphics='histogram',
+        formula_display='r2'
     )
     ```
     ![](../screenshots/plotting_scatter_custom1.png)
@@ -219,9 +222,12 @@ You may need to use a larger dataset to see the changes here. For these examples
 
     ```python
     df.plot.scatter(
-        x='float_column',
+        x='float_column', 
         y='integer_column',
-        ...
+        size='index',
+        trend_line='polynomial',
+        marginal_graphics='histogram',
+        formula_display='r2'
     )
     ```
     ![](../screenshots/plotting_scatter_custom1_pd.png)
