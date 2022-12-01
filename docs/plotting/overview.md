@@ -38,7 +38,7 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
     * [ ] [Scatterplot Matrix](../plotting/comparison_charts.md#scatterplot_matrix)
     * [ ] [Correlation Matrix](../plotting/comparison_charts.md#correlation_matrix)
     * [x] [Bar](../plotting/comparison_charts.md#bar)
-    * [ ] [Dot Plot](../plotting/comparison_charts.md#dot_plot)
+    * [ ] [Dot Plot](../plotting/comparison_charts.md#dotplot)
     * [ ] [Radar Plot](../plotting/comparison_charts.md#radar_plot)
     * [ ] [Diverging Bar](../plotting/comparison_charts.md#diverging_bar)
   

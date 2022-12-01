@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## Box Plot
+## Boxplot
 Coming soon!
 <!-- ### Simple
 === "dx"
@@ -45,7 +45,7 @@ Coming soon!
 <!-- --8<-- [end:usage] -->
 
 <!-- --8<-- [start:ref] -->
-## Box Plot
+## Boxplot
 Coming soon!
 <!-- ::: src.dx.plotting.dex.boxplot -->
 <!-- --8<-- [end:ref] -->

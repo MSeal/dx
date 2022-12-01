@@ -12,7 +12,7 @@
 
 --8<-- "./docs/_charts/bar.md:ref"
 
---8<-- "./docs/_charts/dot_plot.md:ref"
+--8<-- "./docs/_charts/dotplot.md:ref"
 
 --8<-- "./docs/_charts/radar_plot.md:ref"
 
