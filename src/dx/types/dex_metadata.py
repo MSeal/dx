@@ -226,7 +226,7 @@ class DEXView(DEXBaseModel):
     is_default: bool = Field(alias="isDefault", default=False)
     is_transitory: Optional[bool] = Field(alias="isTransitory", default=False)
     type: DEXViewType = Field(default="public")
-    user_id: str = Field(alias="userId", default="")
+    user_id: str = Field(alias="userId", default="dx")
     variable_name: Optional[str] = Field(alias="variableName")
 
     @validator("id", pre=True, always=True)
