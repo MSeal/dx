@@ -29,7 +29,7 @@ def disable_plotting_backend():
 
 
 def plot(df: dict, kind: str, **kwargs) -> None:
-
+    # ref: https://github.com/plotly/plotly.py/blob/master/packages/python/plotly/plotly/__init__.py
     if kind == "bar":
         view = basic.bar(df, return_view=True, **kwargs)
     elif kind == "line":
