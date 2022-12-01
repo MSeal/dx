@@ -37,7 +37,7 @@ def plot(df: dict, kind: str, **kwargs) -> None:
     elif kind == "pie":
         view = basic.pie(df, return_view=True, **kwargs)
     elif kind == "scatter":
-        view = basic.scatterplot(df, return_view=True, **kwargs)
+        view = basic.scatter(df, return_view=True, **kwargs)
     elif kind == "tilemap":
         view = basic.tilemap(df, return_view=True, **kwargs)
     elif kind == "violin":

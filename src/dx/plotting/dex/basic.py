@@ -260,7 +260,7 @@ def pie(
     )
 
 
-def scatterplot(
+def scatter(
     df: pd.DataFrame,
     x: str,
     y: str,
@@ -411,8 +411,8 @@ def tilemap(
         raise ValueError(f"`{type(icon_size)}` is not a valid type for `icon_size`.")
 
     # determine which columns are numeric and which ones are strings/mixed/etc
-    dimension_cols = [_configs for _configs in df.columns if df[_configs].dtype == "object"]
-    metric_cols = [_configs for _configs in df.columns if _configs not in dimension_cols]
+    dimension_cols = [col for col in df.columns if df[col].dtype == "object"]
+    metric_cols = [col for col in df.columns if col not in dimension_cols]
 
     layer_settings = {
         "lat_dim": lat,
@@ -505,7 +505,7 @@ def violin(
 def wordcloud(
     df: pd.DataFrame,
     word_column: str,
-    size_column: str,
+    size: str,
     text_format: options.DEXTextDataFormat = "sentence",
     word_rotation: Optional[options.DEXWordRotate] = None,
     random_coloring: bool = False,
@@ -521,7 +521,7 @@ def wordcloud(
         The DataFrame to plot.
     word_column: str
         The column to use for the words in the cloud.
-    size_column: str
+    size: str
         The column to use for the size of the words in the cloud.
     text_format: DEXTextDataFormat
         The format of the text data. Either `"sentence"` or `"token"`.
@@ -534,11 +534,11 @@ def wordcloud(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([word_column, size_column], df.columns)
+    raise_for_missing_columns([word_column, size], df.columns)
 
     chart_settings = {
         "text_data_format": text_format,
-        "token_metric": size_column,
+        "token_metric": size,
         "word_data": word_column,
         "word_color": "random" if random_coloring else "none",
         "word_rotate": word_rotation if word_rotation else "none",
