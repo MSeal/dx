@@ -8,7 +8,7 @@
 
 --8<-- "./docs/_charts/violin.md:ref"
 
---8<-- "./docs/_charts/box_plot.md:ref"
+--8<-- "./docs/_charts/boxplot.md:ref"
 
 --8<-- "./docs/_charts/heatmap.md:ref"
 
