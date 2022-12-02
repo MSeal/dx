@@ -6,7 +6,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from dx.comms.assignment import handle_assignment_comm
 from dx.comms.rename import handle_renaming_comm
 from dx.comms.resample import handle_resample_comm
-from dx.types import DEXFilterSettings, DEXResampleMessage
+from dx.types.filters import DEXFilterSettings, DEXResampleMessage
 
 
 class TestResampleComm:

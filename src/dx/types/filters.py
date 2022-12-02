@@ -1,44 +1,12 @@
-import enum
 from datetime import datetime
 from typing import List, Literal, Optional, Union
 
 import pandas as pd
+import structlog
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
-
-class DXDisplayMode(enum.Enum):
-    enhanced = "enhanced"  # GRID display
-    simple = "simple"  # classic simpleTable/DEX display
-    plain = "plain"  # basic/vanilla python/pandas display
-
-    def __str__(self):
-        return str(self.value)
-
-    def __eq__(self, other):
-        return str(other) == self.value
-
-
-class DXSamplingMethod(enum.Enum):
-    first = "first"  # df.head(num_rows)
-    outer = "outer"  # df.head(num_rows/2) & df.tail(num_rows/2)
-    inner = "inner"  # middle rows
-    random = "random"  # df.sample(num_rows)
-    last = "last"  # df.tail(num_rows)
-
-    def __str__(self):
-        return str(self.value)
-
-    def __eq__(self, other):
-        return str(other) == self.value
-
-
-class DEXMediaType(enum.Enum):
-    dataresource = "application/vnd.dataresource+json"
-    dex = "application/vnd.dex.v1+json"
-
-    def __str__(self):
-        return self.value
+logger = structlog.get_logger(__name__)
 
 
 class DEXDateFilter(BaseModel):
@@ -51,7 +19,7 @@ class DEXDateFilter(BaseModel):
 
     @property
     def _pd_column(self):
-        return clean_pandas_column(self.column)
+        return clean_pandas_query_column(self.column)
 
     @property
     def sql_filter(self) -> str:
@@ -83,7 +51,7 @@ class DEXDimensionFilter(BaseModel):
 
     @property
     def _pd_column(self):
-        return clean_pandas_column(self.column)
+        return clean_pandas_query_column(self.column)
 
     @property
     def sql_filter(self) -> str:
@@ -105,7 +73,7 @@ class DEXMetricFilter(BaseModel):
 
     @property
     def _pd_column(self):
-        return clean_pandas_column(self.column)
+        return clean_pandas_query_column(self.column)
 
     @property
     def sql_filter(self) -> str:
@@ -121,7 +89,28 @@ class DEXMetricFilter(BaseModel):
         return f"({metric_filter_min} & {metric_filter_max})"
 
 
-def clean_pandas_column(column: str) -> str:
+FilterTypes = Union[DEXDateFilter, DEXDimensionFilter, DEXMetricFilter]
+
+
+class DEXFilterSettings(BaseModel):
+    SHOW_FILTER_PANEL: Optional[bool] = True
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = Field(default_factory=list)
+
+    def to_sql_query(self) -> str:
+        return " AND ".join([f.sql_filter for f in self.filters])
+
+    def to_pandas_query(self) -> str:
+        return " & ".join([f.pandas_filter for f in self.filters])
+
+
+class DEXResampleMessage(BaseModel):
+    display_id: str
+    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = Field(default_factory=list)
+    limit: int = 50_000
+    cell_id: Optional[str] = None
+
+
+def clean_pandas_query_column(column: str) -> str:
     """
     Converts column names into a more pandas .query()-friendly format.
     """
@@ -136,23 +125,3 @@ def clean_pandas_column(column: str) -> str:
     if str(column).isdigit() or str(column).isdecimal():
         return f"@{{df_name}}[{column}]"
     return f"`{column}`"
-
-
-FilterTypes = Union[DEXDateFilter, DEXDimensionFilter, DEXMetricFilter]
-
-
-class DEXFilterSettings(BaseModel):
-    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
-
-    def to_sql_query(self) -> str:
-        return " AND ".join([f.sql_filter for f in self.filters])
-
-    def to_pandas_query(self) -> str:
-        return " & ".join([f.pandas_filter for f in self.filters])
-
-
-class DEXResampleMessage(BaseModel):
-    display_id: str
-    filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = []
-    limit: int = 50_000
-    cell_id: Optional[str] = None

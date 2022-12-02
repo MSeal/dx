@@ -6,7 +6,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from dx.filtering import handle_resample, resample_from_db, store_sample_to_history
 from dx.formatters.main import handle_format
 from dx.settings import get_settings, settings_context
-from dx.types import DEXFilterSettings, DEXResampleMessage
+from dx.types.filters import DEXFilterSettings, DEXResampleMessage
 from dx.utils.tracking import DXDF_CACHE, DXDataFrame
 
 settings = get_settings()

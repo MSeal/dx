@@ -13,10 +13,18 @@ def test_compatibility(value: Any, as_dataframe: bool = True) -> dict:
     """
     Convenience function to test the compatibility of a given object
     with the different steps involved with the dx display modes.
-    - pandas.io.json.build_table_schema (https://github.com/pandas-dev/pandas/blob/main/pandas/io/json/_table_schema.py)
-    - jupyter_client.jsonutil.json_clean (https://github.com/jupyter/jupyter_client/blob/main/jupyter_client/jsonutil.py)
-    - duckdb conn.register
+    - `pandas.io.json.build_table_schema` (https://github.com/pandas-dev/pandas/blob/main/pandas/io/json/_table_schema.py)
+    - `jupyter_client.jsonutil.json_clean` (https://github.com/jupyter/jupyter_client/blob/main/jupyter_client/jsonutil.py)
+    - `duckdb conn.register`
     - final dx output type
+
+    Parameters
+    ----------
+    value: Any
+        The value to test compatibility with.
+    as_dataframe: bool
+        Whether to return the results as a pandas DataFrame (if `True`),
+        or as a dictionary (if `False`)
     """
     result = {}
     result.update(test_build_table_schema(value))
@@ -33,6 +41,14 @@ def test_build_table_schema(value: Any, as_dataframe: bool = False) -> dict:
     Convenience function to test the compatibility of a given object
     with the pandas.io.json.build_table_schema function, which
     is called to set up the initial column schema during dx formatting.
+
+    Parameters
+    ----------
+    value: Any
+        The value to test compatibility with.
+    as_dataframe: bool
+        Whether to return the results as a pandas DataFrame (if `True`),
+        or as a dictionary (if `False`)
     """
     df = pd.DataFrame({"test": [value]})
     result = {}
@@ -64,6 +80,14 @@ def test_json_clean(value: Any, as_dataframe: bool = False) -> dict:
     Convenience function to test the compatibility of a given object
     with the jupyter_client.jsonutil.json_clean function, which
     is called during IPython.display after dx formatting.
+
+    Parameters
+    ----------
+    value: Any
+        The value to test compatibility with.
+    as_dataframe: bool
+        Whether to return the results as a pandas DataFrame (if `True`),
+        or as a dictionary (if `False`)
     """
     df = pd.DataFrame({"test": [value]})
     result = {}
@@ -96,6 +120,14 @@ def test_db_write(value: Any, as_dataframe: bool = False) -> dict:
     inside a pandas DataFrame during registration with a duckdb connection,
     which is used during Datalink-enabled dataframe tracking for
     push-down filtering.
+
+    Parameters
+    ----------
+    value: Any
+        The value to test compatibility with.
+    as_dataframe: bool
+        Whether to return the results as a pandas DataFrame (if `True`),
+        or as a dictionary (if `False`)
     """
     from dx.utils.tracking import get_db_connection  # circular import
 
@@ -128,7 +160,15 @@ def test_dx_handling(value: Any, as_dataframe: bool = False) -> dict:
     """
     Convenience function to test the compatibility of a given object
     inside a pandas DataFrame through the entire dx formatting
-    and data type handling process
+    and data type handling process.
+
+    Parameters
+    ----------
+    value : Any
+        The value to test compatibility with.
+    as_dataframe : bool, optional
+        Whether to return the results as a pandas DataFrame (if `True`),
+        or as a dictionary (if `False`)
     """
     from dx.formatters.main import handle_format  # circular import
 

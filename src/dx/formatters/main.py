@@ -11,7 +11,7 @@ from pandas.io.json import build_table_schema
 
 from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
-from dx.types import DXDisplayMode
+from dx.types.main import DXDisplayMode
 from dx.utils.formatting import (
     generate_metadata,
     is_default_index,
@@ -41,14 +41,13 @@ def datalink_processing(
     default_index_used: bool,
     ipython_shell: Optional[InteractiveShell] = None,
     with_ipython_display: bool = True,
+    extra_metadata: Optional[dict] = None,
 ):
     dxdf = DXDataFrame(df)
-    logger.debug(f"{dxdf=}")
 
     parent_display_id = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
     if parent_display_id is None:
         DXDF_CACHE[dxdf.display_id] = dxdf
-        logger.debug(f"{DXDF_CACHE=}")
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
 
@@ -59,6 +58,7 @@ def datalink_processing(
         default_index_used=default_index_used,
         with_ipython_display=with_ipython_display,
         variable_name=dxdf.variable_name,
+        extra_metadata=extra_metadata,
     )
 
     # this needs to happen after sending to the frontend
@@ -74,6 +74,7 @@ def handle_format(
     obj,
     with_ipython_display: bool = True,
     ipython_shell: Optional[InteractiveShell] = None,
+    extra_metadata: Optional[dict] = None,
 ):
     ipython = ipython_shell or get_ipython()
 
@@ -90,6 +91,7 @@ def handle_format(
             obj,
             default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
         return payload, metadata
 
@@ -99,6 +101,7 @@ def handle_format(
             default_index_used,
             ipython_shell=ipython,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
     except Exception as e:
         logger.debug(f"Error in datalink_processing: {e}")
@@ -107,6 +110,7 @@ def handle_format(
             obj,
             default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
+            extra_metadata=extra_metadata,
         )
 
     return payload, metadata
@@ -165,6 +169,7 @@ def format_output(
     default_index_used: bool = True,
     with_ipython_display: bool = True,
     variable_name: str = "",
+    extra_metadata: Optional[dict] = None,
 ) -> tuple:
     display_id = display_id or str(uuid.uuid4())
 
@@ -185,8 +190,10 @@ def format_output(
         **sampled_df_dimensions,
     }
     metadata = generate_metadata(
+        df=df,
         display_id=display_id,
         variable_name=variable_name,
+        extra_metadata=extra_metadata,
         **dataframe_info,
     )
 
@@ -205,4 +212,15 @@ def format_output(
                 update=update,
             )
 
+    if settings.DEV_MODE:
+        dev_display(payload, metadata)
+
     return (payload, metadata)
+
+
+def dev_display(payload, metadata):
+
+    from IPython.display import JSON, display
+
+    display(JSON({"payload": payload}))
+    display(JSON({"metadata": metadata}))

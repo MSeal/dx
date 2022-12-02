@@ -2,17 +2,19 @@ import pathlib
 from typing import List, Optional, Union
 
 import pandas as pd
+from IPython import display as ipydisplay
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import display as ipydisplay
 
+from dx.formatters.main import handle_format
 from dx.settings import settings_context
-from dx.types import DXDisplayMode
+from dx.types.main import DXDisplayMode
 
 
 def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
     mode: DXDisplayMode = DXDisplayMode.simple,
     ipython_shell: Optional[InteractiveShell] = None,
+    **kwargs,
 ) -> None:
     """
     Display a single object with the DX display format.
@@ -30,10 +32,14 @@ def display(
 
     df = pd.DataFrame(data)
     with settings_context(display_mode=mode, ipython_shell=ipython_shell):
-        ipydisplay(df)
-
-    return
+        handle_format(df, **kwargs)
 
 
-# backwards-compatibility
-dx = display
+def show_docs(
+    src: str = "https://noteable-io.github.io/dx/",
+    width: str = "100%",
+    height: str = "400px",
+) -> None:
+    """Renders the dx documentation in an IFrame for use in a notebook environment."""
+    docs_iframe = ipydisplay.IFrame(src=src, width=width, height=height)
+    ipydisplay.display(docs_iframe)
