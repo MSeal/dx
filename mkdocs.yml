@@ -1,5 +1,10 @@
 # general mkdocs config
+
+# Project information
 site_name: DX
+site_url: https://noteable-io.github.io/dx/
+site_author: Noteable
+
 nav:
   - Home: index.md
   - "Using with DEX":
