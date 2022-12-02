@@ -146,13 +146,13 @@ def enable_dev_mode(debug_logs: bool = False) -> None:
     """
     set_option("DEV_MODE", True)
     if debug_logs:
-        set_log_level("DEBUG")
+        set_option("LOG_LEVEL", "DEBUG")
 
 
 def disable_dev_mode() -> None:
     set_option("DEV_MODE", False)
     if settings.LOG_LEVEL == "DEBUG":
-        set_log_level("WARNING")
+        set_option("LOG_LEVEL", "WARNING")
 
 
 def set_display_mode(
@@ -184,7 +184,6 @@ def set_display_mode(
 
 
 def set_log_level(level: int):
-    set_option("LOG_LEVEL", level)
     logging.getLogger("dx").setLevel(level)
 
 
