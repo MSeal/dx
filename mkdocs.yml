@@ -12,6 +12,7 @@ nav:
       - "Funnel Charts": plotting/funnel_charts.md
       - "Summary Charts": plotting/summary_charts.md
       - "Maps": plotting/maps.md
+      - "Dashboards": plotting/dashboards.md
   - Reference:
       - "Generating Data":
           - "Overview": reference/datatypes/overview.md

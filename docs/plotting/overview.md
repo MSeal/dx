@@ -88,7 +88,10 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
     * [ ] [Choropleth](../plotting/maps.md#choropleth)
     * [x] [Tilemap](../plotting/maps.md#tilemap)
 
---8<-- "./docs/_charts/dashboards.md:usage"
+### Additional Functionality
+- [x] [Dashboards](../plotting/dashboards.md)
+- [ ] [Conditional Formatting](../plotting/conditional_formatting.md)
+- [ ] [Faceting](../plotting/faceting.md)
 
 ## Enabling pandas plotting backend
 To enable the `dx` plotting backend and use `DataFrame.plot._____()` or `DataFrame.plot(kind=_____)` syntax, you can run either of the following:

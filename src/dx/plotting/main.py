@@ -47,7 +47,7 @@ def plot(df: dict, kind: str, **kwargs) -> None:
     elif (sample_chart := getattr(_samples, f"sample_{kind}", None)) is not None:
         view = sample_chart(df, return_view=True, **kwargs)
     elif kind == "dashboard":
-        from dx.plotting.dashboard import make_dashboard
+        from dx.plotting.dashboards import make_dashboard
 
         return make_dashboard(df, **kwargs)
     else:

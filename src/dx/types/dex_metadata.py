@@ -154,7 +154,7 @@ class DEXDecoration(BaseModel):
     footer: str = ""
     subtitle: str = ""
     # TODO: change this back to "Table" before merging
-    title: str = "🐼 hello from dx"
+    title: str = "🐼 dx grid"
 
 
 class DEXDashboardViewConfig(BaseModel):

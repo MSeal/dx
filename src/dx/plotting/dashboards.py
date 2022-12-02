@@ -1,10 +1,13 @@
 from typing import List, Optional, Union
 
 import pandas as pd
+import structlog
 
 from dx.formatters.main import handle_format
 from dx.plotting.dex import _samples
 from dx.types.dex_metadata import DEXDashboardView, DEXMetadata, DEXView
+
+logger = structlog.get_logger(__name__)
 
 
 def make_dashboard(
@@ -55,9 +58,18 @@ def make_dashboard(
                 raise ValueError(f"Invalid view type: {type(view)}")
 
             # make the views available for reference
-            dex_dashboard_view = dex_view.copy(update={"is_default": False})
-            dex_metadata.views.append(dex_dashboard_view)
-
+            dex_dashboard_view = dex_view.copy(
+                update={"is_default": False, "chartMode": dex_view.chart_mode}
+            )
+            # TODO: make DEXMetadata.add_view() support adding DEXView
+            # instead of just dictionaries
+            dex_dashboard_view_dict = dex_dashboard_view.dict(
+                by_alias=True,
+                exclude_none=True,
+            )
+            logger.info(f"{dex_dashboard_view_dict=}")
+            dex_metadata.views.append(dex_dashboard_view_dict)
+            # define the view positioning
             multiview = {
                 "column": col_num,
                 "row": row_num,
