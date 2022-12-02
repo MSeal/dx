@@ -1,3 +1,4 @@
+from ._samples import *
 from .basic import *
 from .comparison import *
 from .funnel import *
