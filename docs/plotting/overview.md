@@ -90,8 +90,8 @@ For official DEX chart documentation, visit https://docs.noteable.io/product-doc
 
 --8<-- "./docs/_charts/dashboards.md:usage"
 
-### Enabling pandas plotting backend
-To enable the `dx` plotting backend and use `DataFrame.plot._____` or `DataFrame.plot(kind=_____)` syntax, you can run either of the following:
+## Enabling pandas plotting backend
+To enable the `dx` plotting backend and use `DataFrame.plot._____()` or `DataFrame.plot(kind=_____)` syntax, you can run either of the following:
 ```python
 dx.enable_plotting_backend()
 ```
