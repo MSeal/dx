@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: Union[int, str] = logging.WARNING
 
     # IPython.display.JSON payload/metadata during handle_format()
-    DEV_MODE: bool = True
+    DEV_MODE: bool = False
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
 
-    GENERATE_DEX_METADATA: bool = True
+    GENERATE_DEX_METADATA: bool = False
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
