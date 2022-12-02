@@ -340,6 +340,10 @@ class DEXLayerSettings(DEXBaseModel):
     def validate_tile_layer(cls, v):
         return mapbox_tile_layer_conversion[v]
 
+    @validator("id", pre=True, always=True)
+    def validate_id(cls, val):
+        return str(val)
+
 
 class DEXSurveyResponses(DEXBaseModel):
     positive: List[str] = Field(default_factory=list)
