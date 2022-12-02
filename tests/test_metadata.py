@@ -108,11 +108,12 @@ class TestStructure:
             assert is_dex_view_metadata(partial_view_metadata)
 
             display_id = str(uuid.uuid4())
-            metadata = generate_metadata(
-                sample_random_dataframe,
-                display_id,
-                extra_metadata=partial_view_metadata,
-            )
+            with settings_context(generate_dex_metadata=True):
+                metadata = generate_metadata(
+                    sample_random_dataframe,
+                    display_id,
+                    extra_metadata=partial_view_metadata,
+                )
             assert "dx" in metadata
             assert "views" in metadata["dx"]
             assert len(metadata["dx"]["views"]) == 1
@@ -132,11 +133,12 @@ class TestStructure:
             assert is_dex_metadata(partial_metadata)
 
             display_id = str(uuid.uuid4())
-            metadata = generate_metadata(
-                sample_random_dataframe,
-                display_id,
-                extra_metadata=partial_metadata,
-            )
+            with settings_context(generate_dex_metadata=True):
+                metadata = generate_metadata(
+                    sample_random_dataframe,
+                    display_id,
+                    extra_metadata=partial_metadata,
+                )
             assert "dx" in metadata
             assert "views" in metadata["dx"]
             assert metadata["dx"][key] == dex_metadata_dict[key]
