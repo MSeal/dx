@@ -84,7 +84,7 @@ def handle_view(
     view_params = {
         "chart_mode": chart_mode,
         "chart": chart,
-        "decoration": {"title": {f"📊 dx {chart_mode}"}},
+        "decoration": {"title": f"📊 dx {chart_mode}"},
     }
     view_params.update(kwargs)
 
