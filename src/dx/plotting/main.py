@@ -5,7 +5,7 @@ import structlog
 from pydantic import parse_obj_as
 
 from dx.formatters.main import handle_format
-from dx.plotting.dex import basic
+from dx.plotting.dex import _samples, basic
 from dx.settings import get_settings, settings_context
 from dx.types.charts._base import chart_view_ref
 
@@ -44,6 +44,12 @@ def plot(df: dict, kind: str, **kwargs) -> None:
         view = basic.violin(df, return_view=True, **kwargs)
     elif kind == "wordcloud":
         view = basic.wordcloud(df, return_view=True, **kwargs)
+    elif (sample_chart := getattr(_samples, f"sample_{kind}", None)) is not None:
+        view = sample_chart(df, return_view=True, **kwargs)
+    elif kind == "dashboard":
+        from dx.plotting.dashboard import make_dashboard
+
+        return make_dashboard(df, **kwargs)
     else:
         raise NotImplementedError(f"{kind=} not yet supported for plotting.backend='dx'")
 
@@ -78,8 +84,9 @@ def handle_view(
     view_params = {
         "chart_mode": chart_mode,
         "chart": chart,
-        **kwargs,
+        "decoration": {"title": {f"📊 dx {chart_mode}"}},
     }
+    view_params.update(kwargs)
 
     view = parse_obj_as(
         chart_view_ref(),

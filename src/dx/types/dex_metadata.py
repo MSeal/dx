@@ -167,16 +167,27 @@ class DEXDashboardView(DEXBaseModel):
     annotation_rules: Optional[list] = Field(alias="annotationRules", default_factory=list)
     dashboard_filter: bool = Field(alias="dashboardFilter", default=False)
     dashboard_filter_settings: dict = Field(alias="dashboardFilterSettings", default_factory=dict)
-    decoration: DEXDecoration
+    decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
     display_id: str = Field(alias="displayId", default_factory=uuid.uuid4)
     filter_settings: Optional[DEXFilterSettings] = Field(alias="filterSettings")
     filters: Optional[DEXFilterSettings]
-    id: str  # is either 'first-view' or some UUID
+    id: str = Field(default_factory=uuid.uuid4)
+    is_default: bool = Field(alias="isDefault", default=False)
     view_sizes: Optional[dict] = Field(alias="viewSizes", default_factory=dict)
     views: List[DEXDashboardViewConfig]
     views_ignoring_dashboard_filters: dict = Field(
         alias="viewsIgnoringDashboardFilters", default_factory=dict
     )
+    user_id: str = Field(alias="userId", default="dx")
+    variable_name: Optional[str] = Field(alias="variableName")
+
+    @validator("id", pre=True, always=True)
+    def validate_id(cls, val):
+        return str(val)
+
+    @validator("display_id", pre=True, always=True)
+    def validate_display_id(cls, val):
+        return str(val)
 
 
 class DEXDashboard(DEXBaseModel):
