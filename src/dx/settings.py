@@ -9,7 +9,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
-from dx.types import DXDisplayMode, DXSamplingMethod
+from dx.types.main import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
 
@@ -35,6 +35,9 @@ def get_default_renderable_types():
 
 class Settings(BaseSettings):
     LOG_LEVEL: Union[int, str] = logging.WARNING
+
+    # IPython.display.JSON payload/metadata during handle_format()
+    DEV_MODE: bool = False
 
     DISPLAY_MAX_ROWS: int = 60
     DISPLAY_MAX_COLUMNS: int = 20
@@ -73,6 +76,8 @@ class Settings(BaseSettings):
 
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
+
+    GENERATE_DEX_METADATA: bool = False
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
@@ -127,6 +132,27 @@ def get_settings():
 
 
 settings = get_settings()
+
+
+def enable_dev_mode(debug_logs: bool = False) -> None:
+    """
+    Convenience function to display payload/metadata blobs with `IPython.display.JSON`
+    after `handle_format()` is called.
+
+    Parameters
+    ----------
+    debug_logs: bool
+        If True, set log level to DEBUG
+    """
+    set_option("DEV_MODE", True)
+    if debug_logs:
+        set_option("LOG_LEVEL", "DEBUG")
+
+
+def disable_dev_mode() -> None:
+    set_option("DEV_MODE", False)
+    if settings.LOG_LEVEL == "DEBUG":
+        set_option("LOG_LEVEL", "WARNING")
 
 
 def set_display_mode(

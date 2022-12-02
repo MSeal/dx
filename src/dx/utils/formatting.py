@@ -1,8 +1,25 @@
+from datetime import datetime
+from typing import List, Optional, Union
+
 import pandas as pd
 import structlog
+from pydantic.color import Color
 
 from dx.datatypes import date_time, geometry, misc, numeric
 from dx.settings import settings
+from dx.types.dex_metadata import (
+    DEXColorMode,
+    DEXColorScheme,
+    DEXConfoScale,
+    DEXFixedColorOptions,
+    DEXFunctionalColorOptions,
+    DEXFunctionalCondition,
+    DEXGradient,
+    DEXGradientColorOptions,
+    DEXMetadata,
+    DEXThresholdColorOptions,
+    DEXView,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -215,16 +232,25 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     return s
 
 
-def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info):
+def generate_metadata(
+    df: pd.DataFrame,
+    display_id: str,
+    variable_name: str = "",
+    extra_metadata: Optional[dict] = None,
+    **dataframe_info,
+):
     from dx.utils.tracking import DXDF_CACHE
 
     filters = []
     sample_history = []
+    dex_metadata = DEXMetadata()
 
     # pull the topmost-parent dataframe's metadata, if available
     if (parent_dxdf := DXDF_CACHE.get(display_id)) is not None:
         existing_metadata = parent_dxdf.metadata
         parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
+        dex_metadata = DEXMetadata.parse_obj(existing_metadata.get("dx", {}))
+        logger.info(f"existing {dex_metadata=}")
         if parent_dataframe_info:
             # if this comes after a resampling operation, we need to make sure the
             # original dimensions aren't overwritten by this new dataframe_info,
@@ -258,6 +284,17 @@ def generate_metadata(display_id: str, variable_name: str = "", **dataframe_info
         },
         "display_id": display_id,
     }
+
+    if settings.GENERATE_DEX_METADATA:
+        metadata = add_dex_metadata(
+            display_id=display_id,
+            variable_name=variable_name,
+            metadata=metadata,
+            attrs_metadata=df.attrs,
+            extra_metadata=extra_metadata,
+            dex_metadata=dex_metadata,
+        )
+
     logger.debug(f"{metadata=}")
     return metadata
 
@@ -279,3 +316,222 @@ def deconflict_index_and_column_names(df: pd.DataFrame) -> pd.DataFrame:
     logger.debug(f"handling columns found in index names: {intersecting_names}")
     column_renames = {column: f"{column}.value" for column in intersecting_names}
     return df.rename(columns=column_renames)
+
+
+def add_dex_metadata(
+    display_id: str,
+    metadata: dict,
+    extra_metadata: dict,
+    attrs_metadata: dict,
+    dex_metadata: DEXMetadata,
+    variable_name: str,
+) -> dict:
+    if not dex_metadata.views:
+        logger.info("no views found, adding default view")
+        dex_metadata.add_view(
+            variable_name=variable_name,
+            display_id=display_id,
+        )
+
+    # user-defined extra metadata overrides in `pd.DataFrame.attrs`
+    if noteable_metadata := attrs_metadata.get("noteable", {}):
+        dex_metadata = handle_extra_metadata(
+            dex_metadata,
+            variable_name,
+            noteable_metadata,
+        )
+    # metadata called from other convenience functions
+    dex_metadata = handle_extra_metadata(
+        dex_metadata,
+        variable_name,
+        extra_metadata,
+    )
+
+    metadata["dx"] = dex_metadata.dict(by_alias=True)
+    return metadata
+
+
+def handle_extra_metadata(
+    metadata: DEXMetadata,
+    variable_name: str,
+    extra_metadata: dict,
+) -> DEXMetadata:
+    if not isinstance(extra_metadata, dict):
+        # maybe pydantic model?
+        try:
+            extra_metadata = extra_metadata.dict(by_alias=True)
+        except AttributeError:
+            extra_metadata = None
+            pass
+    if not extra_metadata:
+        return metadata
+
+    # determine whether extra_metadata belongs to the top-level metadata
+    # or if it needs to be matched to a view
+    try:
+        if is_dex_view_metadata(extra_metadata):
+            metadata = update_dex_view_metadata(metadata, variable_name, extra_metadata)
+        elif is_dex_metadata(extra_metadata):
+            metadata = update_dex_metadata(metadata, extra_metadata)
+        else:
+            logger.warning(f"not sure what to do with {extra_metadata=}")
+    except Exception as e:
+        logger.error(f'error updating metadata: "{e}"')
+    logger.info(f"done handling extra metadata, {metadata=}")
+    return metadata
+
+
+def update_dex_view_metadata(
+    metadata: DEXMetadata,
+    variable_name: str,
+    extra_metadata: dict,
+) -> DEXMetadata:
+    """Convenience method to look up and update DEX view metadata."""
+    # ensure original variable name is carried through
+    # if it isn't explicitly set
+    if "variable_name" not in extra_metadata:
+        extra_metadata["variable_name"] = variable_name
+
+    # assume the user wants this update to be shown
+    if "is_default" not in extra_metadata:
+        extra_metadata["is_default"] = True
+
+    # TODO: what if the variable matches more than one view?
+    updated_views = []
+    updated_existing_view = False
+    for i, view in enumerate(metadata.views):
+        # disable other views from being shown by default
+        view = view.copy(update={"is_default": False})
+
+        if extra_metadata.get("id") == view.id:
+            view = view.copy(update=extra_metadata)
+            metadata.views[i] = extra_metadata
+            updated_existing_view = True
+        elif not updated_existing_view and view.variable_name == variable_name:
+            logger.info(f"updating {view.display_id=} with {extra_metadata=}")
+            view = view.copy(update=extra_metadata)
+            updated_existing_view = True
+        else:
+            # we didn't match a view, either by id or by variable name
+            pass
+
+        updated_views.append(view)
+
+    if not updated_existing_view:
+        logger.info(f"didn't match to existing view; adding new view with {extra_metadata=}")
+        metadata.add_view(**extra_metadata)
+    elif updated_views:
+        metadata.views = updated_views
+    else:
+        # one view existed, but was updated inplace
+        pass
+
+    return metadata
+
+
+def update_dex_metadata(metadata: DEXMetadata, extra_metadata: dict) -> DEXMetadata:
+    """
+    Convenience method to update top-level DEX metadata; similar to update_dex_view_metadata().
+    """
+    logger.info(f"updating metadata with {extra_metadata=}")
+    return metadata.copy(update=extra_metadata)
+
+
+def is_dex_metadata(metadata: dict) -> bool:
+    new_metadata_keys = set(metadata.keys())
+    dex_metadata_keys = set(DEXMetadata().dict().keys())
+    dex_metadata_alias_keys = set(DEXMetadata().dict(by_alias=True).keys())
+    return bool(new_metadata_keys & (dex_metadata_keys | dex_metadata_alias_keys))
+
+
+def is_dex_view_metadata(metadata: dict) -> bool:
+    new_metadata_keys = set(metadata.keys())
+    dex_view_metadata_keys = set(DEXView().dict().keys())
+    dex_view_metadata_alias_keys = set(DEXView().dict(by_alias=True).keys())
+    return bool(new_metadata_keys & (dex_view_metadata_keys | dex_view_metadata_alias_keys))
+
+
+def create_fixed_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    color: Color,
+) -> DEXFixedColorOptions:
+    return DEXFixedColorOptions(
+        min=min_val,
+        max=max_val,
+        color=color,
+    )
+
+
+def create_functional_conditional_formatting_rule(
+    min_val: Union[bool, int, float, str, datetime],
+    max_val: Union[bool, int, float, str, datetime],
+    color: Color,
+    condition: DEXFunctionalCondition,
+) -> DEXFunctionalColorOptions:
+    return DEXFixedColorOptions(
+        min=min_val,
+        max=max_val,
+        color=color,
+        cond=condition,
+    )
+
+
+def create_gradient_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    gradient: DEXGradient,
+    scale: DEXConfoScale = DEXConfoScale.linear,
+) -> DEXGradientColorOptions:
+    return DEXGradientColorOptions(
+        min=min_val,
+        max=max_val,
+        gradient=gradient,
+        scale=scale,
+    )
+
+
+def create_threshold_conditional_formatting_rule(
+    min_val: Union[int, float],
+    max_val: Union[int, float],
+    threshold_values: List[float],
+    threshold_colors: DEXColorScheme = DEXColorScheme.red_yellow_green,
+) -> DEXThresholdColorOptions:
+    return DEXThresholdColorOptions(
+        min=min_val,
+        max=max_val,
+        threshold_colors=threshold_colors,
+        threshold_values=threshold_values,
+    )
+
+
+def create_conditional_formatting_rule(
+    df: pd.DataFrame,
+    color_column: str,
+    color_mode: DEXColorMode,
+    **kwargs,
+):
+    min_val = df[color_column].min()
+    max_val = df[color_column].max()
+    if color_mode == DEXColorMode.fixed:
+        return create_fixed_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.functional:
+        return create_functional_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.gradient:
+        return create_gradient_conditional_formatting_rule(min_val, max_val, **kwargs)
+    elif color_mode == DEXColorMode.threshold:
+        threshold_values = kwargs.pop("threshold_values", get_default_thresholds(df[color_column]))
+        return create_threshold_conditional_formatting_rule(
+            min_val,
+            max_val,
+            threshold_values=threshold_values,
+            **kwargs,
+        )
+    else:
+        raise ValueError(f"invalid {color_mode=}")
+
+
+def get_default_thresholds(s: pd.Series, bins: int = 5):
+    cuts = pd.cut(s, bins)
+    thresholds = [t.right for t in cuts.cat.categories[:-1]]
+    return thresholds

@@ -7,7 +7,7 @@ from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
-from dx.types import DEXFilterSettings, DEXResampleMessage
+from dx.types.filters import DEXFilterSettings, DEXResampleMessage
 from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, get_db_connection
 
 logger = structlog.get_logger(__name__)

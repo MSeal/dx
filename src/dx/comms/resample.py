@@ -2,7 +2,7 @@ import structlog
 from IPython.core.interactiveshell import InteractiveShell
 
 from dx.filtering import handle_resample
-from dx.types import DEXResampleMessage
+from dx.types.filters import DEXResampleMessage
 
 logger = structlog.get_logger(__name__)
 

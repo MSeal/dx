@@ -15,9 +15,38 @@ if GEOPANDAS_INSTALLED:
 logger = structlog.get_logger(__name__)
 
 
+def generate_lat_float_series(num_rows: int):
+    """
+    Generate a series of random `float` values representing latitude values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
+    return pd.Series([random.randint(-90, 89) + np.random.rand() for _ in range(num_rows)])
+
+
+def generate_lon_float_series(num_rows: int):
+    """
+    Generate a series of random `float` values representing longitude values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
+    return pd.Series([random.randint(-180, 179) + np.random.rand() for _ in range(num_rows)])
+
+
 def generate_latlon_series(num_rows: int):
     """
-    Creates a series of shapely.geometry.Point values for latitude and longitude.
+    Generate a series of `shapely.geometry.Point`s with latitude and longitude values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
     """
     if not GEOPANDAS_INSTALLED:
         logger.warning("geopandas is not installed, skipping generate_latlon_series")
@@ -33,9 +62,16 @@ def generate_filled_geojson_series(
     existing_latlon_series: Optional[pd.Series] = None,
 ):
     """
-    Creates a series of shapely.geometry.Polygon values by
-    generating shapely.geometry.Point values and calling .buffer()
-    on them, resulting in circular filled Polygon objects.
+    Generate a series of `shapely.geometry.Polygon` values by
+    creating `shapely.geometry.Point` values and applying a randomized
+    `.buffer()` on them, resulting in circular filled `Polygon` objects.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    existing_latlon_series: Optional[pd.Series]
+        If provided, use this series of `shapely.geometry.Point` values
     """
     if not GEOPANDAS_INSTALLED:
         logger.warning("geopandas is not installed, skipping filled_geojson_column")
@@ -54,10 +90,17 @@ def generate_exterior_bounds_geojson_series(
     existing_latlon_series: Optional[pd.Series] = None,
 ):
     """
-    Creates a series of shapely.geometry.Polygon values by
-    generating shapely.geometry.Point values, calling .buffer()
-    on them, and getting the exterior of the resulting object's .envelope,
-    resulting in rectangular LineString objects.
+    Generate a series of `shapely.geometry.Polygon` values by
+    create `shapely.geometry.Point` values, applying a randomized `.buffer()`
+    on them, and getting the exterior of the resulting object's `.envelope`,
+    resulting in rectangular `LineString` objects.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    existing_latlon_series: Optional[pd.Series]
+        If provided, use this series of `shapely.geometry.Point` values
     """
     if not GEOPANDAS_INSTALLED:
         logger.warning("geopandas is not installed, skipping exterior_geojson_column")

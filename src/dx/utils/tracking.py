@@ -70,7 +70,8 @@ class DXDataFrame:
         self.hash = generate_df_hash(self.df)
         self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
 
-        self.metadata = generate_metadata(
+        self.metadata: dict = generate_metadata(
+            df=self.df,
             display_id=self.display_id,
             variable_name=self.variable_name,
         )

@@ -11,16 +11,40 @@ logger = structlog.get_logger(__name__)
 
 ### Generator helper functions ###
 def generate_boolean_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `boolean` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series([random.choice([True, False]) for _ in range(num_rows)])
 
 
 def generate_dtype_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `type` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [random.choice([float, int, str, bool, set, tuple, dict, list]) for _ in range(num_rows)]
     )
 
 
 def generate_dict_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `dict` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series(
         [
             {
@@ -34,14 +58,41 @@ def generate_dict_series(num_rows: int) -> pd.Series:
 
 
 def generate_list_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `list` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
     return pd.Series([[random.randint(0, 5) for _ in range(5)] for _ in range(num_rows)])
 
 
 def generate_bytes_series(num_rows: int, n_bytes: int = 10) -> pd.Series:
+    """
+    Generate a series of random `bytes` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    n_bytes: int
+        Number of bytes to generate per row
+    """
     return pd.Series([np.random.bytes(n_bytes) for _ in range(num_rows)])
 
 
 def generate_ipv4_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `ipaddress.IPv4Address` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
+
     def random_ipv4():
         address_str = ".".join(str(random.randint(0, 255)) for _ in range(4))
         return ipaddress.ip_address(address_str)
@@ -50,6 +101,15 @@ def generate_ipv4_series(num_rows: int) -> pd.Series:
 
 
 def generate_ipv6_series(num_rows: int) -> pd.Series:
+    """
+    Generate a series of random `ipaddress.IPv6Address` values.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
+
     def random_ipv6():
         address_str = ":".join(
             str(hex(random.randint(0, 65_535))).replace("0x", "") for _ in range(8)
