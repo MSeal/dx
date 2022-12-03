@@ -91,7 +91,9 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: ['.', 'docs', 'docs/screenshots', 'docs/_charts', 'docs/plotting', 'docs/reference']
+      check_paths: True
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
