@@ -51,7 +51,6 @@ nav:
           - "Dashboards": reference/charts/dashboards.md
 
 
-
 # Material theme config
 theme:
   name: material
@@ -89,9 +88,9 @@ plugins:
         python:
           options:
             docstring_style: "numpy"
-            show_root_heading: True
+            show_root_heading: true
   - mkdocs-jupyter:
-      include_source: True
+      include_source: true
 
 markdown_extensions:
   # code highlighting
@@ -102,7 +101,7 @@ markdown_extensions:
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
   - pymdownx.snippets:
       base_path: ['.', 'docs', 'docs/screenshots', 'docs/_charts', 'docs/plotting', 'docs/reference']
-      check_paths: True
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
