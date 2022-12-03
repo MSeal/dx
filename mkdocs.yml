@@ -1,9 +1,19 @@
 # general mkdocs config
 
-# Project information
+# Served site information
 site_name: DX
 site_url: https://noteable-io.github.io/dx/
 site_author: Noteable
+site_description: |
+  Convenient formatting and IPython display registration for tabular data and DEX media types
+
+# Repo information
+repo_url: https://github.com/noteable-io/dx
+repo_name: noteable-io/dx
+edit_uri: edit/main/docs
+
+# docs root directory
+docs_dir: docs
 
 nav:
   - Home: index.md
@@ -40,9 +50,6 @@ nav:
           - "Maps": reference/charts/maps.md
           - "Dashboards": reference/charts/dashboards.md
 
-repo_url: https://github.com/noteable-io/dx
-repo_name: noteable-io/dx
-edit_uri: edit/main/docs/
 
 # Material theme config
 theme:
@@ -81,9 +88,9 @@ plugins:
         python:
           options:
             docstring_style: "numpy"
-            show_root_heading: True
+            show_root_heading: true
   - mkdocs-jupyter:
-      include_source: True
+      include_source: true
 
 markdown_extensions:
   # code highlighting
@@ -91,7 +98,10 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.snippets
+  # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
+  - pymdownx.snippets:
+      base_path: ['.', 'docs', 'docs/screenshots', 'docs/_charts', 'docs/plotting', 'docs/reference']
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
