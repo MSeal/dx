@@ -88,7 +88,11 @@ class TestFormatting:
         sample_random_dataframe.attrs = {"noteable": sample_dex_view_metadata}
 
         params = dict(display_mode=display_mode, enable_datalink=datalink_enabled)
-        with settings_context(generate_dex_metadata=False, **params):
+        with settings_context(
+            generate_dex_metadata=False,
+            allow_noteable_attrs=False,
+            **params,
+        ):
             _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
             display_metadata = metadata[settings.MEDIA_TYPE]
         assert "dx" not in display_metadata
