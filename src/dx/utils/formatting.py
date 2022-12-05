@@ -285,7 +285,8 @@ def generate_metadata(
         "display_id": display_id,
     }
 
-    if settings.GENERATE_DEX_METADATA:
+    using_noteable_attrs = settings.ALLOW_NOTEABLE_ATTRS and "noteable" in df.attrs
+    if settings.GENERATE_DEX_METADATA or using_noteable_attrs:
         metadata = add_dex_metadata(
             display_id=display_id,
             variable_name=variable_name,

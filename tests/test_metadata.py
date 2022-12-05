@@ -88,7 +88,11 @@ class TestFormatting:
         sample_random_dataframe.attrs = {"noteable": sample_dex_view_metadata}
 
         params = dict(display_mode=display_mode, enable_datalink=datalink_enabled)
-        with settings_context(generate_dex_metadata=False, **params):
+        with settings_context(
+            generate_dex_metadata=False,
+            allow_noteable_attrs=False,
+            **params,
+        ):
             _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
             display_metadata = metadata[settings.MEDIA_TYPE]
         assert "dx" not in display_metadata
@@ -142,6 +146,40 @@ class TestStructure:
             assert "dx" in metadata
             assert "views" in metadata["dx"]
             assert metadata["dx"][key] == dex_metadata_dict[key]
+
+    @pytest.mark.parametrize("allow_noteable_attrs", [True, False])
+    def test_noteable_attrs(
+        self,
+        sample_random_dataframe: pd.DataFrame,
+        allow_noteable_attrs: bool,
+        sample_dex_view_metadata: DEXView,
+    ):
+        """
+        Test that calling generate_metadata() can properly update
+        DEX metadata given a key/value pair belonging to the
+        "noteable" key as long as settings.ALLOW_NOTEABLE_ATTRS is True.
+        """
+        sample_random_dataframe.attrs = {"noteable": sample_dex_view_metadata}
+        display_id = str(uuid.uuid4())
+        with settings_context(
+            generate_dex_metadata=False,
+            allow_noteable_attrs=allow_noteable_attrs,
+        ):
+            metadata = generate_metadata(
+                sample_random_dataframe,
+                display_id,
+                extra_metadata={"noteable": {"decoration": {"title": "test title"}}},
+            )
+        if allow_noteable_attrs:
+            assert "dx" in metadata
+            assert "views" in metadata["dx"]
+            assert len(metadata["dx"]["views"]) == 1
+            assert (
+                metadata["dx"]["views"][0]["decoration"]["title"]
+                == sample_dex_view_metadata.decoration.title
+            )
+        else:
+            assert "dx" not in metadata
 
 
 class TestPlottingMetadata:
