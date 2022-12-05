@@ -153,8 +153,7 @@ class DEXConditionalFormatRule(DEXBaseModel):
 class DEXDecoration(BaseModel):
     footer: str = ""
     subtitle: str = ""
-    # TODO: change this back to "Table" before merging
-    title: str = "🐼 dx grid"
+    title: str = "Table"
 
 
 class DEXDashboardViewConfig(BaseModel):
