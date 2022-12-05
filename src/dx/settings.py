@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     DB_LOCATION: str = ":memory:"
 
     GENERATE_DEX_METADATA: bool = False
+    ALLOW_NOTEABLE_ATTRS: bool = True
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
