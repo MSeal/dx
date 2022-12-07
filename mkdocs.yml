@@ -100,7 +100,7 @@ markdown_extensions:
       anchor_linenums: true
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
   - pymdownx.snippets:
-      base_path: ['/home/runner/work/dx/dx/docs']
+      base_path: ['.']
       check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
