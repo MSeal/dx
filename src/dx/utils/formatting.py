@@ -189,7 +189,13 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     logger.debug("-- cleaning columns before display --")
     for column in df.columns:
         standard_dtypes = ["float", "int", "bool"]
-        if df[column].dtype in standard_dtypes or str(df[column].dtype).startswith("datetime"):
+        dtype_str = str(df[column].dtype)
+        if dtype_str in standard_dtypes:
+            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
+            continue
+        if dtype_str.startswith("datetime") and not dtype_str.startswith("datetime64[ns, "):
+            # skip datetime columns that are not tz-aware datetime64[ns, <tz>]
+            # because we need to handle some minor adjustments for tz information before build_table_schema()
             logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
             continue
         logger.debug(f"--> cleaning `{column=}` with dtype `{df[column].dtype}`")
@@ -216,6 +222,7 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
     s = date_time.handle_date_series(s)
+    s = date_time.handle_datetime_series(s)
 
     s = numeric.handle_decimal_series(s)
     s = numeric.handle_complex_number_series(s)
