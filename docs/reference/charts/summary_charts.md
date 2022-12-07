@@ -1,21 +1,21 @@
 # Funnel Charts
 
---8<-- "big_number.md:ref"
+--8<-- "_charts/big_number.md:ref"
 
---8<-- "wordcloud.md:ref"
+--8<-- "_charts/wordcloud.md:ref"
 
---8<-- "dimension_matrix.md:ref"
+--8<-- "_charts/dimension_matrix.md:ref"
 
---8<-- "violin.md:ref"
+--8<-- "_charts/violin.md:ref"
 
---8<-- "boxplot.md:ref"
+--8<-- "_charts/boxplot.md:ref"
 
---8<-- "heatmap.md:ref"
+--8<-- "_charts/heatmap.md:ref"
 
---8<-- "histogram.md:ref"
+--8<-- "_charts/histogram.md:ref"
 
---8<-- "ridgeline.md:ref"
+--8<-- "_charts/ridgeline.md:ref"
 
---8<-- "horizon.md:ref"
+--8<-- "_charts/horizon.md:ref"
 
---8<-- "hexbin.md:ref"
+--8<-- "_charts/hexbin.md:ref"

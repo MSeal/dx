@@ -1,11 +1,11 @@
 # Part-to-Whole Charts
 
---8<-- "pie.md:ref"
+--8<-- "_charts/pie.md:ref"
 
---8<-- "donut.md:ref"
+--8<-- "_charts/donut.md:ref"
 
---8<-- "sunburst.md:ref"
+--8<-- "_charts/sunburst.md:ref"
 
---8<-- "treemap.md:ref"
+--8<-- "_charts/treemap.md:ref"
 
---8<-- "partition.md:ref"
+--8<-- "_charts/partition.md:ref"

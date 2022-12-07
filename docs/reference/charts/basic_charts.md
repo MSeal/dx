@@ -1,15 +1,15 @@
 # Basic Charts
 
---8<-- "bar.md:ref"
+--8<-- "_charts/bar.md:ref"
 
---8<-- "line.md:ref"
+--8<-- "_charts/line.md:ref"
 
---8<-- "pie.md:ref"
+--8<-- "_charts/pie.md:ref"
 
---8<-- "scatter.md:ref"
+--8<-- "_charts/scatter.md:ref"
 
---8<-- "tilemap.md:ref"
+--8<-- "_charts/tilemap.md:ref"
 
---8<-- "violin.md:ref"
+--8<-- "_charts/violin.md:ref"
 
---8<-- "wordcloud.md:ref"
+--8<-- "_charts/wordcloud.md:ref"

@@ -1,1 +1,1 @@
---8<-- "dashboards.md:usage"
+--8<-- "_charts/dashboards.md:usage"
