@@ -29,6 +29,30 @@ def generate_datetime_series(num_rows: int) -> pd.Series:
     )
 
 
+def generate_datetimetz_series(num_rows: int, timezone_source: str = "datetime") -> pd.Series:
+    """
+    Generate a series of random `datetime.datetime` values with `datetime.timezone` information.
+
+    Parameters
+    ----------
+    num_rows: int
+        Number of rows to generate
+    """
+    # by default, pandas will use pytz for timezone information,
+    # but for testing rendering compatibility, we want to make sure
+    # we can handle datetime.timezone as well
+    tz = datetime.timezone.utc
+    if timezone_source == "pytz":
+        tz = "UTC"
+
+    return pd.Series(
+        [
+            (pd.Timestamp("now", tz=tz) + pd.Timedelta(f"{np.random.randint(-1000, 1000)} hours"))
+            for _ in range(num_rows)
+        ]
+    )
+
+
 def generate_date_series(num_rows: int) -> pd.Series:
     """
     Generate a series of random `datetime.date` values.
@@ -144,25 +168,3 @@ def handle_date_series(s: pd.Series) -> pd.Series:
         )
         s = pd.to_datetime(s)
     return s
-
-
-def handle_time_series(s: pd.Series) -> pd.Series:
-    types = (datetime.time,)
-    if any(isinstance(v, types) for v in s.dropna().head().values):
-        logger.debug(f"series `{s.name}` has datetime.time values; converting to string")
-        s = s.astype(str)
-    return s
-
-
-def is_datetime_series(s: pd.Series) -> bool:
-    if str(s.dtype) in ("int", "float", "bool", "category", "period", "interval"):
-        return False
-    if str(s.dtype) in ("datetime64"):
-        return True
-
-    try:
-        s = pd.to_datetime(s)
-        return True
-    except Exception as e:
-        logger.debug(f"series `{s.name}` is not a datetime series: {e}")
-        return False
