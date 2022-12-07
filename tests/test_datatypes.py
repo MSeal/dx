@@ -215,6 +215,17 @@ class TestDatatypeHandling:
             series.values[0], (datetime, np.datetime64)
         ), f"cleaned series value is {type(series.values[0])}"
 
+    def test_datetimetz_series_converted(self):
+        series = date_time.generate_datetimetz_series(5)
+        series = clean_column_values(series)
+        assert str(series.dtype).startswith("datetime64[ns, ")
+        assert isinstance(
+            series.values[0], (datetime, np.datetime64)
+        ), f"cleaned series value is {type(series.values[0])}"
+        # this is the most important part to check;
+        # if this fails, build_table_schema() will fail
+        assert hasattr(series.dtype.tz, "zone")
+
     def test_date_series_converted(self):
         # datetime.date values are converted to pd.Timestamp
         series = date_time.generate_date_series(5)
