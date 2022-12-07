@@ -60,5 +60,5 @@ def generate_coverage_xml(session: nox_poetry.Session):
 def publish_docs(session: nox_poetry.Session):
     session.run_always("poetry", "install", "-E", "docs", external=True)
     session.run("pwd", external=True)
-    session.run("ls", external=True)
+    session.run("ls", "./docs", external=True)
     session.run("mkdocs", "gh-deploy", "--force", "--verbose")
