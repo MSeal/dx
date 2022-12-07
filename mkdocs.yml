@@ -101,6 +101,7 @@ markdown_extensions:
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
   - pymdownx.snippets:
       base_path: ['.', 'docs', 'docs/screenshots', 'docs/_charts', 'docs/plotting', 'docs/reference']
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
