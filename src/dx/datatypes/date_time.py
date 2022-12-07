@@ -168,3 +168,19 @@ def handle_date_series(s: pd.Series) -> pd.Series:
         )
         s = pd.to_datetime(s)
     return s
+
+
+def handle_datetime_series(s: pd.Series) -> pd.Series:
+    utc = None
+    if str(s.dtype).startswith("datetime64[ns, "):
+        # convert all values to tz-aware and cast tz-naive values to UTC
+        # if any tz information is passed at all
+        utc = True
+
+    types = (datetime.datetime, np.datetime64)
+    if any(isinstance(v, types) for v in s.dropna().head().values):
+        logger.debug(
+            f"series `{s.name}` has datetime.datetime values; converting with pd.to_datetime()"
+        )
+        s = pd.to_datetime(s, utc=utc)
+    return s
