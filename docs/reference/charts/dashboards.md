@@ -1,1 +1,1 @@
---8<-- "./docs/_charts/dashboards.md:ref"
+--8<-- "_charts/dashboards.md:ref"

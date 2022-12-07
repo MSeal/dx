@@ -1,5 +1,5 @@
 # Maps
 
---8<-- "./docs/_charts/tilemap.md:ref"
+--8<-- "_charts/tilemap.md:ref"
 
---8<-- "./docs/_charts/choropleth.md:ref"
+--8<-- "_charts/choropleth.md:ref"
