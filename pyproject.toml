@@ -53,10 +53,12 @@ line_length = 100
 [tool.black]
 line-length = 100
 
+# https://coverage.readthedocs.io/en/6.4.3/config.html#run
 [tool.coverage.run]
 branch = false
-omit = ["*/tests/*"]
+omit = ["*/tests/*", "*/docs/*"]
 
+# https://coverage.readthedocs.io/en/6.4.3/config.html#report
 [tool.coverage.report]
 exclude_lines = ["if self.debug:",
                  "pragma: no cover",
