@@ -13,10 +13,10 @@ df = dx.random_dataframe(100)
 !!! warning "The _**Customized**_ examples with more options do not necessarily represent "good" data visualization; they are just a glimpse into what settings are available to compare against the _**Simple**_ examples."    
 <!-- --8<-- [end:setup] -->
 
---8<-- "_charts/bar.md:usage"
---8<-- "_charts/line.md:usage"
---8<-- "_charts/pie.md:usage"
---8<-- "_charts/scatter.md:usage"
---8<-- "_charts/tilemap.md:usage"
---8<-- "_charts/violin.md:usage"
---8<-- "_charts/wordcloud.md:usage"
+--8<-- "docs/_charts/bar.md:usage"
+--8<-- "docs/_charts/line.md:usage"
+--8<-- "docs/_charts/pie.md:usage"
+--8<-- "docs/_charts/scatter.md:usage"
+--8<-- "docs/_charts/tilemap.md:usage"
+--8<-- "docs/_charts/violin.md:usage"
+--8<-- "docs/_charts/wordcloud.md:usage"
