@@ -10,7 +10,7 @@ site_description: |
 # Repo information
 repo_url: https://github.com/noteable-io/dx
 repo_name: noteable-io/dx
-edit_uri: edit/main/docs
+# edit_uri: edit/main/docs
 
 # docs root directory
 docs_dir: docs
@@ -99,7 +99,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
-  - pymdownx.snippets
+  - pymdownx.snippets:
+    check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
