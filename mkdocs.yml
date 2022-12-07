@@ -100,8 +100,7 @@ markdown_extensions:
       anchor_linenums: true
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
   - pymdownx.snippets:
-      base_path: ['.', 'docs/_charts', 'docs/plotting', 'docs/reference']
-      check_paths: true
+      base_path: ['.', 'docs', 'docs/_charts', 'docs/plotting', 'docs/reference']
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
