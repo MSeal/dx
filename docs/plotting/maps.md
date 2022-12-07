@@ -4,5 +4,5 @@ Here we'll talk about how to plot some maps in DEX using `dx`.
 
 --8<-- "plotting/basic_charts.md:setup"
 
---8<-- "docs/_charts/tilemap.md:usage"
---8<-- "docs/_charts/choropleth.md:usage"
+--8<-- "tilemap.md:usage"
+--8<-- "choropleth.md:usage"
