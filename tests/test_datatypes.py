@@ -42,24 +42,6 @@ def test_data_types_with_build_table_schema(dtype: str):
     assert isinstance(schema, dict)
 
 
-@pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
-@pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
-def test_generate_body(dtype: str, display_mode: str):
-    """
-    Test that we've correctly handled data types before building the schema and metadata for
-    the DXDisplayFormatter.
-    """
-    params = {dt: False for dt in SORTED_DX_DATATYPES}
-    params[dtype] = True
-    df = random_dataframe(**params)
-    try:
-        with settings_context(display_mode=display_mode):
-            payload = generate_body(df)
-    except Exception as e:
-        assert False, f"{dtype} failed with {e}"
-    assert isinstance(payload, dict)
-
-
 @pytest.mark.xfail(reason="only for dev")
 @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
 def test_hash_pandas_object(dtype: str):
