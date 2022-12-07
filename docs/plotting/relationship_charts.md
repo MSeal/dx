@@ -2,7 +2,7 @@
 
 Here we'll talk about how to plot some relationship chart types in DEX using `dx`.
 
---8<-- "./docs/plotting/basic_charts.md:setup"
+--8<-- "plotting/basic_charts.md:setup"
 
 --8<-- "_charts/force_directed_network.md:usage"
 --8<-- "_charts/sankey.md:usage"

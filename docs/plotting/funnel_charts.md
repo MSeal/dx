@@ -2,7 +2,7 @@
 
 Here we'll talk about how to plot some funnel chart types in DEX using `dx`.
 
---8<-- "./docs/plotting/basic_charts.md:setup"
+--8<-- "plotting/basic_charts.md:setup"
 
 --8<-- "_charts/big_number.md:usage"
 --8<-- "_charts/wordcloud.md:usage"
