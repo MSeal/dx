@@ -2,7 +2,7 @@
 
 Here we'll talk about how to plot some comparison chart types in DEX using `dx`.
 
---8<-- "docs/plotting/basic_charts.md:setup"
+--8<-- "basic_charts.md:setup"
 
 --8<-- "parallel_coordinates.md:usage"
 --8<-- "scatter.md:usage"
