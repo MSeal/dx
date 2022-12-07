@@ -20,8 +20,6 @@ from dx.datatypes.main import (
     quick_random_dataframe,
     random_dataframe,
 )
-from dx.formatters.main import generate_body
-from dx.settings import settings_context
 from dx.utils.formatting import clean_column_values
 from dx.utils.tracking import generate_df_hash
 
@@ -40,24 +38,6 @@ def test_data_types_with_build_table_schema(dtype: str):
     except Exception as e:
         assert False, f"{dtype} failed with {e}"
     assert isinstance(schema, dict)
-
-
-@pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
-@pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
-def test_generate_body(dtype: str, display_mode: str):
-    """
-    Test that we've correctly handled data types before building the schema and metadata for
-    the DXDisplayFormatter.
-    """
-    params = {dt: False for dt in SORTED_DX_DATATYPES}
-    params[dtype] = True
-    df = random_dataframe(**params)
-    try:
-        with settings_context(display_mode=display_mode):
-            payload = generate_body(df)
-    except Exception as e:
-        assert False, f"{dtype} failed with {e}"
-    assert isinstance(payload, dict)
 
 
 @pytest.mark.xfail(reason="only for dev")
@@ -214,6 +194,17 @@ class TestDatatypeHandling:
         assert isinstance(
             series.values[0], (datetime, np.datetime64)
         ), f"cleaned series value is {type(series.values[0])}"
+
+    def test_datetimetz_series_converted(self):
+        series = date_time.generate_datetimetz_series(5)
+        series = clean_column_values(series)
+        assert str(series.dtype).startswith("datetime64[ns, ")
+        assert isinstance(
+            series.values[0], (datetime, np.datetime64)
+        ), f"cleaned series value is {type(series.values[0])}"
+        # this is the most important part to check;
+        # if this fails, build_table_schema() will fail
+        assert hasattr(series.dtype.tz, "zone")
 
     def test_date_series_converted(self):
         # datetime.date values are converted to pd.Timestamp

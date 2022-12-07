@@ -16,6 +16,7 @@ DX_DATATYPES = {
     "bool_column": True,
     "decimal_column": False,
     "datetime_column": True,
+    "datetimetz_column": False,
     "date_column": False,
     "time_column": False,
     "time_delta_column": False,
@@ -72,6 +73,7 @@ def random_dataframe(
     bool_column: bool = True,
     decimal_column: bool = False,
     datetime_column: bool = True,
+    datetimetz_column: bool = False,
     date_column: bool = False,
     time_column: bool = False,
     time_delta_column: bool = False,
@@ -112,6 +114,8 @@ def random_dataframe(
         Whether to include a column of `decimal.Decimal` values
     datetime_column : bool
         Whether to include a column of `datetime.datetime` values
+    datetimetz_column : bool
+        Whether to include a column of `datetime.datetime` values with timezones
     date_column : bool
         Whether to include a column of `datetime.date` values
     time_column : bool
@@ -175,6 +179,9 @@ def random_dataframe(
     # date/time columns
     if datetime_column:
         df["datetime_column"] = date_time.generate_datetime_series(num_rows)
+
+    if datetimetz_column:
+        df["datetimetz_column"] = date_time.generate_datetimetz_series(num_rows)
 
     if date_column:
         df["date_column"] = date_time.generate_date_series(num_rows)
