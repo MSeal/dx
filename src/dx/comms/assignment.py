@@ -43,6 +43,7 @@ def handle_assignment_comm(msg: dict, ipython_shell: Optional[InteractiveShell] 
             display_id=data["display_id"],
             sql_filter=sql_filter,
             filters=filters,
+            assign_subset=False,
         )
 
         ipython = ipython_shell or get_ipython()
