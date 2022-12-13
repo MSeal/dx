@@ -245,8 +245,11 @@ def enable_disable_comms(
     if setting_name not in comm_setting_targets:
         return
 
-    comm_target, comm_callback = comm_setting_targets[setting_name]
     ipython_shell = ipython_shell or get_ipython()
+    if getattr(ipython_shell, "kernel", None) is None:
+        return
+
+    comm_target, comm_callback = comm_setting_targets[setting_name]
     if enabled:
         ipython_shell.kernel.comm_manager.register_target(comm_target, comm_callback)
     else:
