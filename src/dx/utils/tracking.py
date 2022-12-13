@@ -85,7 +85,7 @@ class DXDataFrame:
         )
         return f"<DXDataFrame {attr_str}>"
 
-    def get_display_id(self) -> None:
+    def get_cell_id_and_display_id(self) -> None:
         self.parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(self.hash)
         if self.parent_dataset_info is None:
             self.display_id = str(uuid.uuid4())
