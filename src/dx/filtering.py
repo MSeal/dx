@@ -49,6 +49,8 @@ def resample_from_db(
     display_id: str,
     sql_filter: str,
     filters: Optional[list] = None,
+    cell_id: Optional[str] = None,
+    assign_subset: bool = True,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
@@ -85,12 +87,16 @@ def resample_from_db(
             col = ", ".join(col)
         new_df[col] = new_df[col].astype(dtype)
 
-    # this is associating the subset with the original dataframe,
-    # which will be checked when the DisplayFormatter.format() is called
-    # during update_display(), which will prevent re-registering the display ID to the subset
-    new_df_hash = generate_df_hash(new_df)
-    logger.debug(f"assigning subset {new_df_hash} to {display_id=}")
-    SUBSET_TO_DISPLAY_ID[new_df_hash] = display_id
+    if assign_subset:
+        # this is associating the subset with the original dataframe,
+        # which will be checked when the DisplayFormatter.format() is called
+        # during update_display(), which will prevent re-registering the display ID to the subset
+        new_df_hash = generate_df_hash(new_df)
+        logger.debug(f"assigning subset {cell_id}+{new_df_hash} to {display_id=}")
+        SUBSET_TO_DISPLAY_ID[new_df_hash] = {
+            'cell_id': cell_id, 
+            'display_id': display_id,
+        }
 
     return new_df
 
@@ -106,6 +112,7 @@ def handle_resample(
         "display_id": msg.display_id,
         "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
+        "cell_id": msg.cell_id,
     }
 
     if raw_filters:
