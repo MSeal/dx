@@ -51,7 +51,7 @@ def datalink_processing(
     # used to format the previous/original dataframe that we see here.
     # If the hash is the same, but the cell ID is different, we're executing in a different
     # cell and should use the DXDataframe-generated display ID.
-    parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
+    parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash, {})
     parent_cell_id = parent_dataset_info.get("cell_id")
     parent_display_id = parent_dataset_info.get("display_id")
     no_parent_id = parent_display_id is None
