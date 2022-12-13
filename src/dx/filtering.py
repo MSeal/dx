@@ -94,8 +94,8 @@ def resample_from_db(
         new_df_hash = generate_df_hash(new_df)
         logger.debug(f"assigning subset {cell_id}+{new_df_hash} to {display_id=}")
         SUBSET_TO_DISPLAY_ID[new_df_hash] = {
-            'cell_id': cell_id, 
-            'display_id': display_id,
+            "cell_id": cell_id,
+            "display_id": display_id,
         }
 
     return new_df
