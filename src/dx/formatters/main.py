@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Optional
 
@@ -45,8 +46,19 @@ def datalink_processing(
 ):
     dxdf = DXDataFrame(df)
 
-    parent_display_id = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
-    if parent_display_id is None:
+    # Before rendering a DataFrame, we need to check and see if this is the result
+    # of a resampling request, which will appear as the same dataframe hash and cell ID
+    # used to format the previous/original dataframe that we see here.
+    # If the hash is the same, but the cell ID is different, we're executing in a different
+    # cell and should use the DXDataframe-generated display ID.
+    parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash)
+    parent_cell_id = parent_dataset_info.get("cell_id")
+    parent_display_id = parent_dataset_info.get("display_id")
+    no_parent_id = parent_display_id is None
+    different_cell_output = parent_cell_id != os.environ.get("LAST_EXECUTED_CELL_ID", "")
+    logger.debug(f"{dxdf.display_id=} & {parent_display_id=}")
+    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
+    if no_parent_id or different_cell_output:
         DXDF_CACHE[dxdf.display_id] = dxdf
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
