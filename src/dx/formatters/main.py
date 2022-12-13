@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import Optional
 
@@ -52,17 +51,27 @@ def datalink_processing(
     # If the hash is the same, but the cell ID is different, we're executing in a different
     # cell and should use the DXDataframe-generated display ID.
     parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash, {})
-    parent_cell_id = parent_dataset_info.get("cell_id")
+
     parent_display_id = parent_dataset_info.get("display_id")
     no_parent_id = parent_display_id is None
-    different_cell_output = parent_cell_id != os.environ.get("LAST_EXECUTED_CELL_ID", "")
     logger.debug(f"{dxdf.display_id=} & {parent_display_id=}")
-    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
-    if no_parent_id or different_cell_output:
+    if no_parent_id:
         DXDF_CACHE[dxdf.display_id] = dxdf
-        parent_display_id = None
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
+
+    parent_cell_id = parent_dataset_info.get("cell_id")
+    different_cell_output = parent_cell_id != dxdf.cell_id
+    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
+    if different_cell_output:
+        logger.debug(
+            f"disregarding {parent_display_id=} and using {dxdf.display_id=} since this is a new cell_id",
+            parent_cell_id=parent_cell_id,
+            cell_id=dxdf.cell_id,
+        )
+        # doesn't matter if this dataset was associated with another,
+        # we shouldn't be re-rendering the display ID from another cell ID
+        parent_display_id = None
 
     payload, metadata = format_output(
         dxdf.df,
@@ -236,4 +245,5 @@ def dev_display(payload, metadata):
     from IPython.display import JSON, display
 
     display(JSON({"payload": payload}))
+    display(JSON({"metadata": metadata}))
     display(JSON({"metadata": metadata}))
