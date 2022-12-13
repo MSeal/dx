@@ -36,7 +36,7 @@ pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 # for datatype testing
 Faker = "^15.3.4"
-geopandas = "^0.12.1"
+geopandas = "^0.12.2"
 
 [tool.poetry.extras]
 docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstrings-python"]
