@@ -60,6 +60,7 @@ def datalink_processing(
     logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
     if no_parent_id or different_cell_output:
         DXDF_CACHE[dxdf.display_id] = dxdf
+        parent_display_id = None
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
 
