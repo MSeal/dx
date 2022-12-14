@@ -235,6 +235,13 @@ def enable_disable_comms(
     enabled: bool,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> None:
+    """
+    Registers/unregisters a target based on its associated name within Settings.
+    For example, the following will unregister the "datalink_resample" comm:
+    >>> enable_disable_comms("ENABLE_DATALINK", False)
+    And to re-register it:
+    >>> enable_disable_comms("ENABLE_DATALINK", True)
+    """
     from dx import comms
 
     comm_setting_targets = {
