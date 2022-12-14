@@ -152,6 +152,7 @@ class TestAssignmentComm:
             "display_id": display_id,
             "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
             "filters": [],
+            "assign_subset": False,
         }
         mock_resample.assert_called_once_with(**resample_params)
         assert "new_df" in get_ipython.user_ns
@@ -199,6 +200,7 @@ class TestAssignmentComm:
             "display_id": display_id,
             "sql_filter": sql_filter,
             "filters": filters,
+            "assign_subset": False,
         }
         mock_resample.assert_called_once_with(**resample_params)
         assert "new_df" in get_ipython.user_ns
@@ -239,6 +241,7 @@ class TestAssignmentComm:
             "display_id": display_id,
             "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
             "filters": [],
+            "assign_subset": False,
         }
         mock_resample.assert_called_once_with(**resample_params)
 
