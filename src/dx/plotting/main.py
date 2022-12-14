@@ -58,7 +58,7 @@ def plot(df: dict, kind: str, **kwargs) -> None:
         exclude_none=True,
         by_alias=True,
     )
-    logger.info(f"{view_metadata=}")
+    logger.debug(f"{view_metadata=}")
 
     with settings_context(generate_dex_metadata=True):
         # if someone is calling one of these functions with the dx plotting backend,
@@ -79,7 +79,7 @@ def handle_view(
     and either passes it to be handled by the display formatter,
     or returns the view.
     """
-    logger.info(f"{chart=}")
+    logger.debug(f"{chart=}")
 
     view_params = {
         "chart_mode": chart_mode,
@@ -100,7 +100,7 @@ def handle_view(
         exclude_none=True,
         by_alias=True,
     )
-    logger.info(f"{view_metadata=}")
+    logger.debug(f"{view_metadata=}")
     handle_format(
         df,
         extra_metadata=view_metadata,

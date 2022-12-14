@@ -31,9 +31,11 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
+    # convert from FilterTypes to dicts
+    dex_filters = [dex_filter.dict() for dex_filter in filters]
     sample = {
         "sampling_time": sample_time,
-        "filters": [dex_filter.dict() for dex_filter in filters],
+        "filters": dex_filters,
         "dataframe_info": get_df_dimensions(df, prefix="truncated"),
     }
     datalink_metadata["sample_history"].append(sample)
@@ -41,7 +43,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata["sample_history"] = datalink_metadata["sample_history"][
         -settings.NUM_PAST_SAMPLES_TRACKED :
     ]
-    datalink_metadata["applied_filters"] = filters
+    datalink_metadata["applied_filters"] = dex_filters
     datalink_metadata["sampling_time"] = sample_time
 
     metadata["datalink"] = datalink_metadata
