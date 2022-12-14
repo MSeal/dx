@@ -70,7 +70,6 @@ class DXDataFrame:
 
         self.cell_id = self.get_cell_id()
         self.display_id = self.get_display_id()
-        self.parent_dataset_info = self.get_parent_info()
 
         self.metadata: dict = generate_metadata(
             df=self.df,
@@ -102,12 +101,6 @@ class DXDataFrame:
         )
         logger.debug(f"{display_id=}")
         return display_id
-
-    def get_parent_info(self) -> dict:
-        parent_info = SUBSET_HASH_TO_PARENT_DATA.get(self.hash)
-        if parent_info is not None:
-            return parent_info
-        return {"cell_id": self.cell_id, "display_id": self.display_id}
 
 
 def generate_df_hash(df: pd.DataFrame) -> str:
