@@ -63,7 +63,7 @@ def datalink_processing(
     parent_cell_id = parent_dataset_info.get("cell_id")
     different_cell_output = parent_cell_id != dxdf.cell_id
     logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
-    if different_cell_output:
+    if different_cell_output and parent_display_id is not None:
         logger.debug(
             f"disregarding {parent_display_id=} and using {dxdf.display_id=} since this is a new cell_id",
             parent_cell_id=parent_cell_id,
