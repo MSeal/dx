@@ -18,7 +18,7 @@ from dx.utils.formatting import (
     normalize_index_and_columns,
     to_dataframe,
 )
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, DXDataFrame, get_db_connection
+from dx.utils.tracking import DXDF_CACHE, SUBSET_HASH_TO_PARENT_DATA, DXDataFrame, get_db_connection
 
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
@@ -51,12 +51,12 @@ def datalink_processing(
     # to update an existing display handler.
     # - If the hash is the same, but the cell ID is different, we're executing in a different
     # cell and should use a new (DXDataFrame-generated) display ID.
-    # - If the hash is different and found in SUBSET_TO_DISPLAY_ID, we have a resample request
+    # - If the hash is different and found in SUBSET_HASH_TO_PARENT_DATA, we have a resample request
     # result that's rendering a smaller subset of the original dataframe, and will
     # update the existing display handler based on display ID.
-    # - If the hash is different and is *not* found in SUBSET_TO_DISPLAY_ID, we have
+    # - If the hash is different and is *not* found in SUBSET_HASH_TO_PARENT_DATA, we have
     # a new dataframe altogether, which should trigger a new output.
-    parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash, {})
+    parent_dataset_info = SUBSET_HASH_TO_PARENT_DATA.get(dxdf.hash, {})
 
     parent_display_id = parent_dataset_info.get("display_id")
     no_parent_id = parent_display_id is None

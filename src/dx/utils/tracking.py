@@ -21,7 +21,7 @@ settings = get_settings()
 # should be (display_id: DXDataFrame) pairs
 DXDF_CACHE = {}
 # used to track when a filtered subset should be tied to an existing display ID
-SUBSET_TO_DISPLAY_ID = {}
+SUBSET_HASH_TO_PARENT_DATA = {}
 
 
 @lru_cache
@@ -90,17 +90,21 @@ class DXDataFrame:
 
     def get_cell_id(self) -> str:
         last_executed_cell_id = os.environ.get("LAST_EXECUTED_CELL_ID")
-        cell_id = SUBSET_TO_DISPLAY_ID.get(self.hash, {}).get("cell_id", last_executed_cell_id)
+        cell_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
+            "cell_id", last_executed_cell_id
+        )
         logger.debug(f"{last_executed_cell_id=} / last associated {cell_id=}")
         return cell_id
 
     def get_display_id(self) -> str:
-        display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, {}).get("display_id", str(uuid.uuid4()))
+        display_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
+            "display_id", str(uuid.uuid4())
+        )
         logger.debug(f"{display_id=}")
         return display_id
 
     def get_parent_info(self) -> dict:
-        parent_info = SUBSET_TO_DISPLAY_ID.get(self.hash)
+        parent_info = SUBSET_HASH_TO_PARENT_DATA.get(self.hash)
         if parent_info is not None:
             return parent_info
         return {"cell_id": self.cell_id, "display_id": self.display_id}

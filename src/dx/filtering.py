@@ -8,7 +8,12 @@ from IPython.terminal.interactiveshell import InteractiveShell
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types.filters import DEXFilterSettings, DEXResampleMessage
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, get_db_connection
+from dx.utils.tracking import (
+    DXDF_CACHE,
+    SUBSET_HASH_TO_PARENT_DATA,
+    generate_df_hash,
+    get_db_connection,
+)
 
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
@@ -93,7 +98,7 @@ def resample_from_db(
         # during update_display(), which will prevent re-registering the display ID to the subset
         new_df_hash = generate_df_hash(new_df)
         logger.debug(f"assigning subset {cell_id}+{new_df_hash} to {display_id=}")
-        SUBSET_TO_DISPLAY_ID[new_df_hash] = {
+        SUBSET_HASH_TO_PARENT_DATA[new_df_hash] = {
             "cell_id": cell_id,
             "display_id": display_id,
         }
