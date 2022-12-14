@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 import pandas as pd
 import structlog
@@ -42,6 +42,44 @@ def to_dataframe(obj) -> pd.DataFrame:
 
     df = pd.DataFrame(obj)
     return df
+
+
+def incrementing_label(value: str, iter: Iterable) -> str:
+    """
+    Returns a string with an incrementing suffix if the value
+    already exists in the iterable.
+    """
+    suffix = 1
+    while f"{value}_{suffix}" in iter:
+        suffix += 1
+    return f"{value}_{suffix}"
+
+
+def check_for_duplicate_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Handles duplicate columns by appending an incrementing suffix
+    to the column name.
+    """
+    if not df.columns.duplicated().any():
+        return df
+
+    dupes = pd.Series(df.columns.duplicated(), index=df.columns)
+    # filtering to any that are True
+    dupes = dupes[dupes]
+    # counting the number of duplicates per column to warn the user
+    logger.warning(f"duplicate columns found: {dupes.groupby(dupes.index).sum().to_dict()}")
+
+    new_df = pd.DataFrame()
+    for col_num, column in enumerate(df.columns):
+        if column in new_df.columns:
+            if isinstance(column, tuple):
+                # flatten it since it will be flattened later anyway
+                column = ",".join([str(x) for x in column])
+            column = incrementing_label(column, new_df.columns)
+        new_df[column] = df.iloc[:, col_num]
+
+    new_df.index = df.index
+    return new_df
 
 
 def is_groupby_series(s: pd.Series) -> bool:
