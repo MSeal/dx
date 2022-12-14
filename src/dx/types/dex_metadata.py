@@ -96,7 +96,7 @@ class DEXColorOptions(DEXBaseModel):
     min: Optional[float]
     mode: DEXColorMode = DEXColorMode.fixed
     threshold_colors: Optional[str] = Field(alias="thresholdColors")
-    threshold_values: Optional[List[float]] = Field(alias="thresholdValues", default_factory=list)
+    threshold_values: List[float] = Field(alias="thresholdValues", default_factory=list)
     scale: Optional[str]
 
 
@@ -162,44 +162,13 @@ class DEXDashboardViewConfig(BaseModel):
     row: int
 
 
-class DEXDashboardView(DEXBaseModel):
-    annotation_rules: Optional[list] = Field(alias="annotationRules", default_factory=list)
-    dashboard_filter: bool = Field(alias="dashboardFilter", default=False)
-    dashboard_filter_settings: dict = Field(alias="dashboardFilterSettings", default_factory=dict)
-    decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
-    display_id: str = Field(alias="displayId", default_factory=uuid.uuid4)
-    filter_settings: Optional[DEXFilterSettings] = Field(alias="filterSettings")
-    filters: Optional[DEXFilterSettings]
-    id: str = Field(default_factory=uuid.uuid4)
-    is_default: bool = Field(alias="isDefault", default=False)
-    view_sizes: Optional[dict] = Field(alias="viewSizes", default_factory=dict)
-    views: List[DEXDashboardViewConfig]
-    views_ignoring_dashboard_filters: dict = Field(
-        alias="viewsIgnoringDashboardFilters", default_factory=dict
-    )
-    user_id: str = Field(alias="userId", default="dx")
-    variable_name: Optional[str] = Field(alias="variableName")
-
-    @validator("id", pre=True, always=True)
-    def validate_id(cls, val):
-        return str(val)
-
-    @validator("display_id", pre=True, always=True)
-    def validate_display_id(cls, val):
-        return str(val)
-
-
-class DEXDashboard(DEXBaseModel):
-    multi_views: List[DEXDashboardView] = Field(alias="multiViews")
-
-
 class DEXField(DEXBaseModel):
     aggregation: Optional[str]
     column_position: int = Field(alias="columnPosition")
     date_format: Optional[str] = Field(alias="dateFormat")
     format: Optional[str]
-    frozen: Optional[bool]
-    hidden: Optional[bool]
+    frozen: bool
+    hidden: bool
     name: Optional[str]
     override_type: Optional[DEXFieldOverrideType] = Field(alias="overrideType")
     sort: Optional[str]
@@ -220,24 +189,30 @@ class DEXStyleConfig(DEXBaseModel):
 
 
 class DEXView(DEXBaseModel):
-    annotation_rules: Optional[list] = Field(alias="annotationRules", default_factory=list)
+    annotation_rules: list = Field(alias="annotationRules", default_factory=list)
     chart: dict = Field(default_factory=dict)
     chart_mode: str = Field(alias="chartMode", default="grid")
-    confo_rules: Optional[List[DEXConditionalFormatRule]] = Field(
-        alias="confoRules", default_factory=list
-    )
-    decoration: Optional[DEXDecoration] = Field(default_factory=DEXDecoration)
+    confo_rules: List[DEXConditionalFormatRule] = Field(alias="confoRules", default_factory=list)
+    dashboard_filter: bool = Field(alias="dashboardFilter", default=False)
+    dashboard_filter_settings: dict = Field(alias="dashboardFilterSettings", default_factory=dict)
+    decoration: DEXDecoration = Field(default_factory=DEXDecoration)
     display_id: str = Field(alias="displayId", default_factory=uuid.uuid4)
-    filter_settings: Optional[DEXFilterSettings] = Field(
+    filter_settings: DEXFilterSettings = Field(
         alias="filterSettings", default_factory=DEXFilterSettings
     )
+    filters: DEXFilterSettings = Field(default_factory=DEXFilterSettings)
     id: str = Field(default_factory=uuid.uuid4)
     is_comment: bool = Field(alias="isComment", default=False)
     is_default: bool = Field(alias="isDefault", default=False)
-    is_transitory: Optional[bool] = Field(alias="isTransitory", default=False)
+    is_transitory: bool = Field(alias="isTransitory", default=False)
+    programmatic: bool = Field(default=True)
     type: DEXViewType = Field(default="public")
     user_id: str = Field(alias="userId", default="dx")
     variable_name: Optional[str] = Field(alias="variableName")
+    view_sizes: dict = Field(alias="viewSizes", default_factory=dict)
+    views_ignoring_dashboard_filters: dict = Field(
+        alias="viewsIgnoringDashboardFilters", default_factory=dict
+    )
 
     @validator("id", pre=True, always=True)
     def validate_id(cls, val):
@@ -248,6 +223,10 @@ class DEXView(DEXBaseModel):
         return str(val)
 
 
+class DEXDashboard(DEXBaseModel):
+    multi_views: List[DEXView] = Field(alias="multiViews")
+
+
 class DEXMetadata(DEXBaseModel):
     annotations_rules_by_id: Optional[dict] = Field(alias="annotationsRulesById")
     dashboard: Optional[DEXDashboard]
@@ -255,12 +234,12 @@ class DEXMetadata(DEXBaseModel):
     field_metadata: Optional[Dict[str, DEXField]] = Field(
         alias="fieldMetadata", default_factory=dict
     )
-    filters: Optional[dict]
-    mode: Optional[DEXMode]
-    simple_table: Optional[bool] = Field(alias="simpleTable", default=False)
+    filters: Optional[dict] = Field(default_factory=dict)
+    mode: Optional[DEXMode] = None
+    simple_table: bool = Field(alias="simpleTable", default=False)
     styles: Optional[DEXStyleConfig]
     updated: int = Field(default_factory=time.time)
-    views: Optional[List[DEXView]] = Field(default_factory=list)
+    views: List[DEXView] = Field(default_factory=list)
 
     @validator("updated", pre=True, always=True)
     def validate_updated(cls, val):

@@ -5,7 +5,7 @@ import structlog
 
 from dx.formatters.main import handle_format
 from dx.plotting.dex import _samples
-from dx.types.dex_metadata import DEXDashboardView, DEXMetadata, DEXView
+from dx.types.dex_metadata import DEXMetadata, DEXView
 
 logger = structlog.get_logger(__name__)
 
@@ -86,7 +86,7 @@ def make_dashboard(
     }
     dashboard_view_metadata.update(kwargs)
 
-    dex_dashboard_metadata = DEXDashboardView.parse_obj(dashboard_view_metadata)
+    dex_dashboard_metadata = DEXView.parse_obj(dashboard_view_metadata)
 
     handle_format(
         df,

@@ -25,11 +25,9 @@ class DEXChartBase(DEXBaseModel):
     """
 
     adjacency_list: Optional[str] = Field(alias="adjacencyList")
-    area_type: Optional[options.DEXAreaType] = Field(alias="areaType", default="hexbin")
-    bar_grouping: Optional[options.DEXBarGroupingType] = Field(
-        alias="barGrouping", default="Clustered"
-    )
-    bar_label: Optional[options.DEXBarLabelType] = Field(alias="barLabel", default="none")
+    area_type: options.DEXAreaType = Field(alias="areaType", default="hexbin")
+    bar_grouping: options.DEXBarGroupingType = Field(alias="barGrouping", default="Clustered")
+    bar_label: options.DEXBarLabelType = Field(alias="barLabel", default="none")
     bar_projection: Optional[options.DEXBarProjectionTypes] = Field(alias="barProjection")
     bar_subcategory: Optional[str] = Field(alias="barSubcategory")
     base_layer: Optional[str] = Field(alias="baseLayer")
@@ -49,9 +47,7 @@ class DEXChartBase(DEXBaseModel):
     candle_open: Optional[str] = Field(alias="candleOpen")
     candlestick_mode: Optional[bool] = Field(alias="candlestickMode")
     combination_mode: Optional[options.DEXCombinationMode] = Field(alias="combinationMode")
-    confo_rules: Optional[List[DEXConditionalFormatRule]] = Field(
-        alias="confoRules", default_factory=list
-    )
+    confo_rules: List[DEXConditionalFormatRule] = Field(alias="confoRules", default_factory=list)
     csp_order: Optional[str] = Field(alias="cspOrder")
     deselect_keys_hash: Optional[dict] = Field(alias="deselectKeysHash")
     dim1: Optional[str]
@@ -73,7 +69,7 @@ class DEXChartBase(DEXBaseModel):
     layer_settings: Optional[List[options.DEXLayerSettings]] = Field(alias="layerSettings")
     line_brush: Optional[dict] = Field(alias="lineBrush")
     line_smoothing: Optional[options.DEXLineSmoothing] = Field(alias="lineSmoothing")
-    line_type: Optional[options.DEXLineType] = Field(alias="lineType", default="line")
+    line_type: options.DEXLineType = Field(alias="lineType", default="line")
     map_mode: Optional[str] = Field(alias="mapMode")
     map_zoom: Optional[str] = Field(alias="mapZoom")
     marginal_graphics: Optional[options.DEXSummaryType] = Field(alias="marginalGraphics")
@@ -89,10 +85,10 @@ class DEXChartBase(DEXBaseModel):
     network_type: Optional[options.DEXNetworkType] = Field(alias="networkType")
     override_point_size: Optional[int] = Field(alias="overridePointSize")
     par_coords_color: Optional[str] = Field(alias="parCoordsColor")
-    pie_label_contents: Optional[options.DEXPieLabelContents] = Field(
+    pie_label_contents: options.DEXPieLabelContents = Field(
         alias="pieLabelContents", default="name"
     )
-    pie_label_type: Optional[options.DEXPieLabelType] = Field(alias="pieLabelType", default="rim")
+    pie_label_type: options.DEXPieLabelType = Field(alias="pieLabelType", default="rim")
     piece_type: Optional[options.DEXPieceType] = Field(alias="pieceType")
     point_bar_mode: Optional[str] = Field(alias="pointBarMode")
     point_type: Optional[options.DEXPointType] = Field(alias="pointType")
@@ -102,7 +98,7 @@ class DEXChartBase(DEXBaseModel):
     scatterplot_color: Optional[str] = Field(alias="scatterplotColor")
     scatterplot_size: Optional[str] = Field(alias="scatterplotSize")
     second_bar_metric: Optional[str] = Field(alias="secondBarMetric")
-    second_metric_style: Optional[options.DEXSecondMetricstyle] = Field(
+    second_metric_style: options.DEXSecondMetricstyle = Field(
         alias="secondMetricStyle", default="bar"
     )
     selected_dimensions: Optional[List[str]] = Field(alias="selectedDimensions")
