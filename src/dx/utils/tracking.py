@@ -58,7 +58,6 @@ class DXDataFrame:
         from dx.sampling import get_df_dimensions
 
         self.id = uuid.uuid4()
-        self.cell_id = os.environ.get("LAST_EXECUTED_CELL_ID")
         self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
 
         self.original_column_dtypes = df.dtypes.to_dict()
@@ -68,6 +67,8 @@ class DXDataFrame:
 
         self.df = normalize_index_and_columns(df)
         self.hash = generate_df_hash(self.df)
+
+        self.cell_id = self.get_cell_id()
         self.display_id = self.get_display_id()
         self.parent_dataset_info = self.get_parent_info()
 
@@ -87,14 +88,22 @@ class DXDataFrame:
         )
         return f"<DXDataFrame {attr_str}>"
 
+    def get_cell_id(self) -> str:
+        last_executed_cell_id = os.environ.get("LAST_EXECUTED_CELL_ID")
+        cell_id = SUBSET_TO_DISPLAY_ID.get(self.hash, {}).get("cell_id", last_executed_cell_id)
+        logger.debug(f"{last_executed_cell_id=} / last associated {cell_id=}")
+        return cell_id
+
+    def get_display_id(self) -> str:
+        display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, {}).get("display_id", str(uuid.uuid4()))
+        logger.debug(f"{display_id=}")
+        return display_id
+
     def get_parent_info(self) -> dict:
         parent_info = SUBSET_TO_DISPLAY_ID.get(self.hash)
         if parent_info is not None:
             return parent_info
         return {"cell_id": self.cell_id, "display_id": self.display_id}
-
-    def get_display_id(self) -> str:
-        return SUBSET_TO_DISPLAY_ID.get(self.hash, {}).get("display_id", str(uuid.uuid4()))
 
 
 def generate_df_hash(df: pd.DataFrame) -> str:
