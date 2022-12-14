@@ -257,7 +257,7 @@ def generate_metadata(
         existing_metadata = parent_dxdf.metadata
         parent_dataframe_info = existing_metadata.get("datalink", {}).get("dataframe_info", {})
         dex_metadata = DEXMetadata.parse_obj(existing_metadata.get("dx", {}))
-        logger.info(f"existing {dex_metadata=}")
+        logger.debug(f"existing {dex_metadata=}")
         if parent_dataframe_info:
             # if this comes after a resampling operation, we need to make sure the
             # original dimensions aren't overwritten by this new dataframe_info,
@@ -271,7 +271,7 @@ def generate_metadata(
             dataframe_info = parent_dataframe_info
         # these are set whenever store_sample_to_history() is called after a filter action from the frontend
         sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
-        filters = [dex_filter.dict() for dex_filter in parent_dxdf.filters]
+        filters = parent_dxdf.filters
 
     metadata = {
         "datalink": {
@@ -335,7 +335,7 @@ def add_dex_metadata(
     variable_name: str,
 ) -> dict:
     if not dex_metadata.views:
-        logger.info("no views found, adding default view")
+        logger.debug("no views found, adding default view")
         dex_metadata.add_view(
             variable_name=variable_name,
             display_id=display_id,
@@ -385,7 +385,7 @@ def handle_extra_metadata(
             logger.warning(f"not sure what to do with {extra_metadata=}")
     except Exception as e:
         logger.error(f'error updating metadata: "{e}"')
-    logger.info(f"done handling extra metadata, {metadata=}")
+    logger.debug(f"done handling extra metadata, {metadata=}")
     return metadata
 
 
@@ -416,7 +416,7 @@ def update_dex_view_metadata(
             metadata.views[i] = extra_metadata
             updated_existing_view = True
         elif not updated_existing_view and view.variable_name == variable_name:
-            logger.info(f"updating {view.display_id=} with {extra_metadata=}")
+            logger.debug(f"updating {view.display_id=} with {extra_metadata=}")
             view = view.copy(update=extra_metadata)
             updated_existing_view = True
         else:
@@ -426,7 +426,7 @@ def update_dex_view_metadata(
         updated_views.append(view)
 
     if not updated_existing_view:
-        logger.info(f"didn't match to existing view; adding new view with {extra_metadata=}")
+        logger.debug(f"didn't match to existing view; adding new view with {extra_metadata=}")
         metadata.add_view(**extra_metadata)
     elif updated_views:
         metadata.views = updated_views
@@ -441,7 +441,7 @@ def update_dex_metadata(metadata: DEXMetadata, extra_metadata: dict) -> DEXMetad
     """
     Convenience method to update top-level DEX metadata; similar to update_dex_view_metadata().
     """
-    logger.info(f"updating metadata with {extra_metadata=}")
+    logger.debug(f"updating metadata with {extra_metadata=}")
     return metadata.copy(update=extra_metadata)
 
 
