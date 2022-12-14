@@ -46,10 +46,16 @@ def datalink_processing(
     dxdf = DXDataFrame(df)
 
     # Before rendering a DataFrame, we need to check and see if this is the result
-    # of a resampling request, which will appear as the same dataframe hash and cell ID
-    # used to format the previous/original dataframe that we see here.
-    # If the hash is the same, but the cell ID is different, we're executing in a different
-    # cell and should use the DXDataframe-generated display ID.
+    # of a resample request, which will appear as the same display ID and cell ID
+    # used to format the previous/original dataframe that we see here, which is used
+    # to update an existing display handler.
+    # - If the hash is the same, but the cell ID is different, we're executing in a different
+    # cell and should use a new (DXDataFrame-generated) display ID.
+    # - If the hash is different and found in SUBSET_TO_DISPLAY_ID, we have a resample request
+    # result that's rendering a smaller subset of the original dataframe, and will
+    # update the existing display handler based on display ID.
+    # - If the hash is different and is *not* found in SUBSET_TO_DISPLAY_ID, we have
+    # a new dataframe altogether, which should trigger a new output.
     parent_dataset_info = SUBSET_TO_DISPLAY_ID.get(dxdf.hash, {})
 
     parent_display_id = parent_dataset_info.get("display_id")
