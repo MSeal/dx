@@ -92,14 +92,14 @@ class DXDataFrame:
         cell_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
             "cell_id", last_executed_cell_id
         )
-        logger.debug(f"{last_executed_cell_id=} / last associated {cell_id=}")
+        logger.debug(f"DXDF {last_executed_cell_id=} / last associated {cell_id=}")
         return cell_id
 
     def get_display_id(self) -> str:
         display_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
             "display_id", str(uuid.uuid4())
         )
-        logger.debug(f"{display_id=}")
+        logger.debug(f"DXDF {display_id=}")
         return display_id
 
 
