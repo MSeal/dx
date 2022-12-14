@@ -44,41 +44,7 @@ def datalink_processing(
     extra_metadata: Optional[dict] = None,
 ):
     dxdf = DXDataFrame(df)
-
-    # Before rendering a DataFrame, we need to check and see if this is the result
-    # of a resample request, which will appear as the same display ID and cell ID
-    # used to format the previous/original dataframe that we see here, which is used
-    # to update an existing display handler.
-    # - If the hash is the same, but the cell ID is different, we're executing in a different
-    # cell and should use a new (DXDataFrame-generated) display ID.
-    # - If the hash is different and found in SUBSET_HASH_TO_PARENT_DATA, we have a resample request
-    # result that's rendering a smaller subset of the original dataframe, and will
-    # update the existing display handler based on display ID.
-    # - If the hash is different and is *not* found in SUBSET_HASH_TO_PARENT_DATA, we have
-    # a new dataframe altogether, which should trigger a new output.
-    parent_dataset_info = SUBSET_HASH_TO_PARENT_DATA.get(dxdf.hash, {})
-
-    parent_display_id = parent_dataset_info.get("display_id")
-    no_parent_id = parent_display_id is None
-    logger.debug(f"{dxdf.display_id=} & {parent_display_id=}")
-    if no_parent_id:
-        DXDF_CACHE[dxdf.display_id] = dxdf
-    else:
-        logger.debug(f"df is subset of existing {parent_display_id=}")
-
-    parent_cell_id = parent_dataset_info.get("cell_id")
-    different_cell_output = parent_cell_id != dxdf.cell_id
-    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
-    if different_cell_output and parent_display_id is not None:
-        logger.debug(
-            f"disregarding {parent_display_id=} and using {dxdf.display_id=} since this is a new cell_id",
-            parent_cell_id=parent_cell_id,
-            cell_id=dxdf.cell_id,
-        )
-        # doesn't matter if this dataset was associated with another,
-        # we shouldn't be re-rendering the display ID from another cell ID
-        parent_display_id = None
-
+    parent_display_id = determine_parent_display_id(dxdf)
     payload, metadata = format_output(
         dxdf.df,
         update=parent_display_id,
@@ -246,10 +212,48 @@ def format_output(
     return (payload, metadata)
 
 
+def determine_parent_display_id(dxdf: DXDataFrame) -> Optional[str]:
+    """
+    Before rendering a DataFrame, we need to check and see if this is the result
+    of a resample request, which will appear as the same display ID and cell ID
+    used to format the previous/original dataframe that we see here, which is used
+    to update an existing display handler.
+    - If the hash is the same, but the cell ID is different, we're executing in a different
+    cell and should use a new (DXDataFrame-generated) display ID.
+    - If the hash is different and found in SUBSET_HASH_TO_PARENT_DATA, we have a resample request
+    result that's rendering a smaller subset of the original dataframe, and will
+    update the existing display handler based on display ID.
+    - If the hash is different and is *not* found in SUBSET_HASH_TO_PARENT_DATA, we have
+    a new dataframe altogether, which should trigger a new output.
+    """
+    parent_dataset_info = SUBSET_HASH_TO_PARENT_DATA.get(dxdf.hash, {})
+
+    parent_display_id = parent_dataset_info.get("display_id")
+    no_parent_id = parent_display_id is None
+    logger.debug(f"{dxdf.display_id=} & {parent_display_id=}")
+    if no_parent_id:
+        DXDF_CACHE[dxdf.display_id] = dxdf
+    else:
+        logger.debug(f"df is subset of existing {parent_display_id=}")
+
+    parent_cell_id = parent_dataset_info.get("cell_id")
+    different_cell_output = parent_cell_id != dxdf.cell_id
+    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
+    if different_cell_output and parent_display_id is not None:
+        logger.debug(
+            f"disregarding {parent_display_id=} and using {dxdf.display_id=} since this is a new cell_id",
+            parent_cell_id=parent_cell_id,
+            cell_id=dxdf.cell_id,
+        )
+        # doesn't matter if this dataset was associated with another,
+        # we shouldn't be re-rendering the display ID from another cell ID
+        parent_display_id = None
+    return parent_display_id
+
+
 def dev_display(payload, metadata):
 
     from IPython.display import JSON, display
 
     display(JSON({"payload": payload}))
-    display(JSON({"metadata": metadata}))
     display(JSON({"metadata": metadata}))
