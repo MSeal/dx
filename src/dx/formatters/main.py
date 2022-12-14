@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Optional
 
@@ -100,7 +101,7 @@ def handle_format(
             extra_metadata=extra_metadata,
         )
     except Exception as e:
-        logger.debug(f"Error in datalink_processing: {e}")
+        logger.exception(f"Error in datalink_processing: {e}")
         # fall back to default processing
         payload, metadata = format_output(
             obj,
@@ -238,9 +239,10 @@ def determine_parent_display_id(dxdf: DXDataFrame) -> Optional[str]:
     else:
         logger.debug(f"df is subset of existing {parent_display_id=}")
 
+    last_executed_cell_id = os.environ.get("LAST_EXECUTED_CELL_ID")
     parent_cell_id = parent_dataset_info.get("cell_id")
     different_cell_output = parent_cell_id != dxdf.cell_id
-    logger.debug(f"{dxdf.cell_id=} & {parent_cell_id=}")
+    logger.debug(f"{dxdf.cell_id=} | {parent_cell_id=} | {last_executed_cell_id=}")
     if different_cell_output and parent_display_id is not None:
         logger.debug(
             f"disregarding {parent_display_id=} and using {dxdf.display_id=} since this is a new cell_id",
@@ -250,6 +252,15 @@ def determine_parent_display_id(dxdf: DXDataFrame) -> Optional[str]:
         # doesn't matter if this dataset was associated with another,
         # we shouldn't be re-rendering the display ID from another cell ID
         parent_display_id = None
+
+    if parent_display_id is not None:
+        logger.debug(
+            f"updating existing display handler {parent_display_id=}",
+            parent_cell_id=parent_cell_id,
+            cell_id=dxdf.cell_id,
+        )
+        # if we don't remove this, we'll keep updating the same display handler
+        SUBSET_HASH_TO_PARENT_DATA.pop(dxdf.hash)
     return parent_display_id
 
 

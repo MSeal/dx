@@ -275,5 +275,5 @@ class DEXMetadata(DEXBaseModel):
             is_default=is_default,
             **kwargs,
         )
-        logger.info(f"adding {new_view=}")
+        logger.debug(f"adding {new_view=}")
         self.views.append(new_view)

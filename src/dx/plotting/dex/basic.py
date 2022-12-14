@@ -187,7 +187,7 @@ def line(
         "timeseries_sort": x,
         "zero_baseline": zero_baseline,
     }
-    logger.info(f"{chart_settings=}")
+    logger.debug(f"{chart_settings=}")
     return handle_view(
         df,
         chart_mode="line",
