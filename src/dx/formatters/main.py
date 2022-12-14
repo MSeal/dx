@@ -13,6 +13,7 @@ from dx.sampling import get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.types.main import DXDisplayMode
 from dx.utils.formatting import (
+    check_for_duplicate_columns,
     generate_metadata,
     is_default_index,
     normalize_index_and_columns,
@@ -75,6 +76,7 @@ def handle_format(
     logger.debug(f"*** handling {settings.DISPLAY_MODE} format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
+    obj = check_for_duplicate_columns(obj)
     logger.debug(f"{obj.shape=}")
 
     default_index_used = is_default_index(obj.index)
