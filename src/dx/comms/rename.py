@@ -1,6 +1,5 @@
 from typing import Optional
 
-import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
