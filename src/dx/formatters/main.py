@@ -101,7 +101,7 @@ def handle_format(
             extra_metadata=extra_metadata,
         )
     except Exception as e:
-        logger.exception(f"Error in datalink_processing: {e}")
+        logger.debug(f"Error in datalink_processing: {e}")
         # fall back to default processing
         payload, metadata = format_output(
             obj,
