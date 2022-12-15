@@ -86,6 +86,7 @@ class DEXBaseModel(BaseModel):
     class Config:
         use_enum_values = True
         allow_population_by_field_name = True
+        extra = "allow"
 
 
 class DEXColorOptions(DEXBaseModel):
