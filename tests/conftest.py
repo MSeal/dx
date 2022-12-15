@@ -71,6 +71,18 @@ def sample_random_dataframe() -> pd.DataFrame:
 
 
 @pytest.fixture
+def sample_random_dataframe_with_duplicate_columns(
+    sample_random_dataframe: pd.DataFrame,
+) -> pd.DataFrame:
+    return sample_random_dataframe.rename(
+        columns={
+            "integer_column": "number_column",
+            "float_column": "number_column",
+        }
+    )
+
+
+@pytest.fixture
 def sample_cleaned_random_dataframe(sample_random_dataframe: pd.DataFrame) -> pd.DataFrame:
     return normalize_index_and_columns(sample_random_dataframe)
 
