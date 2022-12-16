@@ -7,7 +7,13 @@ from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import get_settings, settings_context
-from dx.utils.formatting import groupby_series_index_name, normalize_index_and_columns, to_dataframe
+from dx.utils.formatting import (
+    check_for_duplicate_columns,
+    groupby_series_index_name,
+    incrementing_label,
+    normalize_index_and_columns,
+    to_dataframe,
+)
 from dx.utils.tracking import DXDF_CACHE
 
 dataresource_settings = get_dataresource_settings()
@@ -200,6 +206,7 @@ class TestDataFrameHandling:
             "sample_groupby_dataframe",
             "sample_resampled_dataframe",
             "sample_resampled_groupby_dataframe",
+            "sample_random_dataframe_with_duplicate_columns",
         ],
     )
     def test_success_with_varying_dataframe_structures(
@@ -213,6 +220,7 @@ class TestDataFrameHandling:
         sample_groupby_dataframe: pd.DataFrame,
         sample_resampled_dataframe: pd.DataFrame,
         sample_resampled_groupby_dataframe: pd.DataFrame,
+        sample_random_dataframe_with_duplicate_columns: pd.DataFrame,
     ):
         """
         Test that various operations applied to dataframes will still
@@ -229,6 +237,8 @@ class TestDataFrameHandling:
             obj = sample_resampled_dataframe
         elif data_structure == "sample_resampled_groupby_dataframe":
             obj = sample_resampled_groupby_dataframe
+        elif data_structure == "sample_random_dataframe_with_duplicate_columns":
+            obj = sample_random_dataframe_with_duplicate_columns
 
         try:
             with settings_context(enable_datalink=datalink_enabled, display_mode=display_mode):
@@ -502,3 +512,48 @@ class TestMetadataVariableName:
             _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"] == ""
+
+
+class TestDuplicateColumns:
+    def test_duplicate_columns_add_suffixes(
+        self, sample_random_dataframe_with_duplicate_columns: pd.DataFrame
+    ):
+        """
+        Ensure that duplicate columns are handled correctly.
+        """
+        df = check_for_duplicate_columns(sample_random_dataframe_with_duplicate_columns)
+        assert not df.columns.duplicated().any()
+
+    def test_duplicate_columns_add_suffixes_with_groupby(
+        self, sample_random_dataframe_with_duplicate_columns: pd.DataFrame
+    ):
+        """
+        Ensure that duplicate columns are handled correctly when grouping.
+        """
+        duped_groupby = sample_random_dataframe_with_duplicate_columns.groupby(
+            "keyword_column"
+        ).agg(["min", "max"])
+        df = check_for_duplicate_columns(duped_groupby)
+        assert not df.columns.duplicated().any()
+
+
+class TestIncrementingLabels:
+    def test_single_label(self):
+        """
+        Ensure that a string present in an iterable is appended with
+        a numeric suffix.
+        """
+        test_value = "a"
+        values = ["a", "b", "c"]
+        test_value = incrementing_label(test_value, values)
+        assert test_value == "a_1"
+
+    def test_multiple_labels(self):
+        """
+        Ensure that a string present in an iterable multiple times
+        is appended with the correct numeric suffix.
+        """
+        test_value = "a"
+        values = ["a", "a_1", "a_2", "b", "c"]
+        test_value = incrementing_label(test_value, values)
+        assert test_value == "a_3"

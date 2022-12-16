@@ -6,6 +6,7 @@ from IPython.core.interactiveshell import InteractiveShell
 
 from dx.filtering import resample_from_db
 from dx.types.filters import DEXFilterSettings
+from dx.utils.formatting import incrementing_label
 
 logger = structlog.get_logger(__name__)
 
@@ -50,24 +51,10 @@ def handle_assignment_comm(msg: dict, ipython_shell: Optional[InteractiveShell] 
         variable_name = data["variable_name"]
 
         # if the variable already exists in the user namespace, add a suffix so the previous value isn't overwritten
-        free_variable_name = check_variable_name(variable_name, ipython=ipython)
-        logger.debug(
-            f"assigning {len(sampled_df)}-row dataframe to `{free_variable_name}` in {ipython}"
-        )
-        ipython.user_ns[free_variable_name] = sampled_df
-
-
-def check_variable_name(variable_name: str, ipython: InteractiveShell) -> str:
-    """
-    Checks if the variable name already exists in the user namespace,
-    and if so, appends a numeric suffix to it.
-    """
-    if variable_name in ipython.user_ns:
-        suffix = 1
-        while f"{variable_name}_{suffix}" in ipython.user_ns:
-            suffix += 1
-        variable_name = f"{variable_name}_{suffix}"
-    return variable_name
+        if variable_name in ipython.user_ns:
+            variable_name = incrementing_label(variable_name, ipython.user_ns)
+        logger.debug(f"assigning {len(sampled_df)}-row dataframe to `{variable_name}` in {ipython}")
+        ipython.user_ns[variable_name] = sampled_df
 
 
 def register_assignment_comm(ipython_shell: InteractiveShell) -> None:
