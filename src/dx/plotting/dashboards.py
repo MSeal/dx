@@ -67,7 +67,7 @@ def make_dashboard(
                 by_alias=True,
                 exclude_none=True,
             )
-            logger.info(f"{dex_dashboard_view_dict=}")
+            logger.debug(f"{dex_dashboard_view_dict=}")
             dex_metadata.views.append(dex_dashboard_view_dict)
             # define the view positioning
             multiview = {

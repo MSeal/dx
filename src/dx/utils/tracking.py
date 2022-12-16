@@ -1,4 +1,5 @@
 import hashlib
+import os
 import uuid
 from functools import lru_cache
 from typing import List, Optional, Union
@@ -19,10 +20,8 @@ settings = get_settings()
 
 # should be (display_id: DXDataFrame) pairs
 DXDF_CACHE = {}
-# not currently used -- will be needed to disambiguate subsets across different cells
-CELL_ID_TO_DISPLAY_ID = {}
 # used to track when a filtered subset should be tied to an existing display ID
-SUBSET_TO_DISPLAY_ID = {}
+SUBSET_HASH_TO_PARENT_DATA = {}
 
 
 @lru_cache
@@ -68,7 +67,9 @@ class DXDataFrame:
 
         self.df = normalize_index_and_columns(df)
         self.hash = generate_df_hash(self.df)
-        self.display_id = SUBSET_TO_DISPLAY_ID.get(self.hash, str(uuid.uuid4()))
+
+        self.cell_id = self.get_cell_id()
+        self.display_id = self.get_display_id()
 
         self.metadata: dict = generate_metadata(
             df=self.df,
@@ -85,6 +86,21 @@ class DXDataFrame:
             f"{k}={v}" for k, v in self.__dict__.items() if not isinstance(v, (pd.DataFrame))
         )
         return f"<DXDataFrame {attr_str}>"
+
+    def get_cell_id(self) -> str:
+        last_executed_cell_id = os.environ.get("LAST_EXECUTED_CELL_ID")
+        cell_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
+            "cell_id", last_executed_cell_id
+        )
+        logger.debug(f"DXDF {last_executed_cell_id=} / last associated {cell_id=}")
+        return cell_id
+
+    def get_display_id(self) -> str:
+        display_id = SUBSET_HASH_TO_PARENT_DATA.get(self.hash, {}).get(
+            "display_id", str(uuid.uuid4())
+        )
+        logger.debug(f"DXDF {display_id=}")
+        return display_id
 
 
 def generate_df_hash(df: pd.DataFrame) -> str:
