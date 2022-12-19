@@ -3,3 +3,4 @@ mkdocs-material
 mkdocs-jupyter
 mkdocstrings
 mkdocstrings-python
+mkdocs-glightbox
