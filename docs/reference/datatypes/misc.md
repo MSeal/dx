@@ -5,3 +5,4 @@
 ::: src.dx.generate_list_series
 ::: src.dx.generate_ipv4_series
 ::: src.dx.generate_ipv6_series
+::: src.dx.generate_uuid4_series
