@@ -96,26 +96,28 @@ class TestRenameComm:
         handle_renaming_comm(msg, ipython_shell=get_ipython)
         assert "new_df" not in get_ipython.user_ns.keys()
 
-    def test_rename_skipped_no_dataframe(
+    def test_rename_non_dataframes(
         self,
         get_ipython: TerminalInteractiveShell,
     ):
         """
-        Test that a rename comm is skipped if the variable matching
-        the `old_name` is not a pandas DataFrame.
+        Test that a rename comm is also works if non-dataframe is referenced.
         """
         msg = {
             "content": {
                 "data": {
-                    "old_name": "old_df",
-                    "new_name": "new_df",
+                    "old_name": "old_var",
+                    "new_name": "new_var",
                 }
             }
         }
-        get_ipython.user_ns["old_df"] = "I am not a dataframe; I am a string."
+        the_string = "I am not a dataframe; I am a string."
+        get_ipython.user_ns["old_var"] = the_string
         handle_renaming_comm(msg, ipython_shell=get_ipython)
-        assert "new_df" not in get_ipython.user_ns.keys()
-        assert "old_df" in get_ipython.user_ns.keys()
+        assert (
+            "new_var" in get_ipython.user_ns.keys() and get_ipython.user_ns["new_var"] == the_string
+        )
+        assert "old_var" not in get_ipython.user_ns.keys()
 
 
 class TestAssignmentComm:
