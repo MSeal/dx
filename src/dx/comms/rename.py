@@ -1,6 +1,5 @@
 from typing import Optional
 
-import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
@@ -16,8 +15,11 @@ def renamer(comm, open_msg):
         handle_renaming_comm(msg)
 
 
+UNSET = object()
+
+
 def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = None):
-    """Implementation behind renaming a SQL cell dataframe via comms"""
+    """Implementation behind renaming a SQL cell output variable via comms"""
     content = msg.get("content")
     if not content:
         return
@@ -32,16 +34,8 @@ def handle_renaming_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = 
             # shell will be passed in from test suite, otherwise go with global shell.
             ipython_shell = get_ipython()
 
-        value_to_rename = ipython_shell.user_ns.get(data["old_name"])
-
-        # Do not rename unless old_name mapped onto exactly a dataframe.
-        #
-        # (Handles case when it maps onto None, indicating that the old name
-        #  hasn't been assigned to at all yet (i.e. user gestured to rename
-        #  SQL cell dataframe name before the SQL cell has even been run the
-        #  first time yet))
-        #
-        if isinstance(value_to_rename, pd.DataFrame):
+        value_to_rename = ipython_shell.user_ns.get(data["old_name"], UNSET)
+        if value_to_rename is not UNSET:
             # New name can be empty string, indicating to drop reference to the var.
             if data["new_name"]:
                 ipython_shell.user_ns[data["new_name"]] = value_to_rename
