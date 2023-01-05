@@ -1652,7 +1652,7 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstr
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1247af0d34d6329bab819f69c7bace1ff2c5a1ea9cd7f62241003019b98312b0"
+content-hash = "83f76ef0d68c7a9adbfb2e4d6bc4c2de0af7753eee1461bacdc9de17c82012b3"
 
 [metadata.files]
 appnope = [
