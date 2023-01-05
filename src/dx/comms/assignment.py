@@ -22,7 +22,7 @@ def dataframe_assignment(comm, open_msg):
         # Is separate function to make testing easier.
         handle_assignment_comm(msg)
 
-    comm.send({"status": "connected"})
+    comm.send({"status": "connected", "source": "dataframe_assignment"})
 
 
 def handle_assignment_comm(msg: dict, ipython_shell: Optional[InteractiveShell] = None):

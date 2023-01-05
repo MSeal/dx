@@ -14,6 +14,8 @@ def renamer(comm, open_msg):
     def _recv(msg):
         handle_renaming_comm(msg)
 
+    comm.send({"status": "connected", "source": "renamer"})
+
 
 UNSET = object()
 
