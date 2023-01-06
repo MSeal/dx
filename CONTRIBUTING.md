@@ -10,7 +10,7 @@ Please note we have a [code of conduct](./CODE_OF_CONDUCT.md), please follow it 
 Before submitting a pull request:
 
 1. Ensure tests pass for bug fixes.
-2. Ensure new tests are added to cover new featuers or non trivial changes.
+2. Ensure new tests are added to cover new features or non trivial changes.
 3. Ensure relevant documentation is updated.
 
 ## Environment Setup
@@ -26,7 +26,7 @@ Run the following
 
 1. Clone the repository:
 
-        $ git checkout git@github.com:noteable-io/dx.git && cd dx
+        $ git clone git@github.com:noteable-io/dx.git && cd dx
 
 2. Install dependencies:
 
