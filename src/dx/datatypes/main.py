@@ -34,6 +34,7 @@ DX_DATATYPES = {
     "ipv4_address_column": False,
     "ipv6_address_column": False,
     "complex_number_column": False,
+    "uuid4_column": False,
 }
 # specifically used for pytest.mark.parametrize ordering
 SORTED_DX_DATATYPES = sorted(list(DX_DATATYPES.keys()))
@@ -93,6 +94,7 @@ def random_dataframe(
     ipv4_address_column: bool = False,
     ipv6_address_column: bool = False,
     complex_number_column: bool = False,
+    uuid4_column: bool = False,
 ):  # noqa: C901
     """
     Convenience function to generate a dataframe of `num_rows` length
@@ -154,6 +156,8 @@ def random_dataframe(
         Whether to include a column of `ipaddress.IPv6Address` values
     complex_number_column : bool
         Whether to include a column of `complex` values
+    uuid4_column : bool
+        Whether to include a column of `uuid.UUID` values
     """
     df = pd.DataFrame(index=list(range(num_rows)))
 
@@ -244,6 +248,9 @@ def random_dataframe(
 
     if ipv6_address_column:
         df["ipv6_address_column"] = misc.generate_ipv6_series(num_rows)
+
+    if uuid4_column:
+        df["uuid4_column"] = misc.generate_uuid4_series(num_rows)
 
     return df
 

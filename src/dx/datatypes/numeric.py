@@ -78,7 +78,7 @@ def generate_complex_number_series(num_rows: int) -> pd.Series:
 
 ### Handler helper functions ###
 def handle_complex_number_series(s: pd.Series) -> pd.Series:
-    types = (complex, np.complex)
+    types = (complex,)
     if any(isinstance(v, types) for v in s.dropna().head().values):
         logger.debug(f"series `{s.name}` has complex numbers; converting to real/imag string")
         s = s.apply(lambda x: f"{x.real}+{x.imag}j" if isinstance(x, types) else x)

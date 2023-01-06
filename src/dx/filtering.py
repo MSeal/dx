@@ -8,7 +8,12 @@ from IPython.terminal.interactiveshell import InteractiveShell
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
 from dx.types.filters import DEXFilterSettings, DEXResampleMessage
-from dx.utils.tracking import DXDF_CACHE, SUBSET_TO_DISPLAY_ID, generate_df_hash, get_db_connection
+from dx.utils.tracking import (
+    DXDF_CACHE,
+    SUBSET_HASH_TO_PARENT_DATA,
+    generate_df_hash,
+    get_db_connection,
+)
 
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
@@ -26,9 +31,11 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata = metadata["datalink"]
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
+    # convert from FilterTypes to dicts
+    dex_filters = [dex_filter.dict() for dex_filter in filters]
     sample = {
         "sampling_time": sample_time,
-        "filters": [dex_filter.dict() for dex_filter in filters],
+        "filters": dex_filters,
         "dataframe_info": get_df_dimensions(df, prefix="truncated"),
     }
     datalink_metadata["sample_history"].append(sample)
@@ -36,7 +43,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
     datalink_metadata["sample_history"] = datalink_metadata["sample_history"][
         -settings.NUM_PAST_SAMPLES_TRACKED :
     ]
-    datalink_metadata["applied_filters"] = filters
+    datalink_metadata["applied_filters"] = dex_filters
     datalink_metadata["sampling_time"] = sample_time
 
     metadata["datalink"] = datalink_metadata
@@ -49,6 +56,8 @@ def resample_from_db(
     display_id: str,
     sql_filter: str,
     filters: Optional[list] = None,
+    cell_id: Optional[str] = None,
+    assign_subset: bool = True,
     ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
@@ -85,12 +94,16 @@ def resample_from_db(
             col = ", ".join(col)
         new_df[col] = new_df[col].astype(dtype)
 
-    # this is associating the subset with the original dataframe,
-    # which will be checked when the DisplayFormatter.format() is called
-    # during update_display(), which will prevent re-registering the display ID to the subset
-    new_df_hash = generate_df_hash(new_df)
-    logger.debug(f"assigning subset {new_df_hash} to {display_id=}")
-    SUBSET_TO_DISPLAY_ID[new_df_hash] = display_id
+    if assign_subset:
+        # this is associating the subset with the original dataframe,
+        # which will be checked when the DisplayFormatter.format() is called
+        # during update_display(), which will prevent re-registering the display ID to the subset
+        new_df_hash = generate_df_hash(new_df)
+        logger.debug(f"assigning subset {cell_id}+{new_df_hash} to {display_id=}")
+        SUBSET_HASH_TO_PARENT_DATA[new_df_hash] = {
+            "cell_id": cell_id,
+            "display_id": display_id,
+        }
 
     return new_df
 
@@ -106,6 +119,7 @@ def handle_resample(
         "display_id": msg.display_id,
         "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
         "filters": raw_filters,
+        "cell_id": msg.cell_id,
     }
 
     if raw_filters:

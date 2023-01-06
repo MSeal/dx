@@ -5,6 +5,7 @@ from typing import Optional, Set, Union
 
 import pandas as pd
 import structlog
+from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
@@ -218,8 +219,48 @@ def set_option(
         if key == "LOG_LEVEL":
             set_log_level(value)
 
+        # allow enabling/disabling comms based on settings
+        enable_disable_comms(
+            setting_name=key,
+            enabled=value,
+            ipython_shell=ipython_shell,
+        )
+
         return
     raise ValueError(f"`{key}` is not a valid setting")
+
+
+def enable_disable_comms(
+    setting_name: str,
+    enabled: bool,
+    ipython_shell: Optional[InteractiveShell] = None,
+) -> None:
+    """
+    Registers/unregisters a target based on its associated name within Settings.
+    For example, the following will unregister the "datalink_resample" comm:
+    >>> enable_disable_comms("ENABLE_DATALINK", False)
+    And to re-register it:
+    >>> enable_disable_comms("ENABLE_DATALINK", True)
+    """
+    from dx import comms
+
+    comm_setting_targets = {
+        "ENABLE_DATALINK": ("datalink_resample", comms.resample.resampler),
+        "ENABLE_RENAMER": ("rename", comms.rename.renamer),
+        "ENABLE_ASSIGNMENT": ("datalink_assignment", comms.assignment.dataframe_assignment),
+    }
+    if setting_name not in comm_setting_targets:
+        return
+
+    ipython_shell = ipython_shell or get_ipython()
+    if getattr(ipython_shell, "kernel", None) is None:
+        return
+
+    comm_target, comm_callback = comm_setting_targets[setting_name]
+    if enabled:
+        ipython_shell.kernel.comm_manager.register_target(comm_target, comm_callback)
+    else:
+        ipython_shell.kernel.comm_manager.unregister_target(comm_target, comm_callback)
 
 
 @contextmanager
