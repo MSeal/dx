@@ -248,7 +248,7 @@ numpy = ">=1.14"
 
 [[package]]
 name = "duckdb-engine"
-version = "0.6.6"
+version = "0.6.8"
 description = "SQLAlchemy driver for duckdb"
 category = "main"
 optional = false
@@ -1905,8 +1905,8 @@ duckdb = [
     {file = "duckdb-0.6.1.tar.gz", hash = "sha256:6d26e9f1afcb924a6057785e506810d48332d4764ddc4a5b414d0f2bf0cacfb4"},
 ]
 duckdb-engine = [
-    {file = "duckdb_engine-0.6.6-py3-none-any.whl", hash = "sha256:4b8e7d1e1a11b324d6959e144ea1beed53f6d81409422878730848e66340531a"},
-    {file = "duckdb_engine-0.6.6.tar.gz", hash = "sha256:d53490dd6fb797c23bb36dc500b652d1e2071cde52d3d5aa3e7c5f2f7490936b"},
+    {file = "duckdb_engine-0.6.8-py3-none-any.whl", hash = "sha256:f77391f24d7879c3502210e5c5c799b683ce1d484e49d208f667cf0c8e701b74"},
+    {file = "duckdb_engine-0.6.8.tar.gz", hash = "sha256:02e6e48e5180b9949b1cab55fa74116aae15f965b44cb32e753ab6abfade7d0b"},
 ]
 entrypoints = [
     {file = "entrypoints-0.4-py3-none-any.whl", hash = "sha256:f174b5ff827504fd3cd97cc3f8649f3693f51538c7e4bdf3ef002c8429d42f9f"},
