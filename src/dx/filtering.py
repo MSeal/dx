@@ -142,10 +142,17 @@ def handle_resample(
         filters=raw_filters,
     )
 
-    # allow temporary override of the display limit
-    with settings_context(DISPLAY_MAX_ROWS=sample_size):
+    # allow temporary override of the display
+    context_params = dict(
+        DISPLAY_MAX_ROWS=sample_size,
+        DISPLAY_MAX_COLUMNS=msg.num_columns,
+        COLUMN_SAMPLING_METHOD=msg.column_sampling_method,
+        ROW_SAMPLING_METHOD=msg.row_sampling_method,
+    )
+    with settings_context(**context_params):
         logger.debug(
-            f"updating {msg.display_id=} with {min(sample_size, len(resampled_df))}-row resample"
+            f"updating {msg.display_id=} with {min(sample_size, len(resampled_df))}-row resample",
+            **context_params,
         )
         update_display(
             resampled_df,
