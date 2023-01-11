@@ -232,11 +232,9 @@ class DEXMetadata(DEXBaseModel):
     annotations_rules_by_id: Optional[dict] = Field(alias="annotationsRulesById")
     dashboard: Optional[DEXDashboard]
     decoration: Optional[dict]
-    field_metadata: Optional[Dict[str, DEXField]] = Field(
-        alias="fieldMetadata", default_factory=dict
-    )
-    filters: Optional[dict] = Field(default_factory=dict)
-    mode: Optional[DEXMode] = None
+    field_metadata: Dict[str, DEXField] = Field(alias="fieldMetadata", default_factory=dict)
+    filters: dict = Field(default_factory=dict)
+    mode: DEXMode = DEXMode.exploration
     simple_table: bool = Field(alias="simpleTable", default=False)
     styles: Optional[DEXStyleConfig]
     updated: int = Field(default_factory=time.time)
