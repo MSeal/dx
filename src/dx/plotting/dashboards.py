@@ -5,12 +5,13 @@ import structlog
 
 from dx.formatters.main import handle_format
 from dx.plotting.dex import _samples
+from dx.settings import settings_context
 from dx.types.dex_metadata import DEXMetadata, DEXView
 
 logger = structlog.get_logger(__name__)
 
 
-def make_dashboard(
+def dashboard(
     df: pd.DataFrame,
     views: List[Union[str, dict, list, DEXView]],
     **kwargs,
@@ -88,14 +89,15 @@ def make_dashboard(
 
     dex_dashboard_metadata = DEXView.parse_obj(dashboard_view_metadata)
 
-    handle_format(
-        df,
-        extra_metadata={
-            "dashboard": {
-                "multiViews": [
-                    dex_dashboard_metadata.dict(by_alias=True),
-                ],
+    with settings_context(generate_dex_metadata=True):
+        handle_format(
+            df,
+            extra_metadata={
+                "dashboard": {
+                    "multiViews": [
+                        dex_dashboard_metadata.dict(by_alias=True),
+                    ],
+                },
+                "views": dex_metadata.views,
             },
-            "views": dex_metadata.views,
-        },
-    )
+        )
