@@ -47,9 +47,9 @@ def plot(df: dict, kind: str, **kwargs) -> None:
     elif (sample_chart := getattr(_samples, f"sample_{kind}", None)) is not None:
         view = sample_chart(df, return_view=True, **kwargs)
     elif kind == "dashboard":
-        from dx.plotting.dashboards import make_dashboard
+        from dx.plotting.dashboards import dashboard
 
-        return make_dashboard(df, **kwargs)
+        return dashboard(df, **kwargs)
     else:
         raise NotImplementedError(f"{kind=} not yet supported for plotting.backend='dx'")
 
@@ -101,10 +101,8 @@ def handle_view(
         by_alias=True,
     )
     logger.debug(f"{view_metadata=}")
-    handle_format(
-        df,
-        extra_metadata=view_metadata,
-    )
+    with settings_context(generate_dex_metadata=True):
+        handle_format(df, extra_metadata=view_metadata)
 
 
 def raise_for_missing_columns(columns: List[str], existing_columns: pd.Index) -> None:
