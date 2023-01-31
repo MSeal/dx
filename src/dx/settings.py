@@ -72,7 +72,6 @@ class Settings(BaseSettings):
 
     # controls dataframe variable tracking, hashing, and storing in sqlite
     ENABLE_DATALINK: bool = True
-    ENABLE_RENAMER: bool = True
     ENABLE_ASSIGNMENT: bool = True
 
     NUM_PAST_SAMPLES_TRACKED: int = 3
@@ -246,7 +245,6 @@ def enable_disable_comms(
 
     comm_setting_targets = {
         "ENABLE_DATALINK": ("datalink_resample", comms.resample.resampler),
-        "ENABLE_RENAMER": ("rename", comms.rename.renamer),
         "ENABLE_ASSIGNMENT": ("datalink_assignment", comms.assignment.dataframe_assignment),
     }
     if setting_name not in comm_setting_targets:
