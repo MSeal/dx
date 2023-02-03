@@ -38,17 +38,14 @@ def test_store_sample_to_history(
         filters,
     )
 
-    assert sample_dxdataframe.metadata["datalink"]["applied_filters"] == filters
-    assert sample_dxdataframe.metadata["datalink"]["sampling_time"] is not None
+    datalink_metadata = sample_dxdataframe.metadata["datalink"]
+    assert datalink_metadata["applied_filters"] == filters
+    if has_filters:
+        assert isinstance(datalink_metadata["applied_filters"][0], dict)
+    assert datalink_metadata["sampling_time"] is not None
 
-    assert (
-        sample_dxdataframe.metadata["datalink"]["dataframe_info"]["orig_num_rows"]
-        == sample_dxdataframe.df.shape[0]
-    )
-    assert (
-        sample_dxdataframe.metadata["datalink"]["dataframe_info"]["orig_num_cols"]
-        == sample_dxdataframe.df.shape[1]
-    )
+    assert datalink_metadata["dataframe_info"]["orig_num_rows"] == sample_dxdataframe.df.shape[0]
+    assert datalink_metadata["dataframe_info"]["orig_num_cols"] == sample_dxdataframe.df.shape[1]
 
 
 class TestResample:
@@ -258,6 +255,10 @@ class TestResample:
                 resampled_dxdf.display_id
                 == SUBSET_HASH_TO_PARENT_DATA[resampled_dxdf.hash]["display_id"]
             )
+
+            if has_filters:
+                applied_filter = resampled_dxdf.metadata["datalink"]["applied_filters"][0]
+                assert isinstance(applied_filter, dict)
 
     @pytest.mark.parametrize("has_filters", [True, False])
     @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
