@@ -38,17 +38,27 @@ def test_store_sample_to_history(
         filters,
     )
 
-    assert sample_dxdataframe.metadata["datalink"]["applied_filters"] == filters
-    assert sample_dxdataframe.metadata["datalink"]["sampling_time"] is not None
+    datalink_metadata = sample_dxdataframe.metadata["datalink"]
 
-    assert (
-        sample_dxdataframe.metadata["datalink"]["dataframe_info"]["orig_num_rows"]
-        == sample_dxdataframe.df.shape[0]
-    )
-    assert (
-        sample_dxdataframe.metadata["datalink"]["dataframe_info"]["orig_num_cols"]
-        == sample_dxdataframe.df.shape[1]
-    )
+    assert datalink_metadata["applied_filters"] == filters
+    if has_filters:
+        # ensure sampling history and currently applied filters are present
+        # and properly formatted for the frontend to reference
+        applied_filters = datalink_metadata["applied_filters"]
+        assert isinstance(applied_filters[0], dict)
+
+        sample_history = datalink_metadata["sample_history"]
+        assert len(sample_history) == 1
+        assert "filters" in sample_history[0]
+        assert isinstance(sample_history[0]["filters"], list)
+        assert isinstance(sample_history[0]["filters"][0], dict)
+        assert sample_history[0]["filters"][0] == filters[0]
+        assert sample_history[0]["sampling_time"] is not None
+
+    assert datalink_metadata["sampling_time"] is not None
+
+    assert datalink_metadata["dataframe_info"]["orig_num_rows"] == sample_dxdataframe.df.shape[0]
+    assert datalink_metadata["dataframe_info"]["orig_num_cols"] == sample_dxdataframe.df.shape[1]
 
 
 class TestResample:
@@ -258,6 +268,10 @@ class TestResample:
                 resampled_dxdf.display_id
                 == SUBSET_HASH_TO_PARENT_DATA[resampled_dxdf.hash]["display_id"]
             )
+
+            if has_filters:
+                applied_filter = resampled_dxdf.metadata["datalink"]["applied_filters"][0]
+                assert isinstance(applied_filter, dict)
 
     @pytest.mark.parametrize("has_filters", [True, False])
     @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])

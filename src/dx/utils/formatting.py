@@ -309,7 +309,8 @@ def generate_metadata(
             dataframe_info = parent_dataframe_info
         # these are set whenever store_sample_to_history() is called after a filter action from the frontend
         sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
-        filters = parent_dxdf.filters
+        # we shouldn't have a mix of pydantic FilterTypes and dicts here, but just in case
+        filters = [f.dict() if not isinstance(f, dict) else f for f in parent_dxdf.filters]
 
     metadata = {
         "datalink": {
