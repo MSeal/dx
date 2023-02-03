@@ -39,9 +39,22 @@ def test_store_sample_to_history(
     )
 
     datalink_metadata = sample_dxdataframe.metadata["datalink"]
+
     assert datalink_metadata["applied_filters"] == filters
     if has_filters:
-        assert isinstance(datalink_metadata["applied_filters"][0], dict)
+        # ensure sampling history and currently applied filters are present
+        # and properly formatted for the frontend to reference
+        applied_filters = datalink_metadata["applied_filters"]
+        assert isinstance(applied_filters[0], dict)
+
+        sample_history = datalink_metadata["sample_history"]
+        assert len(sample_history) == 1
+        assert "filters" in sample_history[0]
+        assert isinstance(sample_history[0]["filters"], list)
+        assert isinstance(sample_history[0]["filters"][0], dict)
+        assert sample_history[0]["filters"][0] == filters[0]
+        assert sample_history[0]["sampling_time"] is not None
+
     assert datalink_metadata["sampling_time"] is not None
 
     assert datalink_metadata["dataframe_info"]["orig_num_rows"] == sample_dxdataframe.df.shape[0]
