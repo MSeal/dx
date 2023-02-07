@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
+    MAX_STRING_LENGTH: int = 100
+
     RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
@@ -120,6 +122,13 @@ class Settings(BaseSettings):
     @validator("HTML_TABLE_SCHEMA", pre=True, always=True)
     def validate_html_table_schema(cls, val):
         pd.set_option("html.table_schema", val)
+        return val
+
+    @validator("MAX_STRING_LENGTH", pre=True, always=True)
+    def validate_max_string_length(cls, val):
+        if val < 0:
+            raise ValueError("MAX_STRING_LENGTH must be >= 0")
+        pd.set_option("display.max_colwidth", val)
         return val
 
     class Config:

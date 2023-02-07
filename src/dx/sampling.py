@@ -31,6 +31,15 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     if df_too_long:
         df = sample_rows(df, num_rows=max_rows, display_id=display_id)
 
+    # check any `object` rows and truncate based on character limits
+    max_chars = settings.MAX_STRING_LENGTH
+    string_columns = df.select_dtypes(include="object").columns
+    for col in string_columns:
+        has_long_string_values = df[col].astype(str).str.len() >= max_chars
+        if has_long_string_values.any():
+            logger.debug(f"truncating `{col}` to {max_chars} characters")
+            df[col] = df[col].apply(lambda x: x[:max_chars] if isinstance(x, str) else x)
+
     # in the event that there are nested/large values bloating the dataframe,
     # easiest to reduce rows even further here
     max_size_bytes = settings.MAX_RENDER_SIZE_BYTES
@@ -218,4 +227,14 @@ def get_df_dimensions(df: pd.DataFrame, prefix: Optional[str] = None) -> dict:
         f"{prefix}size_bytes": df_total_bytes_size,
         f"{prefix}num_rows": num_rows,
         f"{prefix}num_cols": num_cols,
+    }
+
+
+def get_column_string_lengths(df: pd.DataFrame) -> dict:
+    """
+    Returns a dictionary of the max string length for each column.
+    """
+    return {
+        col: df[col].astype(str).str.len().max()
+        for col in df.select_dtypes(include="object").columns
     }
