@@ -124,6 +124,13 @@ class Settings(BaseSettings):
         pd.set_option("html.table_schema", val)
         return val
 
+    @validator("MAX_STRING_LENGTH", pre=True, always=True)
+    def validate_max_string_length(cls, val):
+        if val < 0:
+            raise ValueError("MAX_STRING_LENGTH must be >= 0")
+        pd.set_option("display.max_colwidth", val)
+        return val
+
     class Config:
         validate_assignment = True
         use_enum_values = True

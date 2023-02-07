@@ -10,7 +10,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 
-from dx.sampling import get_df_dimensions, sample_if_too_big
+from dx.sampling import get_column_string_lengths, get_df_dimensions, sample_if_too_big
 from dx.settings import settings
 from dx.types.main import DXDisplayMode
 from dx.utils.formatting import (
@@ -172,8 +172,17 @@ def format_output(
 
     # determine original dataset size, and truncated/sampled size if it's beyond the limits
     orig_df_dimensions = get_df_dimensions(df, prefix="orig")
+    orig_col_string_lengths = get_column_string_lengths(df)
     df = sample_if_too_big(df, display_id=display_id)
     sampled_df_dimensions = get_df_dimensions(df, prefix="truncated")
+    sampled_col_string_lengths = get_column_string_lengths(df)
+
+    # keep track of which string/object columns may have been shortened
+    # based on settings.MAX_STRING_LENGTH for the frontend to provide an affordance
+    truncated_string_columns = []
+    for col, orig_length in orig_col_string_lengths.items():
+        if orig_length > sampled_col_string_lengths[col]:
+            truncated_string_columns.append(col)
 
     payload = generate_body(
         df,
@@ -183,6 +192,7 @@ def format_output(
 
     dataframe_info = {
         "default_index_used": default_index_used,
+        "truncated_string_columns": truncated_string_columns,
         **orig_df_dimensions,
         **sampled_df_dimensions,
     }
