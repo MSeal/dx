@@ -35,7 +35,7 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     max_chars = settings.MAX_STRING_LENGTH
     string_columns = df.select_dtypes(include="object").columns
     for col in string_columns:
-        df[col] = df[col].str[:max_chars]
+        df[col] = df[col].apply(lambda x: x[:max_chars] if isinstance(x, str) else x)
 
     # in the event that there are nested/large values bloating the dataframe,
     # easiest to reduce rows even further here
