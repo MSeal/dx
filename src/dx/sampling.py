@@ -32,7 +32,7 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
         df = sample_rows(df, num_rows=max_rows, display_id=display_id)
 
     # check any `object` rows and truncate based on character limits
-    max_chars = settings.STRING_CHARACTER_LIMIT
+    max_chars = settings.MAX_STRING_LENGTH
     string_columns = df.select_dtypes(include="object").columns
     for col in string_columns:
         df[col] = df[col].str[:max_chars]

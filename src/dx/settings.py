@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
+    MAX_STRING_LENGTH: int = 1000
+
     RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
@@ -79,8 +81,6 @@ class Settings(BaseSettings):
 
     GENERATE_DEX_METADATA: bool = False
     ALLOW_NOTEABLE_ATTRS: bool = True
-
-    STRING_CHARACTER_LIMIT: int = 1000
 
     @validator("RENDERABLE_OBJECTS", pre=True, always=True)
     def validate_renderables(cls, vals):
