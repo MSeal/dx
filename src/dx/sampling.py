@@ -31,6 +31,12 @@ def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.
     if df_too_long:
         df = sample_rows(df, num_rows=max_rows, display_id=display_id)
 
+    # check any `object` rows and truncate based on character limits
+    max_chars = settings.STRING_CHARACTER_LIMIT
+    string_columns = df.select_dtypes(include="object").columns
+    for col in string_columns:
+        df[col] = df[col].str[:max_chars]
+
     # in the event that there are nested/large values bloating the dataframe,
     # easiest to reduce rows even further here
     max_size_bytes = settings.MAX_RENDER_SIZE_BYTES
