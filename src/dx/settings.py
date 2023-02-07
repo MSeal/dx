@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    MAX_STRING_LENGTH: int = 1000
+    MAX_STRING_LENGTH: int = 100
 
     RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
 
