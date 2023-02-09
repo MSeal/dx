@@ -12,32 +12,58 @@ Here's a quick example where we make a dashboard using two rows -- the top row w
 dx.dashboard(
     df,
     views=[
-        ['scatter', 'bar'],
-        ['grid'],
-    ]
+        ["scatter", "pie"],
+        ["grid"],
+    ],
 )
 ```
 ![](../screenshots/dashboard_simple1.png)
 
 ### With Chart Views
 Using chart functions, you can specify `return_view=True` and pass the resulting `DEXView` object into a dashboard. 
+```python
+custom_bar_chart = dx.bar(
+    df,
+    x='keyword_column',
+    y='integer_column',
+    column_sort_order='desc',
+    column_sort_type='string',
+    show_bar_labels=True,
+    return_view=True,
+)
+
+simple_tilemap = dx.tilemap(
+    df,
+    lat='index',
+    lon='integer_column',
+    return_view=True,
+)
+
+dx.dashboard(
+    df,
+    views=[
+        ["parallel_coordinates", custom_bar_chart],
+        [simple_tilemap, 'pie', 'grid']
+    ]
+)
+```
 ![](../screenshots/dashboard_views1.png)
 
 ### Customized
 If you want to provide some additional arguments, instead of passing a string to indicate the chart type, you can pass a dictionary with `{"chart_mode": CHART TYPE, **extra_kwargs}`.
 ```python
-custom_dotplot = {
-    'chart_mode': 'dotplot', 
-    'decoration': {
-        'title': 'look at this sweet dot plot'
-    }
+custom_chart = {
+    "chart_mode": "hexbin",
+    "decoration": {
+        "title": "look at this sweet hexbin"
+    },
 }
 
 dx.dashboard(
-    df,
+    df, 
     views=[
-        [custom_dotplot, 'force_directed_network'],
-        ['scatter']
+        [custom_chart, "force_directed_network"], 
+        ["ridgeline"]
     ]
 )
 ```
