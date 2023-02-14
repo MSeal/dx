@@ -38,8 +38,8 @@ pytest-mock = "^3.10.0"
 Faker = "^15.3.4"
 geopandas = "^0.12.2"
 
-[tool.poetry.extras]	
-docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstrings-python"]
+[tool.poetry.extras]
+docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstrings-python", "mkdocs-glightbox"]
 
 [build-system]
 requires = ["poetry_core>=1.0.0"]
