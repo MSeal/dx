@@ -1,5 +1,0 @@
-mkdocs
-mkdocs-material
-mkdocs-jupyter
-mkdocstrings
-mkdocstrings-python
