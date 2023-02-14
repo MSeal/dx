@@ -23,7 +23,7 @@ jobs:
         uses: Gr1N/setup-poetry@v8
       - name: Install dependencies
         run: |
-          poetry export -f requirements.txt --without-hashes --with dev --output requirements.txt
+          poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
           pip install -r requirements.txt
       - name: Run tests
         run: nox -s test-${{ matrix.python_version }}
@@ -42,7 +42,7 @@ jobs:
         uses: Gr1N/setup-poetry@v8
       - name: Install dependencies
         run: |
-          poetry export -f requirements.txt --without-hashes --with dev --output requirements.txt
+          poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
           pip install -r requirements.txt
       - name: Run lint
         run: nox -s lint
