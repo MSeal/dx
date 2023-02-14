@@ -15,9 +15,14 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: 3.9
-      - run: poetry install --with docs
-      - run: mkdocs gh-deploy --force
+      - name: Setup poetry
+        uses: Gr1N/setup-poetry@v8
+      - name: Install dependencies
+        run: poetry install
+      - name: Deploy docs
+        run: mkdocs gh-deploy --force
