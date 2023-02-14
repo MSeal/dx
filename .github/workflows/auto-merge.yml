@@ -1,5 +1,5 @@
 name: Dependabot auto-merge
-on: pull_request_target
+on: pull_request_target # yamllint disable-line rule:truthy
 
 permissions:
   pull-requests: write
@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v1.3.5
+        uses: dependabot/fetch-metadata@v1.3.6
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Enable auto-merge for Dependabot PRs

@@ -5,6 +5,7 @@ Convenience functions to quickly create charts from a dataframe with no required
 from typing import Optional
 
 from dx.formatters.main import handle_format
+from dx.settings import settings_context
 from dx.types.dex_metadata import DEXView
 
 
@@ -24,10 +25,12 @@ def sample_chart(
         sample_chart_metadata["chart"] = chart
     if return_view:
         return DEXView.parse_obj(sample_chart_metadata)
-    handle_format(
-        df,
-        extra_metadata=sample_chart_metadata,
-    )
+
+    with settings_context(generate_dex_metadata=True):
+        handle_format(
+            df,
+            extra_metadata=sample_chart_metadata,
+        )
 
 
 # ⛔

@@ -18,6 +18,8 @@ def resampler(comm, open_msg):
         # Is separate function to make testing easier.
         handle_resample_comm(msg)
 
+    comm.send({"status": "connected", "source": "resampler"})
+
 
 def handle_resample_comm(msg):
     data = msg.get("content", {}).get("data", {})

@@ -90,3 +90,29 @@ def test_long_wide_dataframe_is_reduced_from_both_dimensions(
     assert reduced_width <= settings.DISPLAY_MAX_COLUMNS
     assert reduced_length < orig_length
     assert reduced_length <= settings.DISPLAY_MAX_ROWS
+
+
+def test_big_value_dataframe_is_character_limited():
+    """
+    Test that a dataframe with large string values will be truncated
+    based on the display mode's MAX_STRING_LENGTH setting.
+    """
+    df = pd.DataFrame(
+        {
+            "foo": [
+                "a" * 1,
+                "b" * 10,
+                "c" * 100,
+                "d" * 1000,
+                "e" * 10000,
+                "f" * 100000,
+            ]
+        }
+    )
+    orig_column = df["foo"].copy()
+    sampled_df = sample_if_too_big(df)
+    sampled_df["foo_length"] = sampled_df["foo"].apply(len)
+    # if settings.MAX_STRING_LENGTH is set to 1000, then the rows with greater
+    # than 1000 characters will be truncated to up to 1000 characters
+    assert (sampled_df["foo_length"] <= settings.MAX_STRING_LENGTH).all()
+    assert not sampled_df["foo"].equals(orig_column)

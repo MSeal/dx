@@ -6,6 +6,8 @@ import structlog
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated
 
+from dx.types.main import DXSamplingMethod
+
 logger = structlog.get_logger(__name__)
 
 
@@ -108,6 +110,9 @@ class DEXResampleMessage(BaseModel):
     filters: List[Annotated[FilterTypes, Field(discriminator="type")]] = Field(default_factory=list)
     limit: int = 50_000
     cell_id: Optional[str] = None
+    num_columns: int = 100
+    column_sampling_method: DXSamplingMethod = DXSamplingMethod.outer
+    row_sampling_method: DXSamplingMethod = DXSamplingMethod.random
 
 
 def clean_pandas_query_column(column: str) -> str:

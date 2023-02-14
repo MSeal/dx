@@ -21,6 +21,7 @@ class PandasSettings(BaseSettings):
     # "plain" (pandas) display mode
     PANDAS_DISPLAY_MAX_ROWS: int = 60
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
+    PANDAS_MAX_STRING_LENGTH: int = 50
     PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
     PANDAS_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
 
@@ -54,6 +55,7 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
 
     pd.set_option("display.max_columns", pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS)
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
+    pd.set_option("display.max_colwidth", pandas_settings.PANDAS_MAX_STRING_LENGTH)
 
     ipython = ipython_shell or get_ipython()
     ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
