@@ -41,8 +41,6 @@ jobs:
       - name: Setup poetry
         uses: Gr1N/setup-poetry@v8
       - name: Install dependencies
-        run: |
-          poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
-          pip install -r requirements.txt
+        run: poetry install
       - name: Run lint
         run: nox -s lint
