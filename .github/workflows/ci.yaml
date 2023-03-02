@@ -1,6 +1,6 @@
 name: CI
 
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   push:
     branches:
       - main
@@ -21,6 +21,8 @@ jobs:
         uses: daisylb/setup-nox@v2.1.0
       - name: Setup poetry
         uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "1.4.0"
       - name: Install dependencies
         run: |
           poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
@@ -40,6 +42,8 @@ jobs:
         uses: daisylb/setup-nox@v2.1.0
       - name: Setup poetry
         uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: "1.4.0"
       - name: Install dependencies
         run: |
           poetry export -f requirements.txt --extras "docs" --without-hashes --with dev --output requirements.txt
