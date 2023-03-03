@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from functools import lru_cache
-from typing import Optional, Set, Union
+from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
 import structlog
@@ -26,10 +26,13 @@ except ImportError:
 
 
 @lru_cache
-def get_default_renderable_types():
-    types = {pd.Series, pd.DataFrame}
+def get_default_renderable_types() -> dict:
+    types = {
+        pd.Series: None,
+        pd.DataFrame: None,
+    }
     if GEOPANDAS_INSTALLED:
-        gpd_types = {gpd.GeoDataFrame, gpd.GeoSeries}
+        gpd_types = {gpd.GeoDataFrame: None, gpd.GeoSeries: None}
         types.update(gpd_types)
     return types
 
@@ -48,7 +51,7 @@ class Settings(BaseSettings):
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
     MAX_STRING_LENGTH: int = 100
 
-    RENDERABLE_OBJECTS: Set[type] = get_default_renderable_types()
+    RENDERABLE_TYPES: Dict[type, Optional[Callable]] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -82,24 +85,23 @@ class Settings(BaseSettings):
     GENERATE_DEX_METADATA: bool = False
     ALLOW_NOTEABLE_ATTRS: bool = True
 
-    @validator("RENDERABLE_OBJECTS", pre=True, always=True)
+    @validator("RENDERABLE_TYPES", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
+        if isinstance(vals, dict):
+            return vals
+
+        # if we don't have a dictionary by now, we should either have
+        # a string or a list/set/tuple of strings/types
         if isinstance(vals, str):
             vals = vals.replace(",", "").split()
-        if not isinstance(vals, set):
-            vals = {vals}
 
-        valid_vals = set()
+        valid_vals = {}
         for val in vals:
-            if isinstance(val, type):
-                valid_vals.add(val)
-                continue
-            try:
-                val_type = eval(str(val))
-                valid_vals.add(val_type)
-            except Exception as e:
-                raise ValueError(f"can't evaluate {val} type as renderable object: {e}")
+            if not isinstance(val, type):
+                raise ValueError(f"{val} is not a valid type")
+
+            valid_vals[val] = None
 
         return valid_vals
 
@@ -297,12 +299,12 @@ def add_renderable_type(renderable_type: Union[type, list]):
     """
     Convenience function to add a type (or list of types)
     to the types that can be processed by the display formatter.
-    (settings.RENDERABLE_OBJECTS default: [pd.Series, pd.DataFrame, np.ndarray])
+    (settings.RENDERABLE_TYPES default: [pd.Series, pd.DataFrame, np.ndarray])
     """
     global settings
 
     if not isinstance(renderable_type, list):
         renderable_type = [renderable_type]
 
-    logger.debug(f"adding `{renderable_type}` to {settings.RENDERABLE_OBJECTS=}")
-    settings.RENDERABLE_OBJECTS.update(renderable_type)
+    logger.debug(f"adding `{renderable_type}` to {settings.RENDERABLE_TYPES=}")
+    settings.RENDERABLE_TYPES.update(renderable_type)
