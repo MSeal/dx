@@ -118,7 +118,7 @@ class DXDisplayFormatter(DisplayFormatter):
 
     def format(self, obj, **kwargs):
 
-        if IN_NOTEBOOK_ENV and isinstance(obj, tuple(settings.RENDERABLE_OBJECTS)):
+        if IN_NOTEBOOK_ENV and isinstance(obj, tuple(settings.RENDERABLE_TYPES)):
             handle_format(obj)
             return ({}, {})
 

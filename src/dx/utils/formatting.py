@@ -317,7 +317,7 @@ def generate_metadata(
             "dataframe_info": dataframe_info,
             "dx_settings": settings.dict(
                 exclude={
-                    "RENDERABLE_OBJECTS": True,
+                    "RENDERABLE_TYPES": True,
                     "DATETIME_STRING_FORMAT": True,
                     "MEDIA_TYPE": True,
                 }
