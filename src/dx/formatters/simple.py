@@ -6,7 +6,9 @@ from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER, DXDisplayFormatter
-from dx.settings import settings  # noqa
+from dx.settings import get_settings
+
+settings = get_settings()
 
 
 class DataResourceSettings(BaseSettings):

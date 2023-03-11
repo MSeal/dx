@@ -10,40 +10,13 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
-from dx.dependencies import soft_deps
+from dx.dependencies import get_default_renderable_types
 from dx.types.main import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
 
 logger = structlog.get_logger(__name__)
 
-
-@lru_cache
-def get_default_renderable_types() -> dict:
-    types = {
-        pd.Series: None,
-        pd.DataFrame: None,
-    }
-
-    if soft_deps.GEOPANDAS_INSTALLED:
-        import geopandas as gpd
-
-        gpd_types = {gpd.GeoDataFrame: None, gpd.GeoSeries: None}
-        types.update(gpd_types)
-
-    if soft_deps.MODIN_INSTALLED:
-        import modin.pandas as mpd
-
-        mpd_types = {mpd.DataFrame: None, mpd.Series: None}
-        types.update(mpd_types)
-
-    if soft_deps.POLARS_INSTALLED:
-        import polars as pl
-
-        pl_types = {pl.DataFrame: "to_pandas", pl.Series: "to_pandas"}
-        types.update(pl_types)
-
-    return types
 
 class Settings(BaseSettings):
     LOG_LEVEL: Union[int, str] = logging.WARNING
@@ -59,7 +32,7 @@ class Settings(BaseSettings):
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
     MAX_STRING_LENGTH: int = 100
 
-    RENDERABLE_TYPES: Dict[type, Optional[Union[Callable, str]]] = get_default_renderable_types()
+    RENDERABLE_TYPES: Dict[type, Optional[Union[Callable, str]]] = {}
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
@@ -96,6 +69,7 @@ class Settings(BaseSettings):
     @validator("RENDERABLE_TYPES", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
+        vals = vals or get_default_renderable_types()
         if isinstance(vals, dict):
             return vals
 
@@ -141,6 +115,12 @@ class Settings(BaseSettings):
         pd.set_option("display.max_colwidth", val)
         return val
 
+    def get_renderable_types(self):
+        return {
+            **self.RENDERABLE_TYPES,
+            **get_default_renderable_types(),
+        }
+
     class Config:
         validate_assignment = True
         use_enum_values = True
@@ -149,9 +129,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings():
     return Settings()
-
-
-settings = get_settings()
 
 
 def enable_dev_mode(debug_logs: bool = False) -> None:
@@ -171,7 +148,7 @@ def enable_dev_mode(debug_logs: bool = False) -> None:
 
 def disable_dev_mode() -> None:
     set_option("DEV_MODE", False)
-    if settings.LOG_LEVEL == "DEBUG":
+    if get_settings().LOG_LEVEL == "DEBUG":
         set_option("LOG_LEVEL", "WARNING")
 
 
@@ -190,8 +167,7 @@ def set_display_mode(
     from dx.formatters.plain import reset
     from dx.formatters.simple import deregister
 
-    global settings
-    settings.DISPLAY_MODE = mode
+    get_settings().DISPLAY_MODE = mode
 
     if str(mode) == DXDisplayMode.enhanced.value:
         register(ipython_shell=ipython_shell)
@@ -214,7 +190,7 @@ def set_option(
 ) -> None:
     key = str(key).upper()
 
-    global settings
+    settings = get_settings()
     if key in vars(settings):
         setattr(settings, key, value)
 
@@ -282,7 +258,7 @@ def enable_disable_comms(
 
 @contextmanager
 def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_kwargs):
-    global settings
+    settings = get_settings()
     orig_settings = settings.dict()
     option_kwargs = {str(k).upper(): v for k, v in option_kwargs.items()}
 
@@ -309,7 +285,7 @@ def add_renderable_type(renderable_type: Union[type, list]):
     to the types that can be processed by the display formatter.
     (settings.RENDERABLE_TYPES default: [pd.Series, pd.DataFrame, np.ndarray])
     """
-    global settings
+    settings = get_settings()
 
     if not isinstance(renderable_type, list):
         renderable_type = [renderable_type]
