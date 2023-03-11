@@ -279,16 +279,13 @@ def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_
                 set_option(setting, value, ipython_shell=ipython_shell)
 
 
-def add_renderable_type(renderable_type: Union[type, list]):
+def add_renderable_type(renderable_type: type, converter: Optional[Union[Callable, str]] = None):
     """
     Convenience function to add a type (or list of types)
     to the types that can be processed by the display formatter.
     (settings.RENDERABLE_TYPES default: [pd.Series, pd.DataFrame, np.ndarray])
     """
     settings = get_settings()
-
-    if not isinstance(renderable_type, list):
-        renderable_type = [renderable_type]
-
-    logger.debug(f"adding `{renderable_type}` to {settings.RENDERABLE_TYPES=}")
-    settings.RENDERABLE_TYPES.update(renderable_type)
+    renderable = {renderable_type: converter}
+    logger.debug(f"adding `{renderable}` to {settings.RENDERABLE_TYPES=}")
+    settings.RENDERABLE_TYPES.update(renderable)

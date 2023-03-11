@@ -1,11 +1,6 @@
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
-from dx.settings import (
-    add_renderable_type,
-    get_settings,
-    set_display_mode,
-    settings_context,
-)
+from dx.settings import add_renderable_type, get_settings, set_display_mode, settings_context
 from dx.types.main import DXDisplayMode
 
 settings = get_settings()
