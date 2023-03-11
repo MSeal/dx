@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import structlog
 
-from dx.settings import GEOPANDAS_INSTALLED
+from dx.dependencies import geopandas_installed
 
-if GEOPANDAS_INSTALLED:
+if geopandas_installed():
     import geopandas as gpd
     import shapely.geometry.base
     from shapely.geometry import mapping
@@ -48,7 +48,7 @@ def generate_latlon_series(num_rows: int):
     num_rows: int
         Number of rows to generate
     """
-    if not GEOPANDAS_INSTALLED:
+    if not geopandas_installed():
         logger.warning("geopandas is not installed, skipping generate_latlon_series")
         return np.nan
 
@@ -73,7 +73,7 @@ def generate_filled_geojson_series(
     existing_latlon_series: Optional[pd.Series]
         If provided, use this series of `shapely.geometry.Point` values
     """
-    if not GEOPANDAS_INSTALLED:
+    if not geopandas_installed():
         logger.warning("geopandas is not installed, skipping filled_geojson_column")
         return np.nan
 
@@ -102,7 +102,7 @@ def generate_exterior_bounds_geojson_series(
     existing_latlon_series: Optional[pd.Series]
         If provided, use this series of `shapely.geometry.Point` values
     """
-    if not GEOPANDAS_INSTALLED:
+    if not geopandas_installed():
         logger.warning("geopandas is not installed, skipping exterior_geojson_column")
         return np.nan
 
@@ -121,7 +121,7 @@ def handle_geometry_series(s: pd.Series) -> pd.Series:
     """
     Converts shapely.geometry values to JSON.
     """
-    if not GEOPANDAS_INSTALLED:
+    if not geopandas_installed():
         return s
 
     types = (

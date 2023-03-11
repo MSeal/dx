@@ -11,7 +11,7 @@ from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 
 from dx.sampling import get_column_string_lengths, get_df_dimensions, sample_if_too_big
-from dx.settings import settings
+from dx.settings import get_settings
 from dx.types.main import DXDisplayMode
 from dx.utils.formatting import (
     check_for_duplicate_columns,
@@ -20,10 +20,16 @@ from dx.utils.formatting import (
     normalize_index_and_columns,
     to_dataframe,
 )
-from dx.utils.tracking import DXDF_CACHE, SUBSET_HASH_TO_PARENT_DATA, DXDataFrame, get_db_connection
+from dx.utils.tracking import (
+    DXDF_CACHE,
+    SUBSET_HASH_TO_PARENT_DATA,
+    DXDataFrame,
+    get_db_connection,
+)
 
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
+settings = get_settings()
 
 DEFAULT_IPYTHON_DISPLAY_FORMATTER = DisplayFormatter()
 IN_NOTEBOOK_ENV = False
@@ -117,8 +123,7 @@ class DXDisplayFormatter(DisplayFormatter):
     formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
 
     def format(self, obj, **kwargs):
-
-        if IN_NOTEBOOK_ENV and isinstance(obj, tuple(settings.RENDERABLE_TYPES)):
+        if IN_NOTEBOOK_ENV and isinstance(obj, tuple(settings.get_renderable_types())):
             handle_format(obj)
             return ({}, {})
 

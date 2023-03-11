@@ -59,4 +59,4 @@ def test_add_renderables():
         pass
 
     add_renderable_type(FakeRenderable)
-    assert FakeRenderable in settings.RENDERABLE_TYPES.keys()
+    assert FakeRenderable in settings.get_renderable_types().keys()
