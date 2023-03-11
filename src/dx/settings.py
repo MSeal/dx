@@ -10,19 +10,12 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
+from dx.dependencies import soft_deps
 from dx.types.main import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
 
 logger = structlog.get_logger(__name__)
-
-
-try:
-    import geopandas as gpd
-
-    GEOPANDAS_INSTALLED = True
-except ImportError:
-    GEOPANDAS_INSTALLED = False
 
 
 @lru_cache
@@ -31,11 +24,26 @@ def get_default_renderable_types() -> dict:
         pd.Series: None,
         pd.DataFrame: None,
     }
-    if GEOPANDAS_INSTALLED:
+
+    if soft_deps.GEOPANDAS_INSTALLED:
+        import geopandas as gpd
+
         gpd_types = {gpd.GeoDataFrame: None, gpd.GeoSeries: None}
         types.update(gpd_types)
-    return types
 
+    if soft_deps.MODIN_INSTALLED:
+        import modin.pandas as mpd
+
+        mpd_types = {mpd.DataFrame: None, mpd.Series: None}
+        types.update(mpd_types)
+
+    if soft_deps.POLARS_INSTALLED:
+        import polars as pl
+
+        pl_types = {pl.DataFrame: "to_pandas", pl.Series: "to_pandas"}
+        types.update(pl_types)
+
+    return types
 
 class Settings(BaseSettings):
     LOG_LEVEL: Union[int, str] = logging.WARNING
@@ -51,7 +59,7 @@ class Settings(BaseSettings):
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
     MAX_STRING_LENGTH: int = 100
 
-    RENDERABLE_TYPES: Dict[type, Optional[Callable]] = get_default_renderable_types()
+    RENDERABLE_TYPES: Dict[type, Optional[Union[Callable, str]]] = get_default_renderable_types()
 
     # what percentage of the dataset to remove during each sampling
     # in order to get large datasets under MAX_RENDER_SIZE_BYTES
