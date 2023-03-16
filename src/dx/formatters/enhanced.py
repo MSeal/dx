@@ -12,7 +12,7 @@ from dx.settings import settings  # noqa
 class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_ROWS: int = 50_000
     DX_DISPLAY_MAX_COLUMNS: int = 50
-    DX_MAX_STRING_LENGTH: int = 50
+    DX_MAX_STRING_LENGTH: int = 250
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
 
