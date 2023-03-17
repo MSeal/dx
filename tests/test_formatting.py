@@ -474,6 +474,7 @@ class TestMetadataVariableName:
             _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"] == "test_df"
+            assert display_metadata["datalink"]["user_variable_name"] == "test_df"
 
     @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
     def test_unassigned_variable_name_present(
@@ -492,6 +493,7 @@ class TestMetadataVariableName:
             _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"].startswith("unk_dataframe")
+            assert display_metadata["datalink"]["user_variable_name"] is None
 
     @pytest.mark.parametrize("display_mode", ["simple", "enhanced"])
     def test_empty_variable_name_with_datalink_disabled(
