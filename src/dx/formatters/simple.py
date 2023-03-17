@@ -15,7 +15,7 @@ class DataResourceSettings(BaseSettings):
     # "simple" (classic simpleTable/DEX) display mode
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 50_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
-    DATARESOURCE_MAX_STRING_LENGTH: int = 50
+    DATARESOURCE_MAX_STRING_LENGTH: int = 250
     DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
 

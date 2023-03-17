@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     MEDIA_TYPE: str = "application/vnd.dataresource+json"
 
     MAX_RENDER_SIZE_BYTES: int = 100 * MB
-    MAX_STRING_LENGTH: int = 100
+    MAX_STRING_LENGTH: int = 50
 
     RENDERABLE_TYPES: Dict[type, Optional[Union[Callable, str]]] = {}
 

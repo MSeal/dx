@@ -181,6 +181,9 @@ def format_output(
     # based on settings.MAX_STRING_LENGTH for the frontend to provide an affordance
     truncated_string_columns = []
     for col, orig_length in orig_col_string_lengths.items():
+        if col not in sampled_col_string_lengths:
+            # original column may have been removed during truncating
+            continue
         if orig_length > sampled_col_string_lengths[col]:
             truncated_string_columns.append(col)
 
