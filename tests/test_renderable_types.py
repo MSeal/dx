@@ -1,7 +1,6 @@
 import dask.dataframe as dd
 import geopandas as gpd
 import modin.pandas as mpd
-import numpy as np
 import pandas as pd
 import polars as pl
 import pytest
