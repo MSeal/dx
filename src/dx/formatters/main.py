@@ -20,12 +20,7 @@ from dx.utils.formatting import (
     normalize_index_and_columns,
     to_dataframe,
 )
-from dx.utils.tracking import (
-    DXDF_CACHE,
-    SUBSET_HASH_TO_PARENT_DATA,
-    DXDataFrame,
-    get_db_connection,
-)
+from dx.utils.tracking import DXDF_CACHE, SUBSET_HASH_TO_PARENT_DATA, DXDataFrame, get_db_connection
 
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
@@ -280,7 +275,6 @@ def determine_parent_display_id(dxdf: DXDataFrame) -> Optional[str]:
 
 
 def dev_display(payload, metadata):
-
     from IPython.display import JSON, display
 
     display(JSON({"payload": payload}))

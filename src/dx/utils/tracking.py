@@ -12,11 +12,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 
 from dx.settings import get_settings
-from dx.utils.formatting import (
-    generate_metadata,
-    is_default_index,
-    normalize_index_and_columns,
-)
+from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
