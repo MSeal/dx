@@ -167,7 +167,7 @@ def get_df_variable_name(
     df_vars = {
         k: v
         for k, v in ipython.user_ns.items()
-        if isinstance(v, tuple(settings.RENDERABLE_OBJECTS))
+        if isinstance(v, tuple(settings.get_renderable_types()))
     }
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
 

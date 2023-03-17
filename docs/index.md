@@ -107,7 +107,7 @@ This will also handle some basic column cleaning and generate a schema for the `
 </details>
 
 > **NOTE:**
-> Unlike `dx.display()`, this **only** affects pandas DataFrames (or any types set in `settings.RENDERABLE_OBJECTS`); it does not affect the display of `.csv`/`.json` file data, or `dict`/`list` outputs
+> Unlike `dx.display()`, this **only** affects pandas DataFrames (or any types set in `settings.RENDERABLE_TYPES`); it does not affect the display of `.csv`/`.json` file data, or `dict`/`list` outputs
 
 
 - `dx.set_display_mode("simple")`
