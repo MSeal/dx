@@ -5,7 +5,9 @@ from typing import Optional
 
 import structlog
 
-from dx.settings import settings
+from dx.settings import get_settings
+
+settings = get_settings()
 
 # Timestamp format applied to both vanilla and structlog messages
 timestamper = structlog.processors.TimeStamper(fmt=settings.DATETIME_STRING_FORMAT)

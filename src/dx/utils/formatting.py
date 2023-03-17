@@ -6,7 +6,7 @@ import structlog
 from pydantic.color import Color
 
 from dx.datatypes import date_time, geometry, misc, numeric
-from dx.settings import settings
+from dx.settings import get_settings
 from dx.types.dex_metadata import (
     DEXColorMode,
     DEXColorScheme,
@@ -22,6 +22,7 @@ from dx.types.dex_metadata import (
 )
 
 logger = structlog.get_logger(__name__)
+settings = get_settings()
 
 
 def to_dataframe(obj) -> pd.DataFrame:
@@ -40,7 +41,20 @@ def to_dataframe(obj) -> pd.DataFrame:
         # ensure we keep the original index structure
         obj.set_index(orig_index_names, inplace=True)
 
-    df = pd.DataFrame(obj)
+    # special handling for non-pandas objects
+    # if we can't cast directly to a DataFrame
+    for dtype, converter in settings.get_renderable_types().items():
+        if isinstance(obj, dtype) and converter is not None:
+            if isinstance(converter, str):
+                # class method
+                conversion_method = getattr(obj, converter)
+                df = conversion_method()
+            elif callable(converter):
+                # function
+                df = converter(obj)
+        else:
+            df = pd.DataFrame(obj)
+
     return df
 
 
@@ -326,7 +340,7 @@ def generate_metadata(
             "dataframe_info": dataframe_info,
             "dx_settings": settings.dict(
                 exclude={
-                    "RENDERABLE_OBJECTS": True,
+                    "RENDERABLE_TYPES": True,
                     "DATETIME_STRING_FORMAT": True,
                     "MEDIA_TYPE": True,
                 }

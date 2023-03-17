@@ -2,6 +2,7 @@ from IPython import get_ipython
 
 from .comms import *
 from .datatypes import *
+from .dependencies import *
 from .dx import *
 from .formatters import *
 from .loggers import *
