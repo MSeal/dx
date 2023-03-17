@@ -14,7 +14,6 @@ from dx.utils.formatting import (
     normalize_index_and_columns,
     to_dataframe,
 )
-from dx.utils.tracking import DXDF_CACHE
 
 dataresource_settings = get_dataresource_settings()
 dx_settings = get_dx_settings()
