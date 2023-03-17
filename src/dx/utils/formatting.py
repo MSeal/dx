@@ -326,6 +326,15 @@ def generate_metadata(
         # we shouldn't have a mix of pydantic FilterTypes and dicts here, but just in case
         filters = [f.dict() if not isinstance(f, dict) else f for f in parent_dxdf.filters]
 
+    # TODO: wrap this up into the DXDataFrame init properties with some refactoring
+    user_variable_name = variable_name
+    if str(variable_name).startswith("unk_dataframe_") and len(variable_name) == 46:
+        # `unk_dataframe_<hash>` with dashes removed, which is what we use
+        # to reference dataframe objects not explicitly assigned to variables
+        # where we need to keep a reference to them in duckdb without relying on
+        # temporary variables in the user namespace
+        user_variable_name = None
+
     metadata = {
         "datalink": {
             "dataframe_info": dataframe_info,
@@ -341,6 +350,7 @@ def generate_metadata(
             "sample_history": sample_history,
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
             "variable_name": variable_name,
+            "user_variable_name": user_variable_name,
         },
         "display_id": display_id,
     }
