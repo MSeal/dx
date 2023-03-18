@@ -1,3 +1,5 @@
+import traceback
+
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
 
@@ -15,8 +17,17 @@ def resampler(comm, open_msg):
 
     @comm.on_msg
     def _recv(msg):
-        # Is separate function to make testing easier.
-        handle_resample_comm(msg)
+        try:
+            handle_resample_comm(msg)
+        except Exception as e:
+            comm.send(
+                {
+                    "status": "error",
+                    "source": "resampler",
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                }
+            )
 
     comm.send({"status": "connected", "source": "resampler"})
 
@@ -26,6 +37,7 @@ def handle_resample_comm(msg):
     if not data:
         return
 
+    logger.debug(f"handling resample {msg=}")
     if "display_id" in data and "filters" in data:
         msg = DEXResampleMessage.parse_obj(data)
         handle_resample(msg)
