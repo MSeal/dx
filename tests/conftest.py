@@ -2,11 +2,11 @@ import duckdb
 import numpy as np
 import pandas as pd
 import pytest
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.testing import tools
+from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
+from dx.shell import Shell
 from dx.types.dex_metadata import DEXMetadata, DEXView
 from dx.types.filters import DEXFilterSettings
 from dx.utils.formatting import normalize_index_and_columns
@@ -29,21 +29,12 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_benchmarks)
 
 
-@pytest.fixture
-def get_ipython() -> TerminalInteractiveShell:
-    if TerminalInteractiveShell._instance:
-        shell = TerminalInteractiveShell.instance()
-    else:
-        config = tools.default_config()
-        config.TerminalInteractiveShell.simple_prompt = True
-        shell = TerminalInteractiveShell.instance(config=config)
-
-    # clear out any lingering variables between tests
-    orig_variables = dict(shell.user_ns).copy()
-
-    yield shell
-
-    shell.user_ns = orig_variables
+@pytest.fixture(autouse=True)
+def tmp_ipython() -> InteractiveShell:
+    test_shell = InteractiveShell.instance()
+    Shell()._instance = test_shell
+    yield test_shell
+    Shell()._instance = None
 
 
 @pytest.fixture
@@ -247,14 +238,8 @@ def sample_dex_groupby_filters(
 
 
 @pytest.fixture
-def sample_dxdataframe(
-    get_ipython: TerminalInteractiveShell,
-    sample_random_dataframe: pd.DataFrame,
-) -> DXDataFrame:
-    return DXDataFrame(
-        df=sample_random_dataframe,
-        ipython_shell=get_ipython,
-    )
+def sample_dxdataframe(sample_random_dataframe: pd.DataFrame) -> DXDataFrame:
+    return DXDataFrame(df=sample_random_dataframe)
 
 
 @pytest.fixture

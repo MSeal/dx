@@ -5,12 +5,11 @@ from typing import Callable, Dict, Optional, Union
 
 import pandas as pd
 import structlog
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
 from pydantic import BaseSettings, validator
 
 from dx.dependencies import get_default_renderable_types
+from dx.shell import get_ipython_shell
 from dx.types.main import DXDisplayMode, DXSamplingMethod
 
 MB = 1024 * 1024
@@ -152,10 +151,7 @@ def disable_dev_mode() -> None:
         set_option("LOG_LEVEL", "WARNING")
 
 
-def set_display_mode(
-    mode: DXDisplayMode = DXDisplayMode.simple,
-    ipython_shell: Optional[InteractiveShell] = None,
-):
+def set_display_mode(mode: DXDisplayMode = DXDisplayMode.simple):
     """
     Sets the display mode for the IPython formatter in the current session.
     - "plain" (vanilla python/pandas display)
@@ -170,11 +166,11 @@ def set_display_mode(
     get_settings().DISPLAY_MODE = mode
 
     if str(mode) == DXDisplayMode.enhanced.value:
-        register(ipython_shell=ipython_shell)
+        register()
     elif str(mode) == DXDisplayMode.simple.value:
-        deregister(ipython_shell=ipython_shell)
+        deregister()
     elif str(mode) == DXDisplayMode.plain.value:
-        reset(ipython_shell=ipython_shell)
+        reset()
     else:
         raise ValueError(f"`{mode}` is not a supported display mode")
 
@@ -183,11 +179,7 @@ def set_log_level(level: int):
     logging.getLogger("dx").setLevel(level)
 
 
-def set_option(
-    key,
-    value,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> None:
+def set_option(key, value) -> None:
     key = str(key).upper()
 
     settings = get_settings()
@@ -208,27 +200,19 @@ def set_option(
         # IPython display formatter changes being done through
         # settings updates for now, but I don't like it being here
         if key == "DISPLAY_MODE":
-            set_display_mode(value, ipython_shell=ipython_shell)
+            set_display_mode(value)
 
         if key == "LOG_LEVEL":
             set_log_level(value)
 
         # allow enabling/disabling comms based on settings
-        enable_disable_comms(
-            setting_name=key,
-            enabled=value,
-            ipython_shell=ipython_shell,
-        )
+        enable_disable_comms(setting_name=key, enabled=value)
 
         return
     raise ValueError(f"`{key}` is not a valid setting")
 
 
-def enable_disable_comms(
-    setting_name: str,
-    enabled: bool,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> None:
+def enable_disable_comms(setting_name: str, enabled: bool) -> None:
     """
     Registers/unregisters a target based on its associated name within Settings.
     For example, the following will unregister the "datalink_resample" comm:
@@ -245,38 +229,36 @@ def enable_disable_comms(
     if setting_name not in comm_setting_targets:
         return
 
-    ipython_shell = ipython_shell or get_ipython()
-    if getattr(ipython_shell, "kernel", None) is None:
-        return
-
     comm_target, comm_callback = comm_setting_targets[setting_name]
+
+    comm_mgr = get_ipython_shell().kernel.comm_manager
     if enabled:
-        ipython_shell.kernel.comm_manager.register_target(comm_target, comm_callback)
+        comm_mgr.register_target(comm_target, comm_callback)
     else:
-        ipython_shell.kernel.comm_manager.unregister_target(comm_target, comm_callback)
+        comm_mgr.unregister_target(comm_target, comm_callback)
 
 
 @contextmanager
-def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_kwargs):
+def settings_context(**option_kwargs):
     settings = get_settings()
     orig_settings = settings.dict()
     option_kwargs = {str(k).upper(): v for k, v in option_kwargs.items()}
 
     # handle DISPLAY_MODE updates first since it can overwrite other settings
     if display_mode := option_kwargs.pop("DISPLAY_MODE", None):
-        set_display_mode(display_mode, ipython_shell=ipython_shell)
+        set_display_mode(display_mode)
 
     try:
         for setting, value in option_kwargs.items():
-            set_option(setting, value, ipython_shell=ipython_shell)
+            set_option(setting, value)
         yield settings
     finally:
         if display_mode is not None:
-            set_display_mode(orig_settings["DISPLAY_MODE"], ipython_shell=ipython_shell)
+            set_display_mode(orig_settings["DISPLAY_MODE"])
         for setting, value in orig_settings.items():
             # only reset it if it was adjusted originally; don't reset everything
             if setting in option_kwargs:
-                set_option(setting, value, ipython_shell=ipython_shell)
+                set_option(setting, value)
 
 
 def add_renderable_type(renderable_type: type, converter: Optional[Union[Callable, str]] = None):

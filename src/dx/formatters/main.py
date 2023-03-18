@@ -6,7 +6,6 @@ import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.formatters import DisplayFormatter
-from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
 
@@ -42,7 +41,6 @@ if get_ipython() is not None:
 def datalink_processing(
     df: pd.DataFrame,
     default_index_used: bool,
-    ipython_shell: Optional[InteractiveShell] = None,
     with_ipython_display: bool = True,
     extra_metadata: Optional[dict] = None,
 ):
@@ -70,11 +68,8 @@ def datalink_processing(
 def handle_format(
     obj,
     with_ipython_display: bool = True,
-    ipython_shell: Optional[InteractiveShell] = None,
     extra_metadata: Optional[dict] = None,
 ):
-    ipython = ipython_shell or get_ipython()
-
     logger.debug(f"*** handling {settings.DISPLAY_MODE} format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
@@ -97,7 +92,6 @@ def handle_format(
         payload, metadata = datalink_processing(
             obj,
             default_index_used,
-            ipython_shell=ipython,
             with_ipython_display=with_ipython_display,
             extra_metadata=extra_metadata,
         )

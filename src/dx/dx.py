@@ -1,9 +1,8 @@
 import pathlib
-from typing import List, Optional, Union
+from typing import List, Union
 
 import pandas as pd
 from IPython import display as ipydisplay
-from IPython.core.interactiveshell import InteractiveShell
 
 from dx.formatters.main import handle_format
 from dx.settings import settings_context
@@ -13,7 +12,6 @@ from dx.types.main import DXDisplayMode
 def display(
     data: Union[List[dict], pd.DataFrame, Union[pathlib.Path, str]],
     mode: DXDisplayMode = DXDisplayMode.simple,
-    ipython_shell: Optional[InteractiveShell] = None,
     **kwargs,
 ) -> None:
     """
@@ -31,7 +29,7 @@ def display(
             raise ValueError(f"Unsupported file type: `{path.suffix}`")
 
     df = pd.DataFrame(data)
-    with settings_context(display_mode=mode, ipython_shell=ipython_shell):
+    with settings_context(display_mode=mode):
         handle_format(df, **kwargs)
 
 

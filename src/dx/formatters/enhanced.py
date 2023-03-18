@@ -1,12 +1,10 @@
 from functools import lru_cache
-from typing import Optional
 
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER, DXDisplayFormatter
 from dx.settings import get_settings
+from dx.shell import get_ipython_shell
 
 settings = get_settings()
 
@@ -36,15 +34,11 @@ def get_dx_settings():
 dx_settings = get_dx_settings()
 
 
-def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
+def register() -> None:
     """
     Enables the DEX media type output display formatting and
     updates global dx & pandas settings with DX settings.
     """
-    if get_ipython() is None and ipython_shell is None:
-        return
-
-    global settings
     settings.DISPLAY_MODE = "enhanced"
 
     settings_to_apply = {
@@ -61,7 +55,6 @@ def register(ipython_shell: Optional[InteractiveShell] = None) -> None:
         val = getattr(dx_settings, f"DX_{setting}", None)
         setattr(settings, setting, val)
 
-    ipython = ipython_shell or get_ipython()
     custom_formatter = DXDisplayFormatter()
     custom_formatter.formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
-    ipython.display_formatter = custom_formatter
+    get_ipython_shell().display_formatter = custom_formatter

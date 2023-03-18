@@ -1,15 +1,13 @@
 import warnings
 from functools import lru_cache
-from typing import Optional
 
 import pandas as pd
 import structlog
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
 from dx.settings import get_settings
+from dx.shell import get_ipython_shell
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -38,15 +36,11 @@ def get_pandas_settings():
 pandas_settings = get_pandas_settings()
 
 
-def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
+def reset() -> None:
     """
     Resets all nteract/Noteable options, reverting to the default
     pandas display options and IPython display formatter.
     """
-    if get_ipython() is None and ipython_shell is None:
-        return
-
-    global settings
     settings.DISPLAY_MODE = "plain"
 
     settings.DISPLAY_MAX_COLUMNS = pandas_settings.PANDAS_DISPLAY_MAX_COLUMNS
@@ -57,5 +51,4 @@ def reset(ipython_shell: Optional[InteractiveShell] = None) -> None:
     pd.set_option("display.max_rows", pandas_settings.PANDAS_DISPLAY_MAX_ROWS)
     pd.set_option("display.max_colwidth", pandas_settings.PANDAS_MAX_STRING_LENGTH)
 
-    ipython = ipython_shell or get_ipython()
-    ipython.display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER
+    get_ipython_shell().display_formatter = DEFAULT_IPYTHON_DISPLAY_FORMATTER

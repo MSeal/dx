@@ -1,5 +1,4 @@
 import structlog
-from IPython.core.interactiveshell import InteractiveShell
 
 from dx.filtering import handle_resample
 from dx.types.filters import DEXResampleMessage
@@ -29,17 +28,3 @@ def handle_resample_comm(msg):
     if "display_id" in data and "filters" in data:
         msg = DEXResampleMessage.parse_obj(data)
         handle_resample(msg)
-
-
-def register_resampler_comm(ipython_shell: InteractiveShell) -> None:
-    """
-    Registers the comm target function with the IPython kernel.
-    """
-    from dx.settings import get_settings
-
-    if getattr(ipython_shell, "kernel", None) is None:
-        # likely a TerminalInteractiveShell
-        return
-
-    if get_settings().ENABLE_DATALINK:
-        ipython_shell.kernel.comm_manager.register_target("datalink_resample", resampler)

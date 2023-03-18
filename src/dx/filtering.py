@@ -3,7 +3,6 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython.display import update_display
-from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
@@ -58,7 +57,6 @@ def resample_from_db(
     filters: Optional[list] = None,
     cell_id: Optional[str] = None,
     assign_subset: bool = True,
-    ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
     Filters the dataframe in the cell with the given display_id.
@@ -108,10 +106,7 @@ def resample_from_db(
     return new_df
 
 
-def handle_resample(
-    msg: DEXResampleMessage,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> pd.DataFrame:
+def handle_resample(msg: DEXResampleMessage) -> pd.DataFrame:
     raw_filters = msg.filters
     sample_size = msg.limit
 

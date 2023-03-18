@@ -1,12 +1,10 @@
 from functools import lru_cache
-from typing import Optional
 
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER, DXDisplayFormatter
 from dx.settings import get_settings
+from dx.shell import get_ipython_shell
 
 settings = get_settings()
 
@@ -37,16 +35,12 @@ def get_dataresource_settings():
 dataresource_settings = get_dataresource_settings()
 
 
-def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
+def deregister() -> None:
     """
     Sets the current IPython display formatter as the dataresource
     display formatter, used for simpleTable / "classic DEX" outputs
     and updates global dx & pandas settings with dataresource settings.
     """
-    if get_ipython() is None and ipython_shell is None:
-        return
-
-    global settings
     settings.DISPLAY_MODE = "simple"
 
     settings_to_apply = {
@@ -63,8 +57,6 @@ def deregister(ipython_shell: Optional[InteractiveShell] = None) -> None:
         val = getattr(dataresource_settings, f"DATARESOURCE_{setting}", None)
         setattr(settings, setting, val)
 
-    ipython = ipython_shell or get_ipython()
-
     custom_formatter = DXDisplayFormatter()
     custom_formatter.formatters = DEFAULT_IPYTHON_DISPLAY_FORMATTER.formatters
-    ipython.display_formatter = custom_formatter
+    get_ipython_shell().display_formatter = custom_formatter

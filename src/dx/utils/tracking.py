@@ -2,16 +2,15 @@ import hashlib
 import os
 import uuid
 from functools import lru_cache
-from typing import List, Optional, Union
+from typing import List, Union
 
 import duckdb
 import pandas as pd
 import structlog
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 
 from dx.settings import get_settings
+from dx.shell import get_ipython_shell
 from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
 
 logger = structlog.get_logger(__name__)
@@ -50,15 +49,11 @@ class DXDataFrame:
     metadata: dict = {}
     filters: List[dict] = []
 
-    def __init__(
-        self,
-        df: pd.DataFrame,
-        ipython_shell: Optional[InteractiveShell] = None,
-    ):
+    def __init__(self, df: pd.DataFrame):
         from dx.sampling import get_df_dimensions
 
         self.id = uuid.uuid4()
-        self.variable_name = get_df_variable_name(df, ipython_shell=ipython_shell)
+        self.variable_name = get_df_variable_name(df)
 
         self.original_column_dtypes = df.dtypes.to_dict()
 
@@ -152,10 +147,7 @@ def get_df_index(index: Union[pd.Index, pd.MultiIndex]):
     return index_name
 
 
-def get_df_variable_name(
-    df: pd.DataFrame,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> str:
+def get_df_variable_name(df: pd.DataFrame) -> str:
     """
     Returns the variable name of the DataFrame object
     by inspecting the IPython shell's user namespace
@@ -163,10 +155,9 @@ def get_df_variable_name(
     """
     logger.debug("looking for matching variables for dataframe")
 
-    ipython = ipython_shell or get_ipython()
     df_vars = {
         k: v
-        for k, v in ipython.user_ns.items()
+        for k, v in get_ipython_shell().user_ns.items()
         if isinstance(v, tuple(settings.get_renderable_types()))
     }
     logger.debug(f"dataframe variables present: {list(df_vars.keys())}")
