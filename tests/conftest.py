@@ -2,7 +2,7 @@ import duckdb
 import numpy as np
 import pandas as pd
 import pytest
-from IPython.terminal.interactiveshell import InteractiveShell
+from ipykernel.zmqshell import ZMQInteractiveShell
 
 from dx.datatypes.main import random_dataframe
 from dx.settings import get_settings
@@ -30,8 +30,8 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(autouse=True)
-def tmp_ipython() -> InteractiveShell:
-    test_shell = InteractiveShell.instance()
+def tmp_ipython() -> ZMQInteractiveShell:
+    test_shell = ZMQInteractiveShell.instance()
     Shell()._instance = test_shell
     yield test_shell
     Shell()._instance = None
