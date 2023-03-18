@@ -5,7 +5,6 @@ import pandas as pd
 import polars as pl
 import pytest
 import vaex
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.main import handle_format
 from dx.settings import get_settings, settings_context
@@ -49,7 +48,6 @@ class TestRenderableTypes:
         renderable_type: str,
         display_mode: str,
         datalink_enabled: bool,
-        get_ipython: TerminalInteractiveShell,
     ):
         """
         Test formatting a supported renderable data type that isn't a pandas DataFrame,
@@ -86,7 +84,7 @@ class TestRenderableTypes:
 
         try:
             with settings_context(enable_datalink=datalink_enabled, display_mode=display_mode):
-                _, metadata = handle_format(df, ipython_shell=get_ipython)
+                _, metadata = handle_format(df)
                 if datalink_enabled:
                     display_id = metadata[settings.MEDIA_TYPE]["display_id"]
                     assert display_id in DXDF_CACHE

@@ -1,10 +1,10 @@
 import uuid
 
 import pandas as pd
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.comms.assignment import handle_assignment_comm
 from dx.comms.resample import handle_resample_comm
+from dx.shell import get_ipython_shell
 from dx.types.filters import DEXFilterSettings, DEXResampleMessage
 
 
@@ -55,7 +55,6 @@ class TestAssignmentComm:
     def test_assignment_handled(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_dataframe: pd.DataFrame,
     ):
         """
@@ -80,7 +79,7 @@ class TestAssignmentComm:
         mock_resample = mocker.patch(
             "dx.comms.assignment.resample_from_db", return_value=sample_dataframe
         )
-        handle_assignment_comm(msg, ipython_shell=get_ipython)
+        handle_assignment_comm(msg)
         resample_params = {
             "display_id": display_id,
             "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
@@ -88,14 +87,14 @@ class TestAssignmentComm:
             "assign_subset": False,
         }
         mock_resample.assert_called_once_with(**resample_params)
-        assert "new_df" in get_ipython.user_ns
-        assert isinstance(get_ipython.user_ns["new_df"], pd.DataFrame)
-        assert get_ipython.user_ns["new_df"].equals(sample_dataframe)
+        shell = get_ipython_shell()
+        assert "new_df" in shell.user_ns
+        assert isinstance(shell.user_ns["new_df"], pd.DataFrame)
+        assert shell.user_ns["new_df"].equals(sample_dataframe)
 
     def test_assignment_handled_with_filters(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_dataframe: pd.DataFrame,
         sample_dex_metric_filter: dict,
     ):
@@ -128,7 +127,7 @@ class TestAssignmentComm:
         mock_resample = mocker.patch(
             "dx.comms.assignment.resample_from_db", return_value=sample_dataframe
         )
-        handle_assignment_comm(msg, ipython_shell=get_ipython)
+        handle_assignment_comm(msg)
         resample_params = {
             "display_id": display_id,
             "sql_filter": sql_filter,
@@ -136,13 +135,13 @@ class TestAssignmentComm:
             "assign_subset": False,
         }
         mock_resample.assert_called_once_with(**resample_params)
-        assert "new_df" in get_ipython.user_ns
-        assert isinstance(get_ipython.user_ns["new_df"], pd.DataFrame)
+        shell = get_ipython_shell()
+        assert "new_df" in shell.user_ns
+        assert isinstance(shell.user_ns["new_df"], pd.DataFrame)
 
     def test_assignment_handled_with_existing_variable(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_dataframe: pd.DataFrame,
     ):
         """
@@ -151,7 +150,8 @@ class TestAssignmentComm:
         affect the original variable.
         """
         existing_dataframe_variable = pd.DataFrame({"test": [1, 2, 3]})
-        get_ipython.user_ns["df"] = existing_dataframe_variable
+        shell = get_ipython_shell()
+        shell.user_ns["df"] = existing_dataframe_variable
 
         display_id = str(uuid.uuid4())
         sample_size = 50
@@ -169,7 +169,7 @@ class TestAssignmentComm:
         mock_resample = mocker.patch(
             "dx.comms.assignment.resample_from_db", return_value=sample_dataframe
         )
-        handle_assignment_comm(msg, ipython_shell=get_ipython)
+        handle_assignment_comm(msg)
         resample_params = {
             "display_id": display_id,
             "sql_filter": f"SELECT * FROM {{table_name}} LIMIT {sample_size}",
@@ -179,18 +179,17 @@ class TestAssignmentComm:
         mock_resample.assert_called_once_with(**resample_params)
 
         # new variable should be assigned with a numeric suffix
-        assert "df_1" in get_ipython.user_ns
-        assert isinstance(get_ipython.user_ns["df_1"], pd.DataFrame)
-        assert get_ipython.user_ns["df_1"].equals(sample_dataframe)
+        assert "df_1" in shell.user_ns
+        assert isinstance(shell.user_ns["df_1"], pd.DataFrame)
+        assert shell.user_ns["df_1"].equals(sample_dataframe)
 
         # old variable should still exist
-        assert "df" in get_ipython.user_ns
-        assert get_ipython.user_ns["df"].equals(existing_dataframe_variable)
+        assert "df" in shell.user_ns
+        assert shell.user_ns["df"].equals(existing_dataframe_variable)
 
     def test_assignment_skipped(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
     ):
         """
         Test that variable assignment is skipped if `display_id` and
@@ -207,6 +206,6 @@ class TestAssignmentComm:
             }
         }
         mock_resample = mocker.patch("dx.comms.assignment.resample_from_db")
-        handle_assignment_comm(msg, ipython_shell=get_ipython)
+        handle_assignment_comm(msg)
         mock_resample.assert_not_called()
-        assert "new_df" not in get_ipython.user_ns
+        assert "new_df" not in get_ipython_shell().user_ns

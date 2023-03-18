@@ -4,11 +4,11 @@ import uuid
 import duckdb
 import pandas as pd
 import pytest
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.filtering import handle_resample, resample_from_db, store_sample_to_history
 from dx.formatters.main import handle_format
 from dx.settings import get_settings, settings_context
+from dx.shell import get_ipython_shell
 from dx.types.filters import DEXFilterSettings, DEXResampleMessage
 from dx.utils.tracking import DXDF_CACHE, SUBSET_HASH_TO_PARENT_DATA, DXDataFrame
 
@@ -67,7 +67,6 @@ class TestResample:
     def test_resample_from_db(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         sample_db_connection: duckdb.DuckDBPyConnection,
         sample_dex_filters: list,
@@ -78,16 +77,13 @@ class TestResample:
         Ensure dataframes stored in the kernel's local database
         can be resampled with DEX-provided filters.
         """
-        get_ipython.user_ns["test_df"] = sample_random_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_random_dataframe
 
         mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
         mocker.patch("dx.filtering.db_connection", sample_db_connection)
 
         with settings_context(enable_datalink=True, display_mode=display_mode):
-            _, metadata = handle_format(
-                sample_random_dataframe,
-                ipython_shell=get_ipython,
-            )
+            _, metadata = handle_format(sample_random_dataframe)
 
             filters = []
             if has_filters:
@@ -98,10 +94,7 @@ class TestResample:
                 filters=filters,
             )
             try:
-                handle_resample(
-                    resample_msg,
-                    ipython_shell=get_ipython,
-                )
+                handle_resample(resample_msg)
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
 
@@ -110,7 +103,6 @@ class TestResample:
     def test_resample_groupby_from_db(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_groupby_dataframe: pd.DataFrame,
         sample_db_connection: duckdb.DuckDBPyConnection,
         sample_dex_groupby_filters: list,
@@ -121,16 +113,13 @@ class TestResample:
         Ensure dataframes with pd.MultiIndex index/columns stored in
         the kernel's local database can be resampled with DEX-provided filters.
         """
-        get_ipython.user_ns["test_df"] = sample_groupby_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_groupby_dataframe
 
         mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
         mocker.patch("dx.filtering.db_connection", sample_db_connection)
 
         with settings_context(enable_datalink=True, display_mode=display_mode):
-            _, metadata = handle_format(
-                sample_groupby_dataframe,
-                ipython_shell=get_ipython,
-            )
+            _, metadata = handle_format(sample_groupby_dataframe)
 
             filters = []
             if has_filters:
@@ -141,10 +130,7 @@ class TestResample:
                 filters=filters,
             )
             try:
-                handle_resample(
-                    resample_msg,
-                    ipython_shell=get_ipython,
-                )
+                handle_resample(resample_msg)
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
 
@@ -153,7 +139,6 @@ class TestResample:
     def test_resample_keeps_original_structure(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         sample_db_connection: duckdb.DuckDBPyConnection,
         sample_dex_filters: list,
@@ -164,16 +149,13 @@ class TestResample:
         Ensure resampled dataframes have the same column/index structure
         after resampling as the original dataframe.
         """
-        get_ipython.user_ns["test_df"] = sample_random_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_random_dataframe
 
         mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
         mocker.patch("dx.filtering.db_connection", sample_db_connection)
 
         with settings_context(enable_datalink=True, display_mode=display_mode):
-            _, metadata = handle_format(
-                sample_random_dataframe,
-                ipython_shell=get_ipython,
-            )
+            _, metadata = handle_format(sample_random_dataframe)
 
             sample_size = 50_000
             dex_filters = DEXFilterSettings(filters=sample_dex_filters)
@@ -192,7 +174,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                 )
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
@@ -208,7 +189,6 @@ class TestResample:
     def test_resample_associates_subset_to_parent(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         sample_db_connection: duckdb.DuckDBPyConnection,
         sample_dex_filters: list,
@@ -222,16 +202,13 @@ class TestResample:
         cell1 = str(uuid.uuid4())
         os.environ["LAST_EXECUTED_CELL_ID"] = cell1
 
-        get_ipython.user_ns["test_df"] = sample_random_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_random_dataframe
 
         mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
         mocker.patch("dx.filtering.db_connection", sample_db_connection)
 
         with settings_context(enable_datalink=True, display_mode=display_mode):
-            _, metadata = handle_format(
-                sample_random_dataframe,
-                ipython_shell=get_ipython,
-            )
+            _, metadata = handle_format(sample_random_dataframe)
 
             sample_size = 50_000
             dex_filters = DEXFilterSettings(filters=sample_dex_filters)
@@ -250,7 +227,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                     cell_id=cell1,
                 )
             except Exception as e:
@@ -278,7 +254,6 @@ class TestResample:
     def test_resample_associates_subset_to_parent_after_other_execution(
         self,
         mocker,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         sample_db_connection: duckdb.DuckDBPyConnection,
         sample_dex_filters: list,
@@ -297,16 +272,13 @@ class TestResample:
         cell1 = str(uuid.uuid4())
         os.environ["LAST_EXECUTED_CELL_ID"] = "some_other_cell"
 
-        get_ipython.user_ns["test_df"] = sample_random_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_random_dataframe
 
         mocker.patch("dx.formatters.main.db_connection", sample_db_connection)
         mocker.patch("dx.filtering.db_connection", sample_db_connection)
 
         with settings_context(enable_datalink=True, display_mode=display_mode):
-            _, metadata = handle_format(
-                sample_random_dataframe,
-                ipython_shell=get_ipython,
-            )
+            _, metadata = handle_format(sample_random_dataframe)
 
             sample_size = 50_000
             dex_filters = DEXFilterSettings(filters=sample_dex_filters)
@@ -325,7 +297,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                     cell_id=cell1,
                 )
             except Exception as e:

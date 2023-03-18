@@ -2,7 +2,6 @@ import uuid
 
 import pandas as pd
 import pytest
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.main import handle_format
 from dx.settings import get_settings, settings_context
@@ -17,7 +16,6 @@ class TestFormatting:
     @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_df_attrs_with_noteable_key_updates_metadata(
         self,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         display_mode: str,
         datalink_enabled: bool,
@@ -30,7 +28,7 @@ class TestFormatting:
         sample_random_dataframe.attrs = {"noteable": sample_dex_view_metadata}
         params = dict(display_mode=display_mode, enable_datalink=datalink_enabled)
         with settings_context(generate_dex_metadata=True, **params):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
         assert "dx" in display_metadata
         assert "views" in display_metadata["dx"]
@@ -44,7 +42,6 @@ class TestFormatting:
     @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_df_attrs_will_not_update_metadata(
         self,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         display_mode: str,
         datalink_enabled: bool,
@@ -58,7 +55,7 @@ class TestFormatting:
 
         params = dict(display_mode=display_mode, enable_datalink=datalink_enabled)
         with settings_context(generate_dex_metadata=True, **params):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
         # this should create a default view, but not pass the .attrs
         # because it's missing the 'noteable' key
@@ -74,7 +71,6 @@ class TestFormatting:
     @pytest.mark.parametrize("datalink_enabled", [True, False])
     def test_setting_disabled_will_not_update_metadata(
         self,
-        get_ipython: TerminalInteractiveShell,
         sample_random_dataframe: pd.DataFrame,
         display_mode: str,
         datalink_enabled: bool,
@@ -93,7 +89,7 @@ class TestFormatting:
             allow_noteable_attrs=False,
             **params,
         ):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
         assert "dx" not in display_metadata
 

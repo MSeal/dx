@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import pytest
-from IPython.terminal.interactiveshell import TerminalInteractiveShell
 
 from dx.formatters.enhanced import get_dx_settings
 from dx.formatters.main import DXDisplayFormatter, generate_body, handle_format
 from dx.formatters.simple import get_dataresource_settings
 from dx.settings import get_settings, settings_context
+from dx.shell import get_ipython_shell
 from dx.utils.formatting import (
     check_for_duplicate_columns,
     groupby_series_index_name,
@@ -25,7 +25,6 @@ class TestMediaTypes:
     def test_simple_media_type(
         self,
         sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         datalink_enabled: bool,
     ):
         """
@@ -33,7 +32,7 @@ class TestMediaTypes:
         and doesn't fail at any point with a basic dataframe.
         """
         with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
-            payload, metadata = handle_format(sample_dataframe, ipython_shell=get_ipython)
+            payload, metadata = handle_format(sample_dataframe)
         assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in payload
         assert dataresource_settings.DATARESOURCE_MEDIA_TYPE in metadata
 
@@ -41,7 +40,6 @@ class TestMediaTypes:
     def test_enhanced_media_type(
         self,
         sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         datalink_enabled: bool,
     ):
         """
@@ -49,7 +47,7 @@ class TestMediaTypes:
         and doesn't fail at any point with a basic dataframe.
         """
         with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
-            payload, metadata = handle_format(sample_dataframe, ipython_shell=get_ipython)
+            payload, metadata = handle_format(sample_dataframe)
         assert dx_settings.DX_MEDIA_TYPE in payload
         assert dx_settings.DX_MEDIA_TYPE in metadata
 
@@ -60,7 +58,6 @@ class TestDuplicateIndexValues:
     def test_nonunique_index_succeeds(
         self,
         sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         datalink_enabled: bool,
         display_mode: str,
     ):
@@ -76,7 +73,7 @@ class TestDuplicateIndexValues:
                 enable_datalink=datalink_enabled,
                 display_mode=display_mode,
             ):
-                handle_format(double_df, ipython_shell=get_ipython)
+                handle_format(double_df)
         except Exception as e:
             assert False, f"{e}"
 
@@ -87,7 +84,6 @@ class TestMissingValues:
     def test_simple_succeeds_with_missing_data(
         self,
         sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         null_value,
         datalink_enabled: bool,
     ):
@@ -98,7 +94,7 @@ class TestMissingValues:
         sample_dataframe["missing_data"] = null_value
         try:
             with settings_context(enable_datalink=datalink_enabled, display_mode="simple"):
-                handle_format(sample_dataframe, ipython_shell=get_ipython)
+                handle_format(sample_dataframe)
         except Exception as e:
             assert False, f"{e}"
 
@@ -107,7 +103,6 @@ class TestMissingValues:
     def test_enhanced_succeeds_with_missing_data(
         self,
         sample_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         null_value,
         datalink_enabled: bool,
     ):
@@ -118,7 +113,7 @@ class TestMissingValues:
         sample_dataframe["missing_data"] = null_value
         try:
             with settings_context(enable_datalink=datalink_enabled, display_mode="enhanced"):
-                handle_format(sample_dataframe, ipython_shell=get_ipython)
+                handle_format(sample_dataframe)
         except Exception as e:
             assert False, f"{e}"
 
@@ -211,7 +206,6 @@ class TestDataFrameHandling:
     def test_success_with_varying_dataframe_structures(
         self,
         data_structure,
-        get_ipython: TerminalInteractiveShell,
         datalink_enabled: bool,
         display_mode: str,
         sample_dataframe: pd.DataFrame,
@@ -241,7 +235,7 @@ class TestDataFrameHandling:
 
         try:
             with settings_context(enable_datalink=datalink_enabled, display_mode=display_mode):
-                handle_format(obj, ipython_shell=get_ipython)
+                handle_format(obj)
         except Exception as e:
             assert False, f"{e}"
 
@@ -357,7 +351,6 @@ class TestMetadataStructure:
     def test_variable_name_exists(
         self,
         sample_random_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         display_mode: str,
     ):
         """
@@ -367,7 +360,7 @@ class TestMetadataStructure:
             enable_datalink=True,
             display_mode=display_mode,
         ):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
 
         assert "datalink" in display_metadata
@@ -394,19 +387,18 @@ class TestMetadataVariableName:
     def test_assigned_variable_name_matches(
         self,
         sample_random_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         display_mode: str,
     ):
         """
         Ensure that the assigned variable name is present in the metadata.
         """
-        get_ipython.user_ns["test_df"] = sample_random_dataframe
+        get_ipython_shell().user_ns["test_df"] = sample_random_dataframe
 
         with settings_context(
             enable_datalink=True,
             display_mode=display_mode,
         ):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"] == "test_df"
             assert display_metadata["datalink"]["user_variable_name"] == "test_df"
@@ -415,7 +407,6 @@ class TestMetadataVariableName:
     def test_unassigned_variable_name_present(
         self,
         sample_random_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         display_mode: str,
     ):
         """
@@ -425,7 +416,7 @@ class TestMetadataVariableName:
             enable_datalink=True,
             display_mode=display_mode,
         ):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"].startswith("unk_dataframe")
             assert display_metadata["datalink"]["user_variable_name"] is None
@@ -434,7 +425,6 @@ class TestMetadataVariableName:
     def test_empty_variable_name_with_datalink_disabled(
         self,
         sample_random_dataframe: pd.DataFrame,
-        get_ipython: TerminalInteractiveShell,
         display_mode: str,
     ):
         """
@@ -446,7 +436,7 @@ class TestMetadataVariableName:
             enable_datalink=False,
             display_mode=display_mode,
         ):
-            _, metadata = handle_format(sample_random_dataframe, ipython_shell=get_ipython)
+            _, metadata = handle_format(sample_random_dataframe)
             display_metadata = metadata[settings.MEDIA_TYPE]
             assert display_metadata["datalink"]["variable_name"] == ""
 
