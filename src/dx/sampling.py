@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 import structlog
 
-from dx.settings import settings
+from dx.settings import get_settings
 from dx.types.main import DXSamplingMethod
 
 logger = structlog.get_logger(__name__)
+settings = get_settings()
 
 
 def sample_if_too_big(df: pd.DataFrame, display_id: Optional[str] = None) -> pd.DataFrame:

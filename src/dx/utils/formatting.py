@@ -6,7 +6,7 @@ import structlog
 from pydantic.color import Color
 
 from dx.datatypes import date_time, geometry, misc, numeric
-from dx.settings import settings
+from dx.settings import get_settings
 from dx.types.dex_metadata import (
     DEXColorMode,
     DEXColorScheme,
@@ -22,6 +22,7 @@ from dx.types.dex_metadata import (
 )
 
 logger = structlog.get_logger(__name__)
+settings = get_settings()
 
 
 def to_dataframe(obj) -> pd.DataFrame:
@@ -40,7 +41,20 @@ def to_dataframe(obj) -> pd.DataFrame:
         # ensure we keep the original index structure
         obj.set_index(orig_index_names, inplace=True)
 
-    df = pd.DataFrame(obj)
+    # special handling for non-pandas objects
+    # if we can't cast directly to a DataFrame
+    for dtype, converter in settings.get_renderable_types().items():
+        if isinstance(obj, dtype) and converter is not None:
+            if isinstance(converter, str):
+                # class method
+                conversion_method = getattr(obj, converter)
+                df = conversion_method()
+            elif callable(converter):
+                # function
+                df = converter(obj)
+        else:
+            df = pd.DataFrame(obj)
+
     return df
 
 
@@ -312,12 +326,21 @@ def generate_metadata(
         # we shouldn't have a mix of pydantic FilterTypes and dicts here, but just in case
         filters = [f.dict() if not isinstance(f, dict) else f for f in parent_dxdf.filters]
 
+    # TODO: wrap this up into the DXDataFrame init properties with some refactoring
+    user_variable_name = variable_name
+    if str(variable_name).startswith("unk_dataframe_") and len(variable_name) == 46:
+        # `unk_dataframe_<hash>` with dashes removed, which is what we use
+        # to reference dataframe objects not explicitly assigned to variables
+        # where we need to keep a reference to them in duckdb without relying on
+        # temporary variables in the user namespace
+        user_variable_name = None
+
     metadata = {
         "datalink": {
             "dataframe_info": dataframe_info,
             "dx_settings": settings.dict(
                 exclude={
-                    "RENDERABLE_OBJECTS": True,
+                    "RENDERABLE_TYPES": True,
                     "DATETIME_STRING_FORMAT": True,
                     "MEDIA_TYPE": True,
                 }
@@ -327,6 +350,7 @@ def generate_metadata(
             "sample_history": sample_history,
             "sampling_time": pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT),
             "variable_name": variable_name,
+            "user_variable_name": user_variable_name,
         },
         "display_id": display_id,
     }

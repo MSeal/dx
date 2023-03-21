@@ -6,13 +6,15 @@ from IPython.core.interactiveshell import InteractiveShell
 from pydantic import BaseSettings, Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER, DXDisplayFormatter
-from dx.settings import settings  # noqa
+from dx.settings import get_settings
+
+settings = get_settings()
 
 
 class DXSettings(BaseSettings):
     DX_DISPLAY_MAX_ROWS: int = 50_000
     DX_DISPLAY_MAX_COLUMNS: int = 50
-    DX_MAX_STRING_LENGTH: int = 50
+    DX_MAX_STRING_LENGTH: int = 250
     DX_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
     DX_MEDIA_TYPE: str = Field("application/vnd.dex.v1+json", allow_mutation=False)
 

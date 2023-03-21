@@ -50,10 +50,8 @@ def test_settings_context_preserves_global_display_mode(get_ipython: TerminalInt
 
 
 def test_add_renderables():
-    renderables = set(settings.RENDERABLE_OBJECTS)
-
     class FakeRenderable:
         pass
 
     add_renderable_type(FakeRenderable)
-    assert settings.RENDERABLE_OBJECTS == renderables | {FakeRenderable}
+    assert FakeRenderable in settings.get_renderable_types().keys()
