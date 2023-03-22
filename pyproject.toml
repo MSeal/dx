@@ -35,7 +35,7 @@ pytest-benchmark = "^4.0.0"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 # for datatype testing
-Faker = "^15.3.4"
+Faker = ">=15.3.4,<19.0.0"
 geopandas = "^0.12.2"
 polars = "^0.16.12"
 modin = {extras = ["all"], version = "^0.19.0"}
