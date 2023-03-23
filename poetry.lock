@@ -4071,18 +4071,18 @@ ssh = ["paramiko"]
 
 [[package]]
 name = "polars"
-version = "0.16.13"
+version = "0.16.14"
 description = "Blazingly fast DataFrame library"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "polars-0.16.13-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:aeeac2780a1223c9b8f8a4a203e2288a959b59a45afbee273841ea24b2152233"},
-    {file = "polars-0.16.13-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:bc2fe7875f9ff1dc3a9c172d26208eefcf219e54109072123a514ba7d2ff6066"},
-    {file = "polars-0.16.13-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:72a98c377d4c9705653c06a7665a991b1e59f3916951b0bd375c5f2623d26368"},
-    {file = "polars-0.16.13-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:49d9997a79cc4e7c1bdef69911a02335fe976a3536eb6685cc880eed0c17df5a"},
-    {file = "polars-0.16.13-cp37-abi3-win_amd64.whl", hash = "sha256:c6ba723abea4c335a598ad41f0c4af0e48fb61f7f8a1d718b20c7240c26d7b29"},
-    {file = "polars-0.16.13.tar.gz", hash = "sha256:e6f8fc3ab40a18835142a052cc8dbcffaee457b3702fa4ab7ab183f094130aa6"},
+    {file = "polars-0.16.14-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:83801a9c9401d956539d64a97716adcf985fd85c5e98382bea078e98fab97157"},
+    {file = "polars-0.16.14-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:446def109d7dad62f1f86ffffa5eaeabc16341a9d092b56117561e1cf676f0f1"},
+    {file = "polars-0.16.14-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9a85f47d28e237e7604558f62d0d66e7813042a7995035505161efba4e9b089e"},
+    {file = "polars-0.16.14-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cd0f1091708892b3abaa0ef31adeee92cbefd1e775657cfbb3a7481143a7fee0"},
+    {file = "polars-0.16.14-cp37-abi3-win_amd64.whl", hash = "sha256:8bb942a749c5f673de0389ee2699ef6deb45097ef9205c861941ae7a5a17ef6c"},
+    {file = "polars-0.16.14.tar.gz", hash = "sha256:1fa9d837113d15b848023d66c3c1251637ed1dc60c8ecce9accb14d6b0727df0"},
 ]
 
 [package.dependencies]
