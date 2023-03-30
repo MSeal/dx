@@ -15,26 +15,36 @@ from dx.utils.tracking import DXDF_CACHE
 settings = get_settings()
 
 
+def sample_data():
+    return {
+        "a": [1, 2, None],
+        "b": [4, None, 6],
+    }
+
+
 def sample_dask_dataframe():
-    return dd.from_pandas(pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]}), npartitions=2)
+    return dd.from_pandas(pd.DataFrame(sample_data()), npartitions=2)
 
 
 def sample_geopandas_geodataframe():
+    data = sample_data()
     return gpd.GeoDataFrame(
-        {"col1": [1, 2], "col2": [3, 4]}, geometry=gpd.points_from_xy([1, 2], [3, 4])
+        {data},
+        geometry=gpd.points_from_xy(data["a"], data["b"]),
     )
 
 
 def sample_modin_dataframe():
-    return mpd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+    return mpd.DataFrame(sample_data())
 
 
 def sample_polars_dataframe():
-    return pl.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+    return pl.DataFrame(sample_data())
 
 
 def sample_vaex_dataframe():
-    return vaex.from_arrays(col1=[1, 2], col2=[3, 4])
+    data = sample_data()
+    return vaex.from_arrays(a=data["a"], b=data["b"])
 
 
 DATAFRAME_TYPES = ["dask", "geopandas", "modin", "polars", "vaex"]
