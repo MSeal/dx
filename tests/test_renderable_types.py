@@ -29,7 +29,7 @@ def sample_dask_dataframe():
 def sample_geopandas_geodataframe():
     data = sample_data()
     return gpd.GeoDataFrame(
-        {data},
+        data,
         geometry=gpd.points_from_xy(data["a"], data["b"]),
     )
 
