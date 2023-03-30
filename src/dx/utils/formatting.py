@@ -49,11 +49,13 @@ def to_dataframe(obj) -> pd.DataFrame:
                 # class method
                 conversion_method = getattr(obj, converter)
                 df = conversion_method()
+                break
             elif callable(converter):
                 # function
                 df = converter(obj)
-        else:
-            df = pd.DataFrame(obj)
+                break
+    else:
+        df = pd.DataFrame(obj)
 
     return df
 
