@@ -1,16 +1,22 @@
 name: Upload Python Package
 
-on:  # yamllint disable-line rule:truthy
+on:
   release:
     types: [created]
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-20.04
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Publish to PyPI
-        uses: JRubics/poetry-publish@v1.16
+      - uses: actions/checkout@v3
+
+      - name: Install Poetry
+        shell: bash
+        run: curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.3.2 python3 -
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          python-version: "3.9"
+
+      - run: poetry publish --build -u __token__ -p ${{ secrets.PYPI_TOKEN }}
