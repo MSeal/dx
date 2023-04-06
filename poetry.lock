@@ -3133,14 +3133,14 @@ files = [
 
 [[package]]
 name = "mkdocstrings"
-version = "0.20.0"
+version = "0.21.1"
 description = "Automatic documentation from sources, for MkDocs."
 category = "main"
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "mkdocstrings-0.20.0-py3-none-any.whl", hash = "sha256:f17fc2c4f760ec302b069075ef9e31045aa6372ca91d2f35ded3adba8e25a472"},
-    {file = "mkdocstrings-0.20.0.tar.gz", hash = "sha256:c757f4f646d4f939491d6bc9256bfe33e36c5f8026392f49eaa351d241c838e5"},
+    {file = "mkdocstrings-0.21.1-py3-none-any.whl", hash = "sha256:cf5a2d50bb0ee9c008e714a55ecce5acb7fa1ec9add5d8ad5bc2df6b2cdd3e21"},
+    {file = "mkdocstrings-0.21.1.tar.gz", hash = "sha256:68cb64b9c8e474f654856cd889371f321bed16dfe20f0922c7191efa60a94e5e"},
 ]
 
 [package.dependencies]
@@ -3150,6 +3150,7 @@ MarkupSafe = ">=1.1"
 mkdocs = ">=1.2"
 mkdocs-autorefs = ">=0.3.1"
 pymdown-extensions = ">=6.3"
+typing-extensions = {version = ">=4.1", markers = "python_version < \"3.10\""}
 
 [package.extras]
 crystal = ["mkdocstrings-crystal (>=0.3.4)"]
@@ -6361,4 +6362,4 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstr
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "2e250a6b4125d40166628a66cf499bb9b431f04bd32db1c7b18c46dbdaa5c510"
+content-hash = "d9f6433e4a552d246214fe39aca95d1f9b389ff57105d8aea305ec3d80f0a157"
