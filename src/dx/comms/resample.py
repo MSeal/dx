@@ -14,7 +14,6 @@ def resampler(comm, open_msg):
 
     @comm.on_msg
     def _recv(msg):
-        print(f"I GOT A COMM MESSAGE {msg=}")
         handle_resample_comm(msg)
         comm.send({"status": "success", "source": "resampler"})
 
