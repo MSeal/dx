@@ -7,9 +7,9 @@ def ridgeline(
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXRidgelineChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX ridgeline plot from the given DataFrame.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def ridgeline(
     metric: str
         The column to use to show distribution and density.
     bins: int
-        The number of bins to use for the violin plot.
+        The number of bins to use for the ridgeline plot.
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -65,9 +65,9 @@ def histogram(
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXHistogramChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX histogram plot from the given DataFrame.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ def histogram(
     metric: str
         The column to use to show distribution and density.
     bins: int
-        The number of bins to use for the violin plot.
+        The number of bins to use for the histogram plot.
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -123,9 +123,9 @@ def heatmap(
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXHeatmapChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX heatmap plot from the given DataFrame.
 
     Parameters
     ----------
@@ -136,7 +136,7 @@ def heatmap(
     metric: str
         The column to use to show distribution and density.
     bins: int
-        The number of bins to use for the violin plot.
+        The number of bins to use for the heatmap plot.
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -181,9 +181,9 @@ def horizon(
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXHorizonChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX horizon plot from the given DataFrame.
 
     Parameters
     ----------
@@ -194,7 +194,7 @@ def horizon(
     metric: str
         The column to use to show distribution and density.
     bins: int
-        The number of bins to use for the violin plot.
+        The number of bins to use for the horizon plot.
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -239,9 +239,9 @@ def horizon(
     column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXBoxplotChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX boxplot from the given DataFrame.
 
     Parameters
     ----------
@@ -297,9 +297,9 @@ def bignumber(
     sparkchart: options.DEXBigNumberSparklines = "none",
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXViolinChartView]:
+) -> Optional[DEXBigNumberChartView]:
     """
-    Generates a DEX violin plot from the given DataFrame.
+    Generates a DEX big number from the given DataFrame.
 
     Parameters
     ----------
@@ -351,9 +351,9 @@ def hexbin(
     y: str,
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXScatterChartView]:
+) -> Optional[DEXHexbinChartView]:
     """
-    Generates a DEX scatterplot from the given DataFrame.
+    Generates a DEX hexbin from the given DataFrame.
 
     Parameters
     ----------

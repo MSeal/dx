@@ -49,6 +49,9 @@ class DEXBoundingType(BaseEnum):
     absolute = "absolute"
     relative = "relative"
 
+class DEXParCoordsShowData(BaseEnum):
+    true = "All Data"
+    false = "Filtered Data Only"
 
 class DEXChartMode(BaseEnum):
     bar = "bar"
