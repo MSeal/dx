@@ -570,3 +570,32 @@ def wordcloud(
         return_view=return_view,
         **kwargs,
     )
+
+def dataprism(
+    df: pd.DataFrame,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXDataPrismView]:
+    """
+    Generates an automatic Data Prism for the given dataframe. In the future, we can run a prioritized Data Prism if the user sends fields
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    raise_for_missing_columns([word_column, size], df.columns)
+
+    chart_settings = {
+    }
+    return handle_view(
+        df,
+        chart_mode="dataprism",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
