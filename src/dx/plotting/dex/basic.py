@@ -573,6 +573,7 @@ def wordcloud(
 
 def dataprism(
     df: pd.DataFrame,
+    suggestion_fields: List[str],
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXDataPrismView]:
@@ -581,6 +582,7 @@ def dataprism(
 
     Parameters
     ----------
+    suggestion_fields: an array of field names for Data Prism to use to create charts. If empty it will work on the entire table in fully automatic mode. If not empty, it will use the fields for Prioritized mode
     df: pd.DataFrame
         The DataFrame to plot.
     return_view: bool
@@ -590,7 +592,11 @@ def dataprism(
     """
     raise_for_missing_columns([word_column, size], df.columns)
 
+    # decorated_suggestion_fields is a transformation of suggestion fields into 'FIELDNAME - Metric|Dimension'. Metric if are number, int or datetime, Dimension otherwise
+    decorated_suggestion_fields = suggestion_fields
+
     chart_settings = {
+        "suggestion_fields": decorated_suggestion_fields,
     }
     return handle_view(
         df,
