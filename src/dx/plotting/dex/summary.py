@@ -21,17 +21,31 @@ def summary(
     df: pd.DataFrame,
     split_by: str,
     metric: str,
-    summary_type: options.DEXSummaryType = options.DEXSummaryType.ridgeline,
+    summary_type: options.DEXSummaryType,
     chart_params: Optional[dict] = None,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXSummaryChartView]:
-    """Generates a DEX summary plot from a given DataFrame"""
-    raise_for_missing_columns([split_by, metric], df.columns)
+    """Generates a DEX summary plot from a given DataFrame.
 
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    summary_type: DEXSummaryType
+        The type of summary chart to show.
+    chart_params: Optional[dict]
+        Additional parameters to pass to the chart.
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    raise_for_missing_columns([split_by, metric], df.columns)
 
     chart_params = chart_params or {}
     chart_settings = {
@@ -96,8 +110,6 @@ def ridgeline(
         metric=metric,
         summary_type="ridgeline",
         chart_params=chart_params,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -149,8 +161,6 @@ def histogram(
         metric=metric,
         summary_type="histogram",
         chart_params=chart_params,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -202,8 +212,6 @@ def heatmap(
         metric=metric,
         summary_type="heatmap",
         chart_params=chart_params,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -255,8 +263,6 @@ def horizon(
         metric=metric,
         summary_type="horizon",
         chart_params=chart_params,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -267,8 +273,8 @@ def boxplot(
     split_by: str,
     metric: str,
     show_outliers: bool = False,
-    column_sort_order: options.DEXSortColumnsByOrder = options.DEXSortColumnsByOrder.asc,
-    column_sort_type: options.DEXSortColumnsByType = options.DEXSortColumnsByOrder.string,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXBoxplotChartView]:
@@ -309,8 +315,6 @@ def boxplot(
         metric=metric,
         summary_type="boxplot",
         chart_params=chart_params,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -321,9 +325,9 @@ def bignumber(
     split_by: str,
     metric: str,
     second_metric: Optional[str] = None,
-    second_metric_comparison: options.DEXBigNumberComparison = options.DEXBigNumberComparison.raw,
-    combination_mode: options.DEXCombinationMode = options.DEXCombinationMode.avg,
-    sparkchart: options.DEXBigNumberSparklines = options.DEXBigNumberSparklines.none,
+    second_metric_comparison: options.DEXBigNumberComparison = "raw",
+    combination_mode: options.DEXCombinationMode = "avg",
+    sparkchart: options.DEXBigNumberSparklines = "none",
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXBigNumberChartView]:
@@ -340,7 +344,12 @@ def bignumber(
         The column to use to show distribution and density.
     second_metric: str
         The column to use to show a second metric.
-
+    second_metric_comparison: DEXBigNumberComparison
+        The comparison to use for the second metric. (`"raw"`, `"percent"`, or `"change"`)
+    combination_mode: DEXCombinationMode
+        The combination mode to use. (`"avg"`, `"sum"`, `"min"`, or `"max"`)
+    sparkchart: DEXBigNumberSparklines
+        The sparkline type to use. (`"none"`, `"line"`, or `"bar"`)
     return_view: bool
         Whether to return a `DEXView` object instead of render.
     **kwargs
