@@ -496,14 +496,21 @@ def violin(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+        violin_iqr=show_interquartile_range,
+    )
     return summary(
         df,
         split_by=split_by,
         metric=metric,
         summary_type="violin",
-        bins=bins,
-        column_sort_order=column_sort_order,
-        column_sort_type=column_sort_type,
+        chart_params=chart_params,
         return_view=return_view,
         **kwargs,
     )
