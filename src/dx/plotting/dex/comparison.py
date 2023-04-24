@@ -1,7 +1,18 @@
+from typing import List, Optional, Union
+
+import structlog
+
+from dx.plotting.main import handle_view, raise_for_missing_columns
+from dx.types.charts import options
+from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
+
+logger = structlog.get_logger()
+
+
 def parcoords(
     df,
     columns: Union[List[str], str],
-    filtered_only: options.DEXParCoordsShowData = false,
+    filtered_only: options.DEXParCoordsShowData = False,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXParallelCoordinatesChartView]:
