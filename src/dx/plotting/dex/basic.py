@@ -571,6 +571,7 @@ def wordcloud(
         **kwargs,
     )
 
+
 def dataprism(
     df: pd.DataFrame,
     suggestion_fields: List[str],

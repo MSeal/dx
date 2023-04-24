@@ -40,18 +40,22 @@ class DEXBigNumberComparison(BaseEnum):
     raw = "raw"
     percent = "percent"
 
+
 class DEXBigNumberSparklines(BaseEnum):
     none = "none"
     percent = "distribution"
     over_time = "over time"
 
+
 class DEXBoundingType(BaseEnum):
     absolute = "absolute"
     relative = "relative"
 
+
 class DEXParCoordsShowData(BaseEnum):
     true = "All Data"
     false = "Filtered Data Only"
+
 
 class DEXChartMode(BaseEnum):
     bar = "bar"
@@ -83,7 +87,6 @@ class DEXCombinationMode(BaseEnum):
     med = "MED"
     min = "MIN"
     sum = "SUM"
-
 
 
 class DEXEdgeModes(BaseEnum):
