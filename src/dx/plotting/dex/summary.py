@@ -1,3 +1,55 @@
+from typing import Optional
+
+import pandas as pd
+import structlog
+
+from dx.plotting.main import handle_view, raise_for_missing_columns
+from dx.types.charts import options
+from dx.types.charts.bignumber import DEXBigNumberChartView
+from dx.types.charts.boxplot import DEXBoxplotChartView
+from dx.types.charts.heatmap import DEXHeatmapChartView
+from dx.types.charts.hexbin import DEXHexbinChartView
+from dx.types.charts.histogram import DEXHistogramChartView
+from dx.types.charts.horizon import DEXHorizonChartView
+from dx.types.charts.ridgeline import DEXRidgelineChartView
+from dx.types.charts.summary import DEXSummaryChartView
+
+logger = structlog.get_logger()
+
+
+def summary(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    summary_type: options.DEXSummaryType = options.DEXSummaryType.ridgeline,
+    chart_params: Optional[dict] = None,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXSummaryChartView]:
+    """Generates a DEX summary plot from a given DataFrame"""
+    raise_for_missing_columns([split_by, metric], df.columns)
+
+    # this is weird because the default is "desc" even though the values
+    # in DEX look like they go in ascending order from top->bottom in
+    # the horizontal view. if that changes, this will need to be removed/updated
+
+    chart_params = chart_params or {}
+    chart_settings = {
+        "dim1": split_by,
+        "metric1": metric,
+        "summary_type": summary_type,
+        **chart_params,
+    }
+
+    return handle_view(
+        df,
+        chart_mode="summary",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
 def ridgeline(
     df: pd.DataFrame,
     split_by: str,
@@ -30,31 +82,26 @@ def ridgeline(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "ridgeline",
-        "summary_bins": bins,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="ridgeline",
+        chart_params=chart_params,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
+
 
 def histogram(
     df: pd.DataFrame,
@@ -88,31 +135,26 @@ def histogram(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "histogram",
-        "summary_bins": bins,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="histogram",
+        chart_params=chart_params,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
+
 
 def heatmap(
     df: pd.DataFrame,
@@ -146,31 +188,26 @@ def heatmap(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "heatmap",
-        "summary_bins": bins,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="heatmap",
+        chart_params=chart_params,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
+
 
 def horizon(
     df: pd.DataFrame,
@@ -204,39 +241,34 @@ def horizon(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "horizon",
-        "summary_bins": bins,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="horizon",
+        chart_params=chart_params,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
 
-    def boxplot(
+
+def boxplot(
     df: pd.DataFrame,
     split_by: str,
     metric: str,
     show_outliers: bool = False,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
+    column_sort_order: options.DEXSortColumnsByOrder = options.DEXSortColumnsByOrder.asc,
+    column_sort_type: options.DEXSortColumnsByType = options.DEXSortColumnsByOrder.string,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXBoxplotChartView]:
@@ -252,7 +284,8 @@ def horizon(
     metric: str
         The column to use to show distribution and density.
     show_outliers: bool
-        Whether boxplot whiskers go to min/max or to 1.5x interquartile range with outliers beyond that range shown individually
+        Whether boxplot whiskers go to min/max or to 1.5x interquartile range with outliers beyond
+        that range shown individually
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType
@@ -262,39 +295,35 @@ def horizon(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "boxplot",
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        boxplot_outliers=show_outliers,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="boxplot",
+        chart_params=chart_params,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
+
 
 def bignumber(
     df: pd.DataFrame,
     split_by: str,
     metric: str,
-    second_metric: str = "none",
-    second_metric_comparison: options.DEXBigNumberComparison = "raw",
-    combination_mode: options.DEXCombinationMode = "avg",
-    sparkchart: options.DEXBigNumberSparklines = "none",
+    second_metric: Optional[str] = None,
+    second_metric_comparison: options.DEXBigNumberComparison = options.DEXBigNumberComparison.raw,
+    combination_mode: options.DEXCombinationMode = options.DEXCombinationMode.avg,
+    sparkchart: options.DEXBigNumberSparklines = options.DEXBigNumberSparklines.none,
     return_view: bool = False,
     **kwargs,
 ) -> Optional[DEXBigNumberChartView]:
@@ -309,41 +338,39 @@ def bignumber(
         The column to use for splitting the data.
     metric: str
         The column to use to show distribution and density.
-    show_outliers: bool
-        Whether boxplot whiskers go to min/max or to 1.5x interquartile range with outliers beyond that range shown individually
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    second_metric: str
+        The column to use to show a second metric.
+
     return_view: bool
         Whether to return a `DEXView` object instead of render.
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
+    raise_for_missing_columns([split_by, metric, combination_mode], df.columns)
 
     chart_settings = {
         "dim1": split_by,
         "metric1": metric,
-        "summary_type": "boxplot",
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
+        "combination_mode": combination_mode,
+        "sparkchart": sparkchart,
     }
+
+    if second_metric is not None:
+        chart_settings.update(
+            {
+                "second_metric": second_metric,
+                "second_metric_comparison": second_metric_comparison,
+            }
+        )
 
     return handle_view(
         df,
-        chart_mode="summary",
+        chart_mode="bignumber",
         chart=chart_settings,
         return_view=return_view,
         **kwargs,
     )
+
 
 def hexbin(
     df: pd.DataFrame,
