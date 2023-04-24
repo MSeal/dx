@@ -6,11 +6,13 @@ from dx.types.charts._base import DEXChartBase
 from dx.types.dex_metadata import DEXView
 
 
-class DEXParcoordsChartConfig(DEXChartBase):
+class DEXParallelCoordinatesChartConfig(DEXChartBase):
     class Config:
         fields = {"include": {"selected_dimensions"}}
 
 
-class DEXParcoordsChartView(DEXView):
+class DEXParallelCoordinatesChartView(DEXView):
     chart_mode: Literal["parcoords"] = "parcoords"
-    chart: DEXParcoordsChartConfig = Field(default_factory=DEXParcoordsChartConfig)
+    chart: DEXParallelCoordinatesChartConfig = Field(
+        default_factory=DEXParallelCoordinatesChartConfig
+    )
