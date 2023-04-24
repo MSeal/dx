@@ -4,9 +4,11 @@ import pandas as pd
 import structlog
 from pydantic.color import Color
 
+from dx.plotting.dex.summary import summary
 from dx.plotting.main import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
+from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.scatter import DEXScatterChartView
@@ -494,29 +496,14 @@ def violin(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "violin",
-        "summary_bins": bins,
-        "violin_iqr": show_interquartile_range,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="violin",
+        bins=bins,
+        column_sort_order=column_sort_order,
+        column_sort_type=column_sort_type,
         return_view=return_view,
         **kwargs,
     )
@@ -574,10 +561,10 @@ def wordcloud(
 
 def dataprism(
     df: pd.DataFrame,
-    suggestion_fields: List[str],
+    suggestion_fields: Optional[List[str]] = None,
     return_view: bool = False,
     **kwargs,
-) -> Optional[DEXDataPrismView]:
+) -> Optional[DEXDataPrismChartView]:
     """
     Generates an automatic Data Prism for the given dataframe. In the future, we can run a prioritized Data Prism if the user sends fields
 
@@ -591,10 +578,25 @@ def dataprism(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([word_column, size], df.columns)
+    suggestion_fields = suggestion_fields or []
+    if suggestion_fields:
+        raise_for_missing_columns(suggestion_fields, df.columns)
 
     # decorated_suggestion_fields is a transformation of suggestion fields into 'FIELDNAME - Metric|Dimension'. Metric if are number, int or datetime, Dimension otherwise
-    decorated_suggestion_fields = suggestion_fields
+    decorated_suggestion_fields = []
+    for column in df.columns:
+        if column not in suggestion_fields:
+            continue
+        # mixed dtypes or string -> dim
+        if df[column].dtype == "object":
+            decorated_suggestion_fields.append(f"{column} - Dimension")
+            continue
+        # bool dtype -> dim
+        if df[column].dtype == "bool":
+            decorated_suggestion_fields.append(f"{column} - Dimension")
+            continue
+        # numeric, dtype, boolean
+        decorated_suggestion_fields.append(f"{column} - Metric")
 
     chart_settings = {
         "suggestion_fields": decorated_suggestion_fields,
