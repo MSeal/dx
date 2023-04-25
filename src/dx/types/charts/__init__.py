@@ -6,6 +6,7 @@ from typing_extensions import Annotated
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.bignumber import DEXBigNumberChartView
 from dx.types.charts.boxplot import DEXBoxplotChartView
+from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.heatmap import DEXHeatmapChartView
 from dx.types.charts.hexbin import DEXHexbinChartView
 from dx.types.charts.histogram import DEXHistogramChartView
@@ -28,6 +29,7 @@ basic_charts = Annotated[
         DEXTilemapChartView,
         DEXViolinChartView,
         DEXWordcloudChartView,
+        DEXDataPrismChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
