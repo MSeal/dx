@@ -12,8 +12,8 @@ from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.scatter import DEXScatterChartView
+from dx.types.charts.summary import DEXViolinChartView
 from dx.types.charts.tilemap import DEXTilemapChartView
-from dx.types.charts.violin import DEXViolinChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView
 
 logger = structlog.get_logger(__name__)
@@ -573,11 +573,14 @@ def dataprism(
     **kwargs,
 ) -> Optional[DEXDataPrismChartView]:
     """
-    Generates an automatic Data Prism for the given dataframe. In the future, we can run a prioritized Data Prism if the user sends fields
+    Generates an automatic Data Prism for the given dataframe. In the future, we can run a
+    prioritized Data Prism if the user sends fields.
 
     Parameters
     ----------
-    suggestion_fields: an array of field names for Data Prism to use to create charts. If empty it will work on the entire table in fully automatic mode. If not empty, it will use the fields for Prioritized mode
+    suggestion_fields: Optional[List[str]]
+        The fields to use for the Data Prism. If empty, it will work on the entire table in fully
+        automatic mode. If not empty, it will use the fields for Prioritized mode.
     df: pd.DataFrame
         The DataFrame to plot.
     return_view: bool
@@ -602,7 +605,7 @@ def dataprism(
         if df[column].dtype == "bool":
             decorated_suggestion_fields.append(f"{column} - Dimension")
             continue
-        # numeric, dtype, boolean
+        # numeric, datetime -> metric
         decorated_suggestion_fields.append(f"{column} - Metric")
 
     chart_settings = {

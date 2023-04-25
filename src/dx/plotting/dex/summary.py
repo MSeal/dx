@@ -6,13 +6,15 @@ import structlog
 from dx.plotting.main import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bignumber import DEXBigNumberChartView
-from dx.types.charts.boxplot import DEXBoxplotChartView
-from dx.types.charts.heatmap import DEXHeatmapChartView
 from dx.types.charts.hexbin import DEXHexbinChartView
-from dx.types.charts.histogram import DEXHistogramChartView
-from dx.types.charts.horizon import DEXHorizonChartView
-from dx.types.charts.ridgeline import DEXRidgelineChartView
-from dx.types.charts.summary import DEXSummaryChartView
+from dx.types.charts.summary import (
+    DEXBoxplotChartView,
+    DEXHeatmapChartView,
+    DEXHistogramChartView,
+    DEXHorizonChartView,
+    DEXRidgelineChartView,
+    DEXSummaryChartView,
+)
 
 logger = structlog.get_logger()
 
@@ -290,8 +292,8 @@ def boxplot(
     metric: str
         The column to use to show distribution and density.
     show_outliers: bool
-        Whether boxplot whiskers go to min/max or to 1.5x interquartile range with outliers beyond
-        that range shown individually
+        False: boxplot whiskers go to min/max
+        True: boxplot whiskers go to 1.5x interquartile range with outliers shown individually
     column_sort_order: DEXSortColumnsByOrder
         The order to sort the columns by. (`"asc"` or `"desc"`)
     column_sort_type: DEXSortColumnsByType

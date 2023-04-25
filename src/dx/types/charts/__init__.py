@@ -5,19 +5,14 @@ from typing_extensions import Annotated
 
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.bignumber import DEXBigNumberChartView
-from dx.types.charts.boxplot import DEXBoxplotChartView
 from dx.types.charts.dataprism import DEXDataPrismChartView
-from dx.types.charts.heatmap import DEXHeatmapChartView
 from dx.types.charts.hexbin import DEXHexbinChartView
-from dx.types.charts.histogram import DEXHistogramChartView
-from dx.types.charts.horizon import DEXHorizonChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
 from dx.types.charts.pie import DEXPieChartView
-from dx.types.charts.ridgeline import DEXRidgelineChartView
 from dx.types.charts.scatter import DEXScatterChartView
+from dx.types.charts.summary import DEXSummaryChartView
 from dx.types.charts.tilemap import DEXTilemapChartView
-from dx.types.charts.violin import DEXViolinChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView
 
 basic_charts = Annotated[
@@ -27,7 +22,6 @@ basic_charts = Annotated[
         DEXPieChartView,
         DEXScatterChartView,
         DEXTilemapChartView,
-        DEXViolinChartView,
         DEXWordcloudChartView,
         DEXDataPrismChartView,
     ],
@@ -85,13 +79,8 @@ summary_charts = Annotated[
         DEXBigNumberChartView,
         DEXWordcloudChartView,
         # DEXDimensionMatrixChartView,
-        DEXViolinChartView,
-        DEXBoxplotChartView,
-        DEXHeatmapChartView,
-        DEXHistogramChartView,
-        DEXRidgelineChartView,
-        DEXHorizonChartView,
         DEXHexbinChartView,
+        DEXSummaryChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
