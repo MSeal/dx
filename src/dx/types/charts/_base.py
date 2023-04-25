@@ -112,6 +112,7 @@ class DEXChartBase(DEXBaseModel):
     sparkchart: Optional[str] = Field(alias="sparkchart")
     split_lines_by: Optional[str] = Field(alias="splitLinesBy")
     splom_mode: Optional[str] = Field(alias="splomMode")
+    suggestion_fields: Optional[List[str]] = Field(alias="suggestionFields")
     summary_bins: Optional[int] = Field(alias="summaryBins")
     summary_type: Optional[options.DEXSummaryType] = Field(alias="summaryType")
     survey_data_type: Optional[options.DEXSurveyDataType] = Field(alias="surveyDataType")
