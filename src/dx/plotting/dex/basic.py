@@ -4,14 +4,16 @@ import pandas as pd
 import structlog
 from pydantic.color import Color
 
+from dx.plotting.dex.summary import summary
 from dx.plotting.main import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
+from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.scatter import DEXScatterChartView
+from dx.types.charts.summary import DEXViolinChartView
 from dx.types.charts.tilemap import DEXTilemapChartView
-from dx.types.charts.violin import DEXViolinChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView
 
 logger = structlog.get_logger(__name__)
@@ -494,29 +496,21 @@ def violin(
     **kwargs
         Additional keyword arguments to pass to the view metadata.
     """
-    raise_for_missing_columns([split_by, metric], df.columns)
-
-    # this is weird because the default is "desc" even though the values
-    # in DEX look like they go in ascending order from top->bottom in
-    # the horizontal view. if that changes, this will need to be removed/updated
     if str(column_sort_order).lower() == "asc":
         sort_order = "desc"
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
-
-    chart_settings = {
-        "dim1": split_by,
-        "metric1": metric,
-        "summary_type": "violin",
-        "summary_bins": bins,
-        "violin_iqr": show_interquartile_range,
-        "sort_columns_by": f"{sort_order}-col-{column_sort_type}",
-    }
-
-    return handle_view(
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+        violin_iqr=show_interquartile_range,
+    )
+    return summary(
         df,
-        chart_mode="summary",
-        chart=chart_settings,
+        split_by=split_by,
+        metric=metric,
+        summary_type="violin",
+        chart_params=chart_params,
         return_view=return_view,
         **kwargs,
     )
@@ -566,6 +560,60 @@ def wordcloud(
     return handle_view(
         df,
         chart_mode="wordcloud",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
+def dataprism(
+    df: pd.DataFrame,
+    suggestion_fields: Optional[List[str]] = None,
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXDataPrismChartView]:
+    """
+    Generates an automatic Data Prism for the given dataframe. In the future, we can run a
+    prioritized Data Prism if the user sends fields.
+
+    Parameters
+    ----------
+    suggestion_fields: Optional[List[str]]
+        The fields to use for the Data Prism. If empty, it will work on the entire table in fully
+        automatic mode. If not empty, it will use the fields for Prioritized mode.
+    df: pd.DataFrame
+        The DataFrame to plot.
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    suggestion_fields = suggestion_fields or []
+    if suggestion_fields:
+        raise_for_missing_columns(suggestion_fields, df.columns)
+
+    # decorated_suggestion_fields is a transformation of suggestion fields into 'FIELDNAME - Metric|Dimension'. Metric if are number, int or datetime, Dimension otherwise
+    decorated_suggestion_fields = []
+    for column in df.columns:
+        if column not in suggestion_fields:
+            continue
+        # mixed dtypes or string -> dim
+        if df[column].dtype == "object":
+            decorated_suggestion_fields.append(f"{column} - Dimension")
+            continue
+        # bool dtype -> dim
+        if df[column].dtype == "bool":
+            decorated_suggestion_fields.append(f"{column} - Dimension")
+            continue
+        # numeric, datetime -> metric
+        decorated_suggestion_fields.append(f"{column} - Metric")
+
+    chart_settings = {
+        "suggestion_fields": decorated_suggestion_fields,
+    }
+    return handle_view(
+        df,
+        chart_mode="dataprism",
         chart=chart_settings,
         return_view=return_view,
         **kwargs,

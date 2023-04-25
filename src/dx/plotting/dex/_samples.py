@@ -88,6 +88,11 @@ def sample_cumulative(df, **kwargs) -> Optional[DEXView]:
     return sample_chart(df, chart_mode="cumulative", **kwargs)
 
 
+# ?
+def sample_dataprism(df, **kwargs) -> Optional[DEXView]:
+    return sample_chart(df, chart_mode="dataprism", **kwargs)
+
+
 # ⛔
 def sample_dendrogram(df, **kwargs) -> Optional[DEXView]:
     return sample_chart(df, chart_mode="dendrogram", **kwargs)
