@@ -501,7 +501,7 @@ def violin(
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
     chart_params = dict(
-        bins=bins,
+        summary_bins=bins,
         sort_columns_by=f"{sort_order}-col-{column_sort_type}",
         violin_iqr=show_interquartile_range,
     )

@@ -101,7 +101,7 @@ def ridgeline(
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
     chart_params = dict(
-        bins=bins,
+        summary_bins=bins,
         sort_columns_by=f"{sort_order}-col-{column_sort_type}",
     )
     return summary(
@@ -152,7 +152,7 @@ def histogram(
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
     chart_params = dict(
-        bins=bins,
+        summary_bins=bins,
         sort_columns_by=f"{sort_order}-col-{column_sort_type}",
     )
     return summary(
@@ -203,7 +203,7 @@ def heatmap(
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
     chart_params = dict(
-        bins=bins,
+        summary_bins=bins,
         sort_columns_by=f"{sort_order}-col-{column_sort_type}",
     )
     return summary(
@@ -254,7 +254,7 @@ def horizon(
     elif str(column_sort_order).lower() == "desc":
         sort_order = "asc"
     chart_params = dict(
-        bins=bins,
+        summary_bins=bins,
         sort_columns_by=f"{sort_order}-col-{column_sort_type}",
     )
     return summary(
