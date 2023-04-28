@@ -10,6 +10,12 @@ logger = structlog.get_logger(__name__)
 
 settings = get_settings()
 
+__all__ = [
+    "enable_plotting_backend",
+    "disable_plotting_backend",
+    "plot",
+]
+
 
 def enable_plotting_backend():
     """

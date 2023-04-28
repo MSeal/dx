@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dx.plotting import dex
+from dx.plotting.main import *
 from dx.types.dex_metadata import DEXView
 
 
