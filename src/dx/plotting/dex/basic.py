@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 import pandas as pd
 import structlog
 
-from dx.plotting.dex.summary import summary
 from dx.plotting.utils import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
@@ -11,7 +10,6 @@ from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.line import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.scatter import DEXScatterChartView
-from dx.types.charts.summary import DEXSummaryChartView, DEXViolinChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView
 
 logger = structlog.get_logger(__name__)
@@ -22,7 +20,6 @@ __all__ = [
     "line",
     "pie",
     "scatter",
-    "violin",
     "wordcloud",
 ]
 
@@ -350,65 +347,6 @@ def scatter(
         df,
         chart_mode="scatter",
         chart=chart_settings,
-        return_view=return_view,
-        **kwargs,
-    )
-
-
-def sample_violin(df, **kwargs) -> Optional[DEXSummaryChartView]:
-    return handle_view(df, chart_mode="summary", chart={"summary_type": "violin"}, **kwargs)
-
-
-def violin(
-    df: pd.DataFrame,
-    split_by: str,
-    metric: str,
-    bins: int = 30,
-    show_interquartile_range: bool = False,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
-    return_view: bool = False,
-    **kwargs,
-) -> Optional[DEXViolinChartView]:
-    """
-    Generates a DEX violin plot from the given DataFrame.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The DataFrame to plot.
-    split_by: str
-        The column to use for splitting the data.
-    metric: str
-        The column to use to show distribution and density.
-    bins: int
-        The number of bins to use for the violin plot.
-    show_interquartile_range: bool
-        Whether to show the interquartile range.
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
-    return_view: bool
-        Whether to return a `DEXView` object instead of render.
-    **kwargs
-        Additional keyword arguments to pass to the view metadata.
-    """
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-    chart_params = dict(
-        summary_bins=bins,
-        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
-        violin_iqr=show_interquartile_range,
-    )
-    return summary(
-        df,
-        split_by=split_by,
-        metric=metric,
-        summary_type="violin",
-        chart_params=chart_params,
         return_view=return_view,
         **kwargs,
     )

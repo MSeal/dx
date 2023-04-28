@@ -15,6 +15,7 @@ from dx.types.charts.summary import (
     DEXHorizonChartView,
     DEXRidgelineChartView,
     DEXSummaryChartView,
+    DEXViolinChartView,
 )
 
 logger = structlog.get_logger()
@@ -28,6 +29,7 @@ __all__ = [
     "histogram",
     "horizon",
     "ridgeline",
+    "violin",
 ]
 
 
@@ -73,226 +75,6 @@ def summary(
         df,
         chart_mode="summary",
         chart=chart_settings,
-        return_view=return_view,
-        **kwargs,
-    )
-
-
-def sample_ridgeline(df, **kwargs) -> Optional[DEXSummaryChartView]:
-    return handle_view(df, chart_mode="summary", chart={"summary_type": "ridgeline"}, **kwargs)
-
-
-def ridgeline(
-    df: pd.DataFrame,
-    split_by: str,
-    metric: str,
-    bins: int = 30,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
-    return_view: bool = False,
-    **kwargs,
-) -> Optional[DEXRidgelineChartView]:
-    """
-    Generates a DEX ridgeline plot from the given DataFrame.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The DataFrame to plot.
-    split_by: str
-        The column to use for splitting the data.
-    metric: str
-        The column to use to show distribution and density.
-    bins: int
-        The number of bins to use for the ridgeline plot.
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
-    return_view: bool
-        Whether to return a `DEXView` object instead of render.
-    **kwargs
-        Additional keyword arguments to pass to the view metadata.
-    """
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-    chart_params = dict(
-        summary_bins=bins,
-        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
-    )
-    return summary(
-        df,
-        split_by=split_by,
-        metric=metric,
-        summary_type="ridgeline",
-        chart_params=chart_params,
-        return_view=return_view,
-        **kwargs,
-    )
-
-
-def sample_histogram(df, **kwargs) -> Optional[DEXSummaryChartView]:
-    return handle_view(df, chart_mode="summary", chart={"summary_type": "histogram"}, **kwargs)
-
-
-def histogram(
-    df: pd.DataFrame,
-    split_by: str,
-    metric: str,
-    bins: int = 30,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
-    return_view: bool = False,
-    **kwargs,
-) -> Optional[DEXHistogramChartView]:
-    """
-    Generates a DEX histogram plot from the given DataFrame.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The DataFrame to plot.
-    split_by: str
-        The column to use for splitting the data.
-    metric: str
-        The column to use to show distribution and density.
-    bins: int
-        The number of bins to use for the histogram plot.
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
-    return_view: bool
-        Whether to return a `DEXView` object instead of render.
-    **kwargs
-        Additional keyword arguments to pass to the view metadata.
-    """
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-    chart_params = dict(
-        summary_bins=bins,
-        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
-    )
-    return summary(
-        df,
-        split_by=split_by,
-        metric=metric,
-        summary_type="histogram",
-        chart_params=chart_params,
-        return_view=return_view,
-        **kwargs,
-    )
-
-
-def sample_heatmap(df, **kwargs) -> Optional[DEXSummaryChartView]:
-    return handle_view(df, chart_mode="summary", chart={"summary_type": "heatmap"}, **kwargs)
-
-
-def heatmap(
-    df: pd.DataFrame,
-    split_by: str,
-    metric: str,
-    bins: int = 30,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
-    return_view: bool = False,
-    **kwargs,
-) -> Optional[DEXHeatmapChartView]:
-    """
-    Generates a DEX heatmap plot from the given DataFrame.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The DataFrame to plot.
-    split_by: str
-        The column to use for splitting the data.
-    metric: str
-        The column to use to show distribution and density.
-    bins: int
-        The number of bins to use for the heatmap plot.
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
-    return_view: bool
-        Whether to return a `DEXView` object instead of render.
-    **kwargs
-        Additional keyword arguments to pass to the view metadata.
-    """
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-    chart_params = dict(
-        summary_bins=bins,
-        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
-    )
-    return summary(
-        df,
-        split_by=split_by,
-        metric=metric,
-        summary_type="heatmap",
-        chart_params=chart_params,
-        return_view=return_view,
-        **kwargs,
-    )
-
-
-def sample_horizon(df, **kwargs) -> Optional[DEXSummaryChartView]:
-    return handle_view(df, chart_mode="summary", chart={"summary_type": "horizon"}, **kwargs)
-
-
-def horizon(
-    df: pd.DataFrame,
-    split_by: str,
-    metric: str,
-    bins: int = 30,
-    column_sort_order: options.DEXSortColumnsByOrder = "asc",
-    column_sort_type: options.DEXSortColumnsByType = "string",
-    return_view: bool = False,
-    **kwargs,
-) -> Optional[DEXHorizonChartView]:
-    """
-    Generates a DEX horizon plot from the given DataFrame.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The DataFrame to plot.
-    split_by: str
-        The column to use for splitting the data.
-    metric: str
-        The column to use to show distribution and density.
-    bins: int
-        The number of bins to use for the horizon plot.
-    column_sort_order: DEXSortColumnsByOrder
-        The order to sort the columns by. (`"asc"` or `"desc"`)
-    column_sort_type: DEXSortColumnsByType
-        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
-    return_view: bool
-        Whether to return a `DEXView` object instead of render.
-    **kwargs
-        Additional keyword arguments to pass to the view metadata.
-    """
-    if str(column_sort_order).lower() == "asc":
-        sort_order = "desc"
-    elif str(column_sort_order).lower() == "desc":
-        sort_order = "asc"
-    chart_params = dict(
-        summary_bins=bins,
-        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
-    )
-    return summary(
-        df,
-        split_by=split_by,
-        metric=metric,
-        summary_type="horizon",
-        chart_params=chart_params,
         return_view=return_view,
         **kwargs,
     )
@@ -419,6 +201,70 @@ def bignumber(
     )
 
 
+def sample_dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
+    return handle_view(df, chart_mode="dimension_matrix", **kwargs)
+
+
+def dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
+    # TODO: define user-facing arguments and add documentation
+    return sample_dimension_matrix(df, **kwargs)
+
+
+def sample_heatmap(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "heatmap"}, **kwargs)
+
+
+def heatmap(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXHeatmapChartView]:
+    """
+    Generates a DEX heatmap plot from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
+        The number of bins to use for the heatmap plot.
+    column_sort_order: DEXSortColumnsByOrder
+        The order to sort the columns by. (`"asc"` or `"desc"`)
+    column_sort_type: DEXSortColumnsByType
+        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
+        df,
+        split_by=split_by,
+        metric=metric,
+        summary_type="heatmap",
+        chart_params=chart_params,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
 def sample_hexbin(df, **kwargs) -> Optional[DEXHexbinChartView]:
     return handle_view(df, chart_mode="hexbin", **kwargs)
 
@@ -462,10 +308,225 @@ def hexbin(
     )
 
 
-def sample_dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
-    return handle_view(df, chart_mode="dimension_matrix", **kwargs)
+def sample_horizon(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "horizon"}, **kwargs)
 
 
-def dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
-    # TODO: define user-facing arguments and add documentation
-    return sample_dimension_matrix(df, **kwargs)
+def sample_histogram(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "histogram"}, **kwargs)
+
+
+def histogram(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXHistogramChartView]:
+    """
+    Generates a DEX histogram plot from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
+        The number of bins to use for the histogram plot.
+    column_sort_order: DEXSortColumnsByOrder
+        The order to sort the columns by. (`"asc"` or `"desc"`)
+    column_sort_type: DEXSortColumnsByType
+        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
+        df,
+        split_by=split_by,
+        metric=metric,
+        summary_type="histogram",
+        chart_params=chart_params,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
+def horizon(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXHorizonChartView]:
+    """
+    Generates a DEX horizon plot from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
+        The number of bins to use for the horizon plot.
+    column_sort_order: DEXSortColumnsByOrder
+        The order to sort the columns by. (`"asc"` or `"desc"`)
+    column_sort_type: DEXSortColumnsByType
+        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
+        df,
+        split_by=split_by,
+        metric=metric,
+        summary_type="horizon",
+        chart_params=chart_params,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
+def sample_ridgeline(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "ridgeline"}, **kwargs)
+
+
+def ridgeline(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXRidgelineChartView]:
+    """
+    Generates a DEX ridgeline plot from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
+        The number of bins to use for the ridgeline plot.
+    column_sort_order: DEXSortColumnsByOrder
+        The order to sort the columns by. (`"asc"` or `"desc"`)
+    column_sort_type: DEXSortColumnsByType
+        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+    )
+    return summary(
+        df,
+        split_by=split_by,
+        metric=metric,
+        summary_type="ridgeline",
+        chart_params=chart_params,
+        return_view=return_view,
+        **kwargs,
+    )
+
+
+def sample_violin(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "violin"}, **kwargs)
+
+
+def violin(
+    df: pd.DataFrame,
+    split_by: str,
+    metric: str,
+    bins: int = 30,
+    show_interquartile_range: bool = False,
+    column_sort_order: options.DEXSortColumnsByOrder = "asc",
+    column_sort_type: options.DEXSortColumnsByType = "string",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXViolinChartView]:
+    """
+    Generates a DEX violin plot from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    split_by: str
+        The column to use for splitting the data.
+    metric: str
+        The column to use to show distribution and density.
+    bins: int
+        The number of bins to use for the violin plot.
+    show_interquartile_range: bool
+        Whether to show the interquartile range.
+    column_sort_order: DEXSortColumnsByOrder
+        The order to sort the columns by. (`"asc"` or `"desc"`)
+    column_sort_type: DEXSortColumnsByType
+        The type of sorting to use. (`"number"`, `"string"`, or `"date"`)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    if str(column_sort_order).lower() == "asc":
+        sort_order = "desc"
+    elif str(column_sort_order).lower() == "desc":
+        sort_order = "asc"
+    chart_params = dict(
+        summary_bins=bins,
+        sort_columns_by=f"{sort_order}-col-{column_sort_type}",
+        violin_iqr=show_interquartile_range,
+    )
+    return summary(
+        df,
+        split_by=split_by,
+        metric=metric,
+        summary_type="violin",
+        chart_params=chart_params,
+        return_view=return_view,
+        **kwargs,
+    )
