@@ -6,6 +6,7 @@ import structlog
 from dx.plotting.utils import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bignumber import DEXBigNumberChartView
+from dx.types.charts.dimension_matrix import DEXDimensionMatrixChartView
 from dx.types.charts.hexbin import DEXHexbinChartView
 from dx.types.charts.summary import (
     DEXBoxplotChartView,
@@ -17,6 +18,17 @@ from dx.types.charts.summary import (
 )
 
 logger = structlog.get_logger()
+
+__all__ = [
+    "bignumber",
+    "boxplot",
+    "dimension_matrix",
+    "heatmap",
+    "hexbin",
+    "histogram",
+    "horizon",
+    "ridgeline",
+]
 
 
 def summary(
@@ -64,6 +76,10 @@ def summary(
         return_view=return_view,
         **kwargs,
     )
+
+
+def sample_ridgeline(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "ridgeline"}, **kwargs)
 
 
 def ridgeline(
@@ -117,6 +133,10 @@ def ridgeline(
     )
 
 
+def sample_histogram(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "histogram"}, **kwargs)
+
+
 def histogram(
     df: pd.DataFrame,
     split_by: str,
@@ -166,6 +186,10 @@ def histogram(
         return_view=return_view,
         **kwargs,
     )
+
+
+def sample_heatmap(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "heatmap"}, **kwargs)
 
 
 def heatmap(
@@ -219,6 +243,10 @@ def heatmap(
     )
 
 
+def sample_horizon(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "horizon"}, **kwargs)
+
+
 def horizon(
     df: pd.DataFrame,
     split_by: str,
@@ -268,6 +296,10 @@ def horizon(
         return_view=return_view,
         **kwargs,
     )
+
+
+def sample_boxplot(df, **kwargs) -> Optional[DEXSummaryChartView]:
+    return handle_view(df, chart_mode="summary", chart={"summary_type": "boxplot"}, **kwargs)
 
 
 def boxplot(
@@ -320,6 +352,10 @@ def boxplot(
         return_view=return_view,
         **kwargs,
     )
+
+
+def sample_big_number(df, **kwargs) -> Optional[DEXBigNumberChartView]:
+    return handle_view(df, chart_mode="bignumber", **kwargs)
 
 
 def bignumber(
@@ -383,6 +419,10 @@ def bignumber(
     )
 
 
+def sample_hexbin(df, **kwargs) -> Optional[DEXHexbinChartView]:
+    return handle_view(df, chart_mode="hexbin", **kwargs)
+
+
 def hexbin(
     df: pd.DataFrame,
     x: str,
@@ -420,3 +460,12 @@ def hexbin(
         return_view=return_view,
         **kwargs,
     )
+
+
+def sample_dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
+    return handle_view(df, chart_mode="dimension_matrix", **kwargs)
+
+
+def dimension_matrix(df, **kwargs) -> Optional[DEXDimensionMatrixChartView]:
+    # TODO: define user-facing arguments and add documentation
+    return sample_dimension_matrix(df, **kwargs)

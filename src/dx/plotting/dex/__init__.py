@@ -1,9 +1,10 @@
-from ._samples import *
-from .basic import *
-from .comparison import *
-from .funnel import *
-from .maps import *
-from .part_to_whole import *
-from .relationship import *
-from .summary import *
-from .time_series import *
+from dx.plotting.dex import (
+    basic,
+    comparison,
+    funnel,
+    maps,
+    part_to_whole,
+    relationship,
+    summary,
+    time_series,
+)
