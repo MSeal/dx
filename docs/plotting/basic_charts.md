@@ -20,3 +20,4 @@ df = dx.random_dataframe(100)
 --8<-- "./docs/_charts/tilemap.md:usage"
 --8<-- "./docs/_charts/violin.md:usage"
 --8<-- "./docs/_charts/wordcloud.md:usage"
+--8<-- "./docs/_charts/dataprism.md:usage"

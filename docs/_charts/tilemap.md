@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Tilemap](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.tilemap)
+## [Tilemap](../../reference/charts/maps/#src.dx.plotting.dex.maps.tilemap)
 Since `dx.random_dataframe()` returns `integer_column` values (`-100` to `100`) and `float_column` values (`0.0` to `1.0`) as the only numeric columns by default, we can suggest enabling the `lat_float_column` and `lon_float_column` arguments for some quick testing:
 ```python
 df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
@@ -72,6 +72,6 @@ df = dx.random_dataframe(100, lat_float_column=True, lon_float_column=True)
 <!-- --8<-- [end:usage] -->
 
 <!-- --8<-- [start:ref] -->
-## [Tilemap](../../../plotting/basic_charts/#tilemap)
-::: src.dx.plotting.dex.basic.tilemap
+## [Tilemap](../../../plotting/maps/#tilemap)
+::: src.dx.plotting.dex.maps.tilemap
 <!-- --8<-- [end:ref] -->
