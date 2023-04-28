@@ -73,8 +73,8 @@ funnel_charts = Annotated[
         DEXFlowDiagramChartView,
         DEXFunnelChartView,
         DEXFunnelChartChartView,
-        DEXFunnelTreeChartView,
         DEXFunnelSunburstChartView,
+        DEXFunnelTreeChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
