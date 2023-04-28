@@ -3,10 +3,15 @@ from typing import Optional
 from dx.plotting.utils import handle_view
 from dx.types.charts.donut import DEXDonutChartView
 from dx.types.charts.partition import DEXPartitionChartView
-from dx.types.charts.stacked_area import DEXStackedAreaChartView
-from dx.types.charts.stacked_percent import DEXStackedPercentChartView
 from dx.types.charts.sunburst import DEXSunburstChartView
 from dx.types.charts.treemap import DEXTreemapChartView
+
+__all__ = [
+    "donut",
+    "partition",
+    "sunburst",
+    "treemap",
+]
 
 
 def sample_donut(df, **kwargs) -> Optional[DEXDonutChartView]:
@@ -43,21 +48,3 @@ def sample_treemap(df, **kwargs) -> Optional[DEXTreemapChartView]:
 def treemap(df, **kwargs) -> Optional[DEXTreemapChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_treemap(df, **kwargs)
-
-
-def sample_stacked_area(df, **kwargs) -> Optional[DEXStackedAreaChartView]:
-    return handle_view(df, chart_mode="stacked_area", **kwargs)
-
-
-def stacked_area(df, **kwargs) -> Optional[DEXStackedAreaChartView]:
-    # TODO: define user-facing arguments and add documentation
-    return sample_stacked_area(df, **kwargs)
-
-
-def sample_stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]:
-    return handle_view(df, chart_mode="stacked_percent", **kwargs)
-
-
-def stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]:
-    # TODO: define user-facing arguments and add documentation
-    return sample_stacked_percent(df, **kwargs)
