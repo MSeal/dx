@@ -7,6 +7,16 @@ from dx.types.charts._base import DEXChartBase
 from dx.types.dex_metadata import DEXView
 
 
+__all__ = [
+    "DEXBoxplotChartView",
+    "DEXHeatmapChartView",
+    "DEXHistogramChartView",
+    "DEXHorizonChartView",
+    "DEXRidgelineChartView",
+    "DEXViolinChartView",
+]
+
+
 class DEXBoxplotChartConfig(DEXChartBase):
     summary_type: Literal["boxplot"] = "boxplot"
 

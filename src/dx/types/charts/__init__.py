@@ -3,35 +3,49 @@ from typing import Union
 from pydantic import Field
 from typing_extensions import Annotated
 
-from dx.types.charts.bar import DEXBarChartView
-from dx.types.charts.bignumber import DEXBigNumberChartView
-from dx.types.charts.dataprism import DEXDataPrismChartView
-from dx.types.charts.hexbin import DEXHexbinChartView
-from dx.types.charts.line import DEXLineChartView
-from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
-from dx.types.charts.pie import DEXPieChartView
-from dx.types.charts.scatter import DEXScatterChartView
-from dx.types.charts.summary import DEXSummaryChartView
-from dx.types.charts.tilemap import DEXTilemapChartView
-from dx.types.charts.wordcloud import DEXWordcloudChartView
+from dx.types.charts import bar
+from dx.types.charts import bignumber
+from dx.types.charts import dataprism
+from dx.types.charts import hexbin
+from dx.types.charts import line
+from dx.types.charts import parcoords
+from dx.types.charts import pie
+from dx.types.charts import scatter
+from dx.types.charts import summary
+from dx.types.charts import tilemap
+from dx.types.charts import wordcloud
+
+__all__ = [
+    *bar.__all__,
+    *bignumber.__all__,
+    *dataprism.__all__,
+    *hexbin.__all__,
+    *line.__all__,
+    *parcoords.__all__,
+    *pie.__all__,
+    *scatter.__all__,
+    *summary.__all__,
+    *tilemap.__all__,
+    *wordcloud.__all__,
+]
 
 basic_charts = Annotated[
     Union[
-        DEXBarChartView,
-        DEXLineChartView,
-        DEXPieChartView,
-        DEXScatterChartView,
-        DEXTilemapChartView,
-        DEXWordcloudChartView,
-        DEXDataPrismChartView,
+        bar.DEXBarChartView,
+        line.DEXLineChartView,
+        pie.DEXPieChartView,
+        scatter.DEXScatterChartView,
+        tilemap.DEXTilemapChartView,
+        wordcloud.DEXWordcloudChartView,
+        dataprism.DEXDataPrismChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 comparison_charts = Annotated[
     Union[
-        DEXBarChartView,
-        DEXParallelCoordinatesChartView,
-        DEXScatterChartView,
+        bar.DEXBarChartView,
+        parcoords.DEXParallelCoordinatesChartView,
+        scatter.DEXScatterChartView,
         # DEXScatterplotMatrixChartView,
         # DEXCorrelationMatrixChartView,
         # DEXDotPlotChartView,
@@ -59,7 +73,7 @@ relationship_charts = [
 ]
 
 part_to_whole_charts = [
-    DEXPieChartView,
+    pie.DEXPieChartView,
     # DEXDonutChartView,
     # DEXSunburstChartView,
     # DEXTreemapChartView,
@@ -76,11 +90,11 @@ funnel_charts = [
 
 summary_charts = Annotated[
     Union[
-        DEXBigNumberChartView,
-        DEXWordcloudChartView,
+        bignumber.DEXBigNumberChartView,
+        wordcloud.DEXWordcloudChartView,
         # DEXDimensionMatrixChartView,
-        DEXHexbinChartView,
-        DEXSummaryChartView,
+        hexbin.DEXHexbinChartView,
+        summary.DEXSummaryChartView,
     ],
     Field(discriminator="chart_mode"),
 ]

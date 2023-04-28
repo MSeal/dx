@@ -5,6 +5,8 @@ from pydantic import Field
 from dx.types.charts._base import DEXChartBase
 from dx.types.dex_metadata import DEXView
 
+__all__ = ["DEXLineChartView"]
+
 
 class DEXLineChartConfig(DEXChartBase):
     class Config:
