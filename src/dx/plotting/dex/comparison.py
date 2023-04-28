@@ -20,6 +20,7 @@ __all__ = [
     "diverging_bar",
     "dotplot",
     "parallel_coordinates",
+    "radar_plot",
     "scatterplot_matrix",
 ]
 
