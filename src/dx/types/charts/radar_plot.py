@@ -11,5 +11,5 @@ class DEXRadarPlotConfig(DEXChartBase):
 
 
 class DEXRadarPlotChartView(DEXView):
-    chart_mode: Literal["radarplot"] = "radarplot"
+    chart_mode: Literal["radar_plot"] = "radar_plot"
     chart: DEXRadarPlotConfig = Field(default_factory=DEXRadarPlotConfig)
