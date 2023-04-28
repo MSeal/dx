@@ -31,28 +31,9 @@ def plot(df: dict, kind: str, **kwargs) -> None:
 
     ref: https://github.com/plotly/plotly.py/blob/master/packages/python/plotly/plotly/__init__.py
     """
-    view = None
-
-    # main chart categories
-    chart_modules = [
-        dex.basic,
-        dex.comparison,
-        dex.funnel,
-        dex.maps,
-        dex.part_to_whole,
-        dex.summary,
-        dex.time_series,
-    ]
-    for chart_module in chart_modules:
-        if chart_func := getattr(chart_module, kind, None):
-            view = chart_func(df, return_view=True, **kwargs)
-            break
-
+    view = dex.get_chart_view(df, kind, **kwargs)
     if view:
         pass
-    # direct chart passthrough with no configs
-    elif (sample_chart_func := getattr(dex._samples, f"sample_{kind}", None)) is not None:
-        view = sample_chart_func(df, return_view=True, **kwargs)
     elif kind == "dashboard":
         return dashboard(df, **kwargs)
     else:
