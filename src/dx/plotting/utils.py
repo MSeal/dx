@@ -6,7 +6,8 @@ from pydantic import parse_obj_as
 
 from dx.formatters.main import handle_format
 from dx.settings import settings_context
-from dx.types.charts._base import chart_view_ref
+from dx.types.charts import dex_charts
+from dx.types.charts._base import DEXChartBase
 from dx.types.dex_metadata import DEXView
 
 logger = structlog.get_logger(__name__)
@@ -28,15 +29,12 @@ def handle_view(
 
     view_params = {
         "chart_mode": chart_mode,
-        "chart": chart,
+        "chart": DEXChartBase.parse_obj(chart or {}),
         "decoration": {"title": chart_mode.title()},
     }
     view_params.update(kwargs)
 
-    view = parse_obj_as(
-        chart_view_ref(),
-        view_params,
-    )
+    view = parse_obj_as(dex_charts, view_params)
 
     if view.chart.summary_type is not None:
         # show "Summary (Violin)" instead of just "Summary"
