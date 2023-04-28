@@ -49,7 +49,6 @@ basic_charts = Annotated[
         DEXLineChartView,
         DEXPieChartView,
         DEXScatterChartView,
-        DEXTilemapChartView,
         DEXWordcloudChartView,
     ],
     Field(discriminator="chart_mode"),
@@ -69,25 +68,21 @@ comparison_charts = Annotated[
     Field(discriminator="chart_mode"),
 ]
 
-time_series_charts = Annotated[
+funnel_charts = Annotated[
     Union[
-        DEXCandlestickChartView,
-        DEXCumulativeChartView,
-        DEXLineChartView,
-        DEXLinePercentChartView,
-        DEXStackedAreaChartView,
-        DEXStackedPercentChartView,
+        DEXFlowDiagramChartView,
+        DEXFunnelChartView,
+        DEXFunnelChartChartView,
+        DEXFunnelTreeChartView,
+        DEXFunnelSunburstChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 
-relationship_charts = Annotated[
+map_charts = Annotated[
     Union[
-        DEXAdjacencyMatrixChartView,
-        DEXArcFlowChartView,
-        DEXDendrogramChartView,
-        DEXForceDirectedNetworkChartView,
-        DEXSankeyChartView,
+        DEXChoroplethChartView,
+        DEXTilemapChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
@@ -103,13 +98,13 @@ part_to_whole_charts = Annotated[
     Field(discriminator="chart_mode"),
 ]
 
-funnel_charts = Annotated[
+relationship_charts = Annotated[
     Union[
-        DEXFlowDiagramChartView,
-        DEXFunnelChartView,
-        DEXFunnelChartChartView,
-        DEXFunnelTreeChartView,
-        DEXFunnelSunburstChartView,
+        DEXAdjacencyMatrixChartView,
+        DEXArcFlowChartView,
+        DEXDendrogramChartView,
+        DEXForceDirectedNetworkChartView,
+        DEXSankeyChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
@@ -125,10 +120,15 @@ summary_charts = Annotated[
     Field(discriminator="chart_mode"),
 ]
 
-map_charts = Annotated[
+
+time_series_charts = Annotated[
     Union[
-        DEXChoroplethChartView,
-        DEXTilemapChartView,
+        DEXCandlestickChartView,
+        DEXCumulativeChartView,
+        DEXLineChartView,
+        DEXLinePercentChartView,
+        DEXStackedAreaChartView,
+        DEXStackedPercentChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
