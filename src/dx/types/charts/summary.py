@@ -8,7 +8,7 @@ from dx.types.dex_metadata import DEXView
 
 
 class DEXBoxplotChartConfig(DEXChartBase):
-    summary_type: Literal["boxplot"] = "boxplot"
+    summary_type: Literal["boxplot"] = Field(alias="summaryType", default="boxplot")
 
     class Config:
         fields = {
@@ -21,7 +21,7 @@ class DEXBoxplotChartConfig(DEXChartBase):
 
 
 class DEXHeatmapChartConfig(DEXChartBase):
-    summary_type: Literal["heatmap"] = "heatmap"
+    summary_type: Literal["heatmap"] = Field(alias="summaryType", default="heatmap")
 
     class Config:
         fields = {
@@ -34,7 +34,7 @@ class DEXHeatmapChartConfig(DEXChartBase):
 
 
 class DEXHistogramChartConfig(DEXChartBase):
-    summary_type: Literal["histogram"] = "histogram"
+    summary_type: Literal["histogram"] = Field(alias="summaryType", default="histogram")
 
     class Config:
         fields = {
@@ -47,7 +47,7 @@ class DEXHistogramChartConfig(DEXChartBase):
 
 
 class DEXHorizonChartConfig(DEXChartBase):
-    summary_type: Literal["horizon"] = "horizon"
+    summary_type: Literal["horizon"] = Field(alias="summaryType", default="horizon")
 
     class Config:
         fields = {
@@ -60,7 +60,7 @@ class DEXHorizonChartConfig(DEXChartBase):
 
 
 class DEXRidgelineChartConfig(DEXChartBase):
-    summary_type: Literal["ridgeline"] = "ridgeline"
+    summary_type: Literal["ridgeline"] = Field(alias="summaryType", default="ridgeline")
 
     class Config:
         fields = {
@@ -73,7 +73,7 @@ class DEXRidgelineChartConfig(DEXChartBase):
 
 
 class DEXViolinChartConfig(DEXChartBase):
-    summary_type: Literal["violin"] = "violin"
+    summary_type: Literal["violin"] = Field(alias="summaryType", default="violin")
 
     class Config:
         fields = {
