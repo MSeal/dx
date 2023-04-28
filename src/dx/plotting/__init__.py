@@ -1,3 +1,1 @@
-from .dashboards import *
-from .dex import *
-from .main import *
+from dx.plotting.dex import *

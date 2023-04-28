@@ -55,7 +55,7 @@ def sample_bar(df, **kwargs) -> Optional[DEXView]:
 
 # ⛔
 def sample_big_number(df, **kwargs) -> Optional[DEXView]:
-    return sample_chart(df, chart_mode="big_number", **kwargs)
+    return sample_chart(df, chart_mode="bignumber", **kwargs)
 
 
 # ✅

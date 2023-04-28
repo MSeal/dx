@@ -16,6 +16,17 @@ from dx.types.charts.summary import DEXViolinChartView
 from dx.types.charts.tilemap import DEXTilemapChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView
 
+__all__ = [
+    "bar",
+    "dataprism",
+    "line",
+    "pie",
+    "scatter",
+    "tilemap",
+    "violin",
+    "wordcloud",
+]
+
 logger = structlog.get_logger(__name__)
 
 

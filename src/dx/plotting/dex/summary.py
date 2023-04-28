@@ -16,6 +16,16 @@ from dx.types.charts.summary import (
     DEXSummaryChartView,
 )
 
+__all__ = [
+    "bignumber",
+    "boxplot",
+    "heatmap",
+    "hexbin",
+    "histogram",
+    "horizon",
+    "ridgeline",
+]
+
 logger = structlog.get_logger()
 
 
@@ -110,7 +120,7 @@ def ridgeline(
         df,
         split_by=split_by,
         metric=metric,
-        summary_type="ridgeline",
+        summary_type=options.DEXSummaryType.ridgeline,
         chart_params=chart_params,
         return_view=return_view,
         **kwargs,
@@ -161,7 +171,7 @@ def histogram(
         df,
         split_by=split_by,
         metric=metric,
-        summary_type="histogram",
+        summary_type=options.DEXSummaryType.histogram,
         chart_params=chart_params,
         return_view=return_view,
         **kwargs,
@@ -212,7 +222,7 @@ def heatmap(
         df,
         split_by=split_by,
         metric=metric,
-        summary_type="heatmap",
+        summary_type=options.DEXSummaryType.heatmap,
         chart_params=chart_params,
         return_view=return_view,
         **kwargs,
@@ -263,7 +273,7 @@ def horizon(
         df,
         split_by=split_by,
         metric=metric,
-        summary_type="horizon",
+        summary_type=options.DEXSummaryType.horizon,
         chart_params=chart_params,
         return_view=return_view,
         **kwargs,
@@ -315,7 +325,7 @@ def boxplot(
         df,
         split_by=split_by,
         metric=metric,
-        summary_type="boxplot",
+        summary_type=options.DEXSummaryType.boxplot,
         chart_params=chart_params,
         return_view=return_view,
         **kwargs,
