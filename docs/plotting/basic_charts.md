@@ -14,10 +14,10 @@ df = dx.random_dataframe(100)
 <!-- --8<-- [end:setup] -->
 
 --8<-- "./docs/_charts/bar.md:usage"
+--8<-- "./docs/_charts/dataprism.md:usage"
 --8<-- "./docs/_charts/line.md:usage"
 --8<-- "./docs/_charts/pie.md:usage"
 --8<-- "./docs/_charts/scatter.md:usage"
 --8<-- "./docs/_charts/tilemap.md:usage"
 --8<-- "./docs/_charts/violin.md:usage"
 --8<-- "./docs/_charts/wordcloud.md:usage"
---8<-- "./docs/_charts/dataprism.md:usage"
