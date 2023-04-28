@@ -236,11 +236,11 @@ def enable_disable_comms(
     And to re-register it:
     >>> enable_disable_comms("ENABLE_DATALINK", True)
     """
-    from dx import comms
+    from dx.comms import assignment, resample
 
     comm_setting_targets = {
-        "ENABLE_DATALINK": ("datalink_resample", comms.resample.resampler),
-        "ENABLE_ASSIGNMENT": ("datalink_assignment", comms.assignment.dataframe_assignment),
+        "ENABLE_DATALINK": ("datalink_resample", resample.resampler),
+        "ENABLE_ASSIGNMENT": ("datalink_assignment", assignment.dataframe_assignment),
     }
     if setting_name not in comm_setting_targets:
         return
