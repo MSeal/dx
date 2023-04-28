@@ -11,5 +11,5 @@ class DEXCorrelationMatrixConfig(DEXChartBase):
 
 
 class DEXCorrelationMatrixChartView(DEXView):
-    chart_mode: Literal["correlationmatrix"] = "correlationmatrix"
+    chart_mode: Literal["correlation_matrix"] = "correlation_matrix"
     chart: DEXCorrelationMatrixConfig = Field(default_factory=DEXCorrelationMatrixConfig)
