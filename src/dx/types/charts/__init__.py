@@ -4,11 +4,12 @@ from pydantic import Field
 from typing_extensions import Annotated
 
 from dx.types.charts.adjacency_matrix import DEXAdjacencyMatrixChartView
-from dx.types.charts.arc_diagram import DEXArcDiagramChartView
+from dx.types.charts.arc_flow import DEXArcFlowChartView
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.bignumber import DEXBigNumberChartView
 from dx.types.charts.candlestick import DEXCandlestickChartView
 from dx.types.charts.choropleth import DEXChoroplethChartView
+from dx.types.charts.connected_scatter import DEXConnectedScatterChartView
 from dx.types.charts.correlation_matrix import DEXCorrelationMatrixChartView
 from dx.types.charts.cumulative import DEXCumulativeChartView
 from dx.types.charts.dataprism import DEXDataPrismChartView
@@ -56,58 +57,59 @@ basic_charts = Annotated[
 comparison_charts = Annotated[
     Union[
         DEXBarChartView,
+        DEXConnectedScatterChartView,
         DEXCorrelationMatrixChartView,
+        DEXDivergingBarChartView,
         DEXDotPlotChartView,
         DEXRadarPlotChartView,
         DEXParallelCoordinatesChartView,
         DEXScatterChartView,
         DEXScatterPlotMatrixChartView,
-        DEXDivergingBarChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 
 time_series_charts = Annotated[
     Union[
-        DEXLineChartView,
-        DEXCumulativeChartView,
-        DEXStackedAreaChartView,
-        DEXLinePercentChartView,
-        DEXStackedPercentChartView,
         DEXCandlestickChartView,
+        DEXCumulativeChartView,
+        DEXLineChartView,
+        DEXLinePercentChartView,
+        DEXStackedAreaChartView,
+        DEXStackedPercentChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 
 relationship_charts = Annotated[
     Union[
+        DEXAdjacencyMatrixChartView,
+        DEXArcFlowChartView,
+        DEXDendrogramChartView,
         DEXForceDirectedNetworkChartView,
         DEXSankeyChartView,
-        DEXArcDiagramChartView,
-        DEXAdjacencyMatrixChartView,
-        DEXDendrogramChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 
 part_to_whole_charts = Annotated[
     Union[
-        DEXPieChartView,
         DEXDonutChartView,
+        DEXPartitionChartView,
+        DEXPieChartView,
         DEXSunburstChartView,
         DEXTreemapChartView,
-        DEXPartitionChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
 
 funnel_charts = Annotated[
     Union[
+        DEXFlowDiagramChartView,
         DEXFunnelChartView,
         DEXFunnelChartChartView,
         DEXFunnelTreeChartView,
         DEXFunnelSunburstChartView,
-        DEXFlowDiagramChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
@@ -115,10 +117,10 @@ funnel_charts = Annotated[
 summary_charts = Annotated[
     Union[
         DEXBigNumberChartView,
-        DEXWordcloudChartView,
         DEXDimensionMatrixChartView,
         DEXHexbinChartView,
         DEXSummaryChartView,
+        DEXWordcloudChartView,
     ],
     Field(discriminator="chart_mode"),
 ]
@@ -127,6 +129,21 @@ map_charts = Annotated[
     Union[
         DEXChoroplethChartView,
         DEXTilemapChartView,
+    ],
+    Field(discriminator="chart_mode"),
+]
+
+
+dex_charts = Annotated[
+    Union[
+        basic_charts,
+        comparison_charts,
+        time_series_charts,
+        relationship_charts,
+        part_to_whole_charts,
+        funnel_charts,
+        summary_charts,
+        map_charts,
     ],
     Field(discriminator="chart_mode"),
 ]
