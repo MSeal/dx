@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import structlog
 
-from dx.plotting.main import handle_view, raise_for_missing_columns
+from dx.plotting.utils import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
 

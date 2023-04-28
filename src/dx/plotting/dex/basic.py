@@ -5,7 +5,7 @@ import structlog
 from pydantic.color import Color
 
 from dx.plotting.dex.summary import summary
-from dx.plotting.main import handle_view, raise_for_missing_columns
+from dx.plotting.utils import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.dataprism import DEXDataPrismChartView
