@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Violin](../../reference/charts/basic_charts/#src.dx.plotting.dex.summary.violin)
+## [Violin](../../reference/charts/basic_charts/#src.dx.plotting.dex.summary_charts.violin)
 
 ### Simple
 === "dx"
@@ -56,5 +56,5 @@
 
 <!-- --8<-- [start:ref] -->
 ## [Violin](../../../plotting/summary_charts/#violin)
-::: src.dx.plotting.dex.summary.violin
+::: src.dx.plotting.dex.summary_charts.violin
 <!-- --8<-- [end:ref] -->

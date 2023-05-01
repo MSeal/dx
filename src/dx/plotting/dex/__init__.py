@@ -1,12 +1,13 @@
 from typing import Optional
 
-from dx.plotting.dex.basic import *
-from dx.plotting.dex.comparison import *
-from dx.plotting.dex.funnel import *
-from dx.plotting.dex.maps import *
-from dx.plotting.dex.part_to_whole import *
-from dx.plotting.dex.summary import *
-from dx.plotting.dex.time_series import *
+from dx.plotting.dex.basic_charts import *
+from dx.plotting.dex.comparison_charts import *
+from dx.plotting.dex.funnel_charts import *
+from dx.plotting.dex.map_charts import *
+from dx.plotting.dex.part_to_whole_charts import *
+from dx.plotting.dex.relationship_charts import *
+from dx.plotting.dex.summary_charts import *
+from dx.plotting.dex.time_series_charts import *
 from dx.types.dex_metadata import DEXView
 
 chart_functions = {
@@ -15,6 +16,7 @@ chart_functions = {
     **funnel_chart_functions(),
     **maps_chart_functions(),
     **part_to_whole_chart_functions(),
+    **relationship_chart_functions(),
     **summary_chart_functions(),
     **time_series_chart_functions(),
 }
