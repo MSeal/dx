@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import structlog
 
@@ -127,7 +127,7 @@ def scatterplot_matrix(df, **kwargs) -> Optional[DEXScatterPlotMatrixChartView]:
     return sample_scatterplot_matrix(df, **kwargs)
 
 
-def comparison_chart_functions() -> dict[str, Callable]:
+def comparison_chart_functions() -> Dict[str, Callable]:
     return {
         "connected_scatterplot": connected_scatterplot,
         "correlation_matrix": correlation_matrix,

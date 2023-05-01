@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 import pandas as pd
 import structlog
@@ -533,7 +533,7 @@ def violin(
     )
 
 
-def summary_chart_functions() -> dict[str, Callable]:
+def summary_chart_functions() -> Dict[str, Callable]:
     return {
         "boxplot": boxplot,
         "bignumber": bignumber,

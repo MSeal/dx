@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from pydantic.color import Color
 
@@ -153,7 +153,7 @@ def tilemap(
     )
 
 
-def maps_chart_functions() -> dict[str, Callable]:
+def maps_chart_functions() -> Dict[str, Callable]:
     return {
         "choropleth": choropleth,
         "tilemap": tilemap,

@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 from dx.plotting.utils import handle_view
 from dx.types.charts.adjacency_matrix import DEXAdjacencyMatrixChartView
@@ -62,7 +62,7 @@ def sankey(df, **kwargs) -> Optional[DEXSankeyChartView]:
     return sample_sankey(df, **kwargs)
 
 
-def relationship_chart_functions() -> dict[str, Callable]:
+def relationship_chart_functions() -> Dict[str, Callable]:
     return {
         "adjacency_matrix": adjacency_matrix,
         "arc_flow": arc_flow,

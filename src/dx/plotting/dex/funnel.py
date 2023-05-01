@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 from dx.plotting.utils import handle_view
 from dx.types.charts.flow_diagram import DEXFlowDiagramChartView
@@ -62,7 +62,7 @@ def funnel(df, **kwargs) -> Optional[DEXFunnelChartView]:
     return sample_funnel(df, **kwargs)
 
 
-def funnel_chart_functions() -> dict[str, Callable]:
+def funnel_chart_functions() -> Dict[str, Callable]:
     return {
         "flow_diagram": flow_diagram,
         "funnel": funnel,

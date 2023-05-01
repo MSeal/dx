@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 from dx.plotting.utils import handle_view
 from dx.types.charts.donut import DEXDonutChartView
@@ -51,7 +51,7 @@ def treemap(df, **kwargs) -> Optional[DEXTreemapChartView]:
     return sample_treemap(df, **kwargs)
 
 
-def part_to_whole_chart_functions() -> dict[str, Callable]:
+def part_to_whole_chart_functions() -> Dict[str, Callable]:
     return {
         "donut": donut,
         "partition": partition,

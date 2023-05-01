@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import pandas as pd
 import structlog
@@ -465,7 +465,7 @@ def dataprism(
     )
 
 
-def basic_chart_functions() -> dict[str, Callable]:
+def basic_chart_functions() -> Dict[str, Callable]:
     return {
         "bar": bar,
         "dataprism": dataprism,
