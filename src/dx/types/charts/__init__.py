@@ -17,7 +17,7 @@ from dx.types.charts.dendrogram import DEXDendrogramChartView
 from dx.types.charts.dimension_matrix import DEXDimensionMatrixChartView
 from dx.types.charts.diverging_bar import DEXDivergingBarChartView
 from dx.types.charts.donut import DEXDonutChartView
-from dx.types.charts.dotplot import DEXDotPlotChartView
+from dx.types.charts.dotplot import DEXGenericDotPlotChartView
 from dx.types.charts.flow_diagram import DEXFlowDiagramChartView
 from dx.types.charts.force_directed_network import DEXForceDirectedNetworkChartView
 from dx.types.charts.funnel import DEXFunnelChartView
@@ -30,7 +30,6 @@ from dx.types.charts.line_percent import DEXLinePercentChartView
 from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
 from dx.types.charts.partition import DEXPartitionChartView
 from dx.types.charts.pie import DEXPieChartView
-from dx.types.charts.radar_plot import DEXRadarPlotChartView
 from dx.types.charts.sankey import DEXSankeyChartView
 from dx.types.charts.scatter import DEXScatterChartView
 from dx.types.charts.scatterplot_matrix import DEXScatterPlotMatrixChartView
@@ -59,8 +58,7 @@ comparison_charts = Annotated[
         DEXConnectedScatterChartView,
         DEXCorrelationMatrixChartView,
         DEXDivergingBarChartView,
-        DEXDotPlotChartView,
-        DEXRadarPlotChartView,
+        DEXGenericDotPlotChartView,
         DEXParallelCoordinatesChartView,
         DEXScatterChartView,
         DEXScatterPlotMatrixChartView,

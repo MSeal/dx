@@ -7,9 +7,8 @@ from dx.types.charts import options
 from dx.types.charts.connected_scatter import DEXConnectedScatterChartView
 from dx.types.charts.correlation_matrix import DEXCorrelationMatrixChartView
 from dx.types.charts.diverging_bar import DEXDivergingBarChartView
-from dx.types.charts.dotplot import DEXDotPlotChartView
+from dx.types.charts.dotplot import DEXDotPlotChartView, DEXRadarPlotChartView
 from dx.types.charts.parcoords import DEXParallelCoordinatesChartView
-from dx.types.charts.radar_plot import DEXRadarPlotChartView
 from dx.types.charts.scatterplot_matrix import DEXScatterPlotMatrixChartView
 
 logger = structlog.get_logger()
@@ -53,7 +52,7 @@ def diverging_bar(df, **kwargs) -> Optional[DEXDivergingBarChartView]:
 
 
 def sample_dotplot(df, **kwargs) -> Optional[DEXDotPlotChartView]:
-    return handle_view(df, chart_mode="dotplot", **kwargs)
+    return handle_view(df, chart_mode="dotplot", chart={"bar_projection": "horizontal"}, **kwargs)
 
 
 def dotplot(df, **kwargs) -> Optional[DEXDotPlotChartView]:
