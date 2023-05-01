@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from pydantic.color import Color
 
@@ -7,7 +7,7 @@ from dx.types.charts import options
 from dx.types.charts.choropleth import DEXChoroplethChartView
 from dx.types.charts.tilemap import DEXTilemapChartView
 
-__all__ = ["choropleth", "tilemap"]
+__all__ = ["choropleth", "tilemap", "maps_chart_functions"]
 
 
 def sample_choropleth(df, **kwargs) -> Optional[DEXChoroplethChartView]:
@@ -151,3 +151,10 @@ def tilemap(
         return_view=return_view,
         **kwargs,
     )
+
+
+def maps_chart_functions() -> dict[str, Callable]:
+    return {
+        "choropleth": choropleth,
+        "tilemap": tilemap,
+    }

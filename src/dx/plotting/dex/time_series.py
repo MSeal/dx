@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Callable, Optional
 
 from dx.plotting.utils import handle_view
 from dx.types.charts.candlestick import DEXCandlestickChartView
@@ -13,6 +13,7 @@ __all__ = [
     "line_percent",
     "stacked_area",
     "stacked_percent",
+    "time_series_chart_functions",
 ]
 
 
@@ -59,3 +60,13 @@ def sample_stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]
 def stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_stacked_percent(df, **kwargs)
+
+
+def time_series_chart_functions() -> dict[str, Callable]:
+    return {
+        "candlestick": candlestick,
+        "cumulative": cumulative,
+        "line_percent": line_percent,
+        "stacked_area": stacked_area,
+        "stacked_percent": stacked_percent,
+    }

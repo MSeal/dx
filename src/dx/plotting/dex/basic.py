@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import pandas as pd
 import structlog
@@ -21,6 +21,7 @@ __all__ = [
     "pie",
     "scatter",
     "wordcloud",
+    "basic_chart_functions",
 ]
 
 
@@ -462,3 +463,14 @@ def dataprism(
         return_view=return_view,
         **kwargs,
     )
+
+
+def basic_chart_functions() -> dict[str, Callable]:
+    return {
+        "bar": bar,
+        "dataprism": dataprism,
+        "line": line,
+        "pie": pie,
+        "scatter": scatter,
+        "wordcloud": wordcloud,
+    }

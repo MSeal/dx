@@ -1,21 +1,26 @@
-from dx.plotting.dex import (
-    basic,
-    comparison,
-    funnel,
-    maps,
-    part_to_whole,
-    relationship,
-    summary,
-    time_series,
-)
+from typing import Optional
 
-__all__ = [
-    *basic.__all__,
-    *comparison.__all__,
-    *funnel.__all__,
-    *maps.__all__,
-    *part_to_whole.__all__,
-    *relationship.__all__,
-    *summary.__all__,
-    *time_series.__all__,
-]
+from dx.plotting.dex.basic import *
+from dx.plotting.dex.comparison import *
+from dx.plotting.dex.funnel import *
+from dx.plotting.dex.maps import *
+from dx.plotting.dex.part_to_whole import *
+from dx.plotting.dex.summary import *
+from dx.plotting.dex.time_series import *
+from dx.types.dex_metadata import DEXView
+
+chart_functions = {
+    **basic_chart_functions(),
+    **comparison_chart_functions(),
+    **funnel_chart_functions(),
+    **maps_chart_functions(),
+    **part_to_whole_chart_functions(),
+    **summary_chart_functions(),
+    **time_series_chart_functions(),
+}
+
+
+def get_chart_view(df, chart_mode: str, **kwargs) -> Optional[DEXView]:
+    chart_func = chart_functions.get(chart_mode)
+    if chart_func is not None:
+        return chart_func(df, return_view=True, **kwargs)

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import structlog
 
@@ -21,6 +21,7 @@ __all__ = [
     "parallel_coordinates",
     "radar_plot",
     "scatterplot_matrix",
+    "comparison_chart_functions",
 ]
 
 
@@ -124,3 +125,15 @@ def sample_scatterplot_matrix(df, **kwargs) -> Optional[DEXScatterPlotMatrixChar
 def scatterplot_matrix(df, **kwargs) -> Optional[DEXScatterPlotMatrixChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_scatterplot_matrix(df, **kwargs)
+
+
+def comparison_chart_functions() -> dict[str, Callable]:
+    return {
+        "connected_scatterplot": connected_scatterplot,
+        "correlation_matrix": correlation_matrix,
+        "diverging_bar": diverging_bar,
+        "dotplot": dotplot,
+        "radar_plot": radar_plot,
+        "parallel_coordinates": parallel_coordinates,
+        "scatterplot_matrix": scatterplot_matrix,
+    }

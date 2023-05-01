@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Callable, Optional
 
 import pandas as pd
 import structlog
@@ -30,6 +30,7 @@ __all__ = [
     "horizon",
     "ridgeline",
     "violin",
+    "summary_chart_functions",
 ]
 
 
@@ -530,3 +531,17 @@ def violin(
         return_view=return_view,
         **kwargs,
     )
+
+
+def summary_chart_functions() -> dict[str, Callable]:
+    return {
+        "boxplot": boxplot,
+        "bignumber": bignumber,
+        "dimension_matrix": dimension_matrix,
+        "heatmap": heatmap,
+        "hexbin": hexbin,
+        "histogram": histogram,
+        "horizon": horizon,
+        "ridgeline": ridgeline,
+        "violin": violin,
+    }
