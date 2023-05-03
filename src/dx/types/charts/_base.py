@@ -1,7 +1,6 @@
 from typing import List, Literal, Optional, Union
 
 from pydantic import Field, validator
-from typing_extensions import Annotated
 
 from dx.types.charts import options
 from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
@@ -140,22 +139,3 @@ class DEXChartBase(DEXBaseModel):
         if v is None:
             return v
         return str(v).upper()
-
-
-def chart_view_ref():
-    # avoiding circular import and ForwardRef issues
-    # (see `src/dx/types/charts/__init__.py` for groups)
-    from dx.types.charts import basic_charts, comparison_charts, summary_charts
-
-    DEXChartViews = Union[
-        basic_charts,
-        comparison_charts,
-        # time_series_charts,
-        # relationship_charts,
-        # part_to_whole_charts,
-        # funnel_charts,
-        summary_charts,
-        # map_charts,
-    ]
-
-    return Annotated[DEXChartViews, Field(discriminator="chart_mode")]

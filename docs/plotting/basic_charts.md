@@ -14,6 +14,7 @@ df = dx.random_dataframe(100)
 <!-- --8<-- [end:setup] -->
 
 --8<-- "./docs/_charts/bar.md:usage"
+--8<-- "./docs/_charts/dataprism.md:usage"
 --8<-- "./docs/_charts/line.md:usage"
 --8<-- "./docs/_charts/pie.md:usage"
 --8<-- "./docs/_charts/scatter.md:usage"

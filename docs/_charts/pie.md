@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Pie](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.pie)
+## [Pie](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic_charts.pie)
 
 ### Simple
 === "dx"
@@ -51,5 +51,5 @@
 
 <!-- --8<-- [start:ref] -->
 ## [Pie](../../../plotting/basic_charts/#pie)
-::: src.dx.plotting.dex.basic.pie
+::: src.dx.plotting.dex.basic_charts.pie
 <!-- --8<-- [end:ref] -->

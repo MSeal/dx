@@ -16,6 +16,11 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
+__all__ = [
+    "generate_text_series",
+    "generate_keyword_series",
+]
+
 
 def generate_text_series(num_rows: int) -> pd.Series:
     """

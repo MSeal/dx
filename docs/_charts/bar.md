@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Bar](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.bar)
+## [Bar](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic_charts.bar)
 ### Simple
 === "dx"
 
@@ -65,5 +65,5 @@
 
 <!-- --8<-- [start:ref] -->
 ## [Bar](../../../plotting/basic_charts/#bar)
-::: src.dx.plotting.dex.basic.bar
+::: src.dx.plotting.dex.basic_charts.bar
 <!-- --8<-- [end:ref] -->
