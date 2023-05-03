@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import List, Literal, Optional
 
 from pydantic import Field
 
@@ -7,8 +7,7 @@ from dx.types.dex_metadata import DEXView
 
 
 class DEXParallelCoordinatesChartConfig(DEXChartBase):
-    class Config:
-        fields = {"include": {"selected_dimensions"}}
+    selected_dimensions: Optional[List[str]] = Field(alias="selectedDimensions")
 
 
 class DEXParallelCoordinatesChartView(DEXView):
