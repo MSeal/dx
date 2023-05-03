@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional
 
 import structlog
 
@@ -76,7 +76,7 @@ def sample_parallel_coordinates(df, **kwargs) -> Optional[DEXParallelCoordinates
 
 def parallel_coordinates(
     df,
-    columns: Union[List[str], str],
+    columns: List[str],
     filtered_only: options.DEXParCoordsShowData = False,
     return_view: bool = False,
     **kwargs,
@@ -88,7 +88,7 @@ def parallel_coordinates(
     ----------
     df: pd.DataFrame
         The DataFrame to plot.
-    columns: Union[List[str], str]
+    columns: List[str]
         The columns plotted on the parallel coordinates, in the order displayed
     return_view: bool
         Whether to return a `DEXView` object instead of render.
