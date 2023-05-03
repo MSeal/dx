@@ -11,5 +11,5 @@ class DEXScatterPlotMatrixConfig(DEXChartBase):
 
 
 class DEXScatterPlotMatrixChartView(DEXView):
-    chart_mode: Literal["scatterplot_matrix"] = "scatterplot_matrix"
+    chart_mode: Literal["splom"] = "splom"
     chart: DEXScatterPlotMatrixConfig = Field(default_factory=DEXScatterPlotMatrixConfig)

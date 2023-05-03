@@ -26,7 +26,7 @@ __all__ = [
 
 
 def sample_connected_scatterplot(df, **kwargs) -> Optional[DEXConnectedScatterChartView]:
-    return handle_view(df, chart_mode="connected_scatter", **kwargs)
+    return handle_view(df, chart_mode="connectedscatter", **kwargs)
 
 
 def connected_scatterplot(df, **kwargs) -> Optional[DEXConnectedScatterChartView]:
@@ -119,7 +119,7 @@ parcoords = parallel_coordinates
 
 
 def sample_scatterplot_matrix(df, **kwargs) -> Optional[DEXScatterPlotMatrixChartView]:
-    return handle_view(df, chart_mode="scatterplot_matrix", **kwargs)
+    return handle_view(df, chart_mode="splom", **kwargs)
 
 
 def scatterplot_matrix(df, **kwargs) -> Optional[DEXScatterPlotMatrixChartView]:

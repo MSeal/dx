@@ -67,7 +67,7 @@ class TestComparisonCharts:
             return_view=True,
         )
         assert isinstance(view, charts.connected_scatter.DEXConnectedScatterChartView)
-        assert view.chart_mode == "connected_scatter"
+        assert view.chart_mode == "connectedscatter"
 
     def test_correlation_matrix(self, sample_random_dataframe: pd.DataFrame):
         view = dex.comparison_charts.correlation_matrix(
@@ -117,7 +117,7 @@ class TestComparisonCharts:
             return_view=True,
         )
         assert isinstance(view, charts.scatterplot_matrix.DEXScatterPlotMatrixChartView)
-        assert view.chart_mode == "scatterplot_matrix"
+        assert view.chart_mode == "splom"
 
 
 class TestFunnelCharts:
