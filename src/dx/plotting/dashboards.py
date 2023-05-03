@@ -4,7 +4,7 @@ import pandas as pd
 import structlog
 
 from dx.formatters.main import handle_format
-from dx.plotting.dex import _samples
+from dx.plotting import dex
 from dx.settings import settings_context
 from dx.types.dex_metadata import DEXMetadata, DEXView
 
@@ -38,18 +38,8 @@ def dashboard(
             views_row = [views_row]
         for col_num, view in enumerate(views_row):
             if isinstance(view, str):
-                # direct dataframe-to-view
-                view = view.lower()
-                if view == "grid":
-                    dex_view = DEXView.parse_obj({"chart_mode": view})
-                else:
-                    # TODO: remove this once all the chart functions are available
-                    sample_chart_func = getattr(_samples, f"sample_{view}")
-                    if sample_chart_func is None:
-                        raise NotImplementedError(
-                            f"No `sample_{view}` chart function available yet."
-                        )
-                    dex_view = sample_chart_func(df, return_view=True)
+                # get the direct-to-chart option since we can't pass kwargs
+                view = dex.get_chart_view(df, f"sample_{view.lower()}")
             elif isinstance(view, dict):
                 # view dict
                 dex_view = DEXView.parse_obj(view)

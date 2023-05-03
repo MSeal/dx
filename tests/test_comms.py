@@ -46,7 +46,7 @@ class TestResampleComm:
                 }
             }
         }
-        mock_handle_resample = mocker.patch("dx.comms.handle_resample")
+        mock_handle_resample = mocker.patch("dx.comms.resample.handle_resample")
         handle_resample_comm(msg)
         mock_handle_resample.assert_not_called()
 

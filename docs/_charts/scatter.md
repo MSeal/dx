@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Scatter](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.scatterplot)
+## [Scatter](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic_charts.scatterplot)
 
 ### Simple
 === "dx"
@@ -60,5 +60,5 @@
 
 <!-- --8<-- [start:ref] -->
 ## [Scatter](../../../plotting/basic_charts/#scatter)
-::: src.dx.plotting.dex.basic.scatter
+::: src.dx.plotting.dex.basic_charts.scatter
 <!-- --8<-- [end:ref] -->
