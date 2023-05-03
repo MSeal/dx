@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional
 
 import pandas as pd
 import structlog
@@ -32,7 +32,7 @@ def sample_bar(df, **kwargs) -> Optional[DEXBarChartView]:
 def bar(
     df,
     x: str,
-    y: str,
+    y: List[str],
     y2: Optional[str] = None,
     y2_style: options.DEXSecondMetricstyle = "bar",
     horizontal: bool = False,
@@ -122,7 +122,7 @@ def sample_line(df, **kwargs) -> Optional[DEXLineChartView]:
 def line(
     df,
     x: str,
-    y: Union[List[str], str],
+    y: List[str],
     line_type: options.DEXLineType = "line",
     split_by: Optional[str] = None,
     multi_axis: bool = False,
@@ -143,7 +143,7 @@ def line(
         The DataFrame to plot.
     x: str
         The column to use for the x-axis.
-    y: Union[List[str], str]
+    y: List[str]
         The column(s) to use for the y-axis.
     line_type: DEXLineType
         The line type to use:
