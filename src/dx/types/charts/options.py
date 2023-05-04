@@ -161,6 +161,12 @@ class DEXMapBoxTileLayer(BaseEnum):
     satellite = "satellite-v9"
 
 
+class DEXNetworkLabelType(BaseEnum):
+    none = "none"
+    scaled = "scaled"
+    static = "static"
+
+
 class DEXNetworkLabelContents(BaseEnum):
     id = "id"
     value = "value"

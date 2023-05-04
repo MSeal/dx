@@ -2,10 +2,10 @@ from typing import Callable, Dict, Optional
 
 from dx.plotting.utils import handle_view
 from dx.types.charts.candlestick import DEXCandlestickChartView
-from dx.types.charts.cumulative import DEXCumulativeChartView
-from dx.types.charts.line_percent import DEXLinePercentChartView
-from dx.types.charts.stacked_area import DEXStackedAreaChartView
-from dx.types.charts.stacked_percent import DEXStackedPercentChartView
+from dx.types.charts.timeseries import DEXCumulativeLineChartView
+from dx.types.charts.timeseries import DEXPercentLineChartView
+from dx.types.charts.timeseries import DEXStackedAreaChartView
+from dx.types.charts.timeseries import DEXPercentStackedAreaChartView
 
 __all__ = [
     "candlestick",
@@ -26,20 +26,20 @@ def candlestick(df, **kwargs) -> Optional[DEXCandlestickChartView]:
     return sample_candlestick(df, **kwargs)
 
 
-def sample_cumulative(df, **kwargs) -> Optional[DEXCumulativeChartView]:
+def sample_cumulative(df, **kwargs) -> Optional[DEXCumulativeLineChartView]:
     return handle_view(df, chart_mode="cumulative", **kwargs)
 
 
-def cumulative(df, **kwargs) -> Optional[DEXCumulativeChartView]:
+def cumulative(df, **kwargs) -> Optional[DEXCumulativeLineChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_cumulative(df, **kwargs)
 
 
-def sample_line_percent(df, **kwargs) -> Optional[DEXLinePercentChartView]:
+def sample_line_percent(df, **kwargs) -> Optional[DEXPercentLineChartView]:
     return handle_view(df, chart_mode="line_percent", **kwargs)
 
 
-def line_percent(df, **kwargs) -> Optional[DEXLinePercentChartView]:
+def line_percent(df, **kwargs) -> Optional[DEXPercentLineChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_line_percent(df, **kwargs)
 
@@ -53,11 +53,11 @@ def stacked_area(df, **kwargs) -> Optional[DEXStackedAreaChartView]:
     return sample_stacked_area(df, **kwargs)
 
 
-def sample_stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]:
+def sample_stacked_percent(df, **kwargs) -> Optional[DEXPercentStackedAreaChartView]:
     return handle_view(df, chart_mode="stacked_percent", **kwargs)
 
 
-def stacked_percent(df, **kwargs) -> Optional[DEXStackedPercentChartView]:
+def stacked_percent(df, **kwargs) -> Optional[DEXPercentStackedAreaChartView]:
     # TODO: define user-facing arguments and add documentation
     return sample_stacked_percent(df, **kwargs)
 

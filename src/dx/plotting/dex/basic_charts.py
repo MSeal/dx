@@ -7,7 +7,7 @@ from dx.plotting.utils import handle_view, raise_for_missing_columns
 from dx.types.charts import options
 from dx.types.charts.bar import DEXBarChartView
 from dx.types.charts.dataprism import DEXDataPrismChartView
-from dx.types.charts.line import DEXLineChartView
+from dx.types.charts.timeseries import DEXLineChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.scatter import DEXScatterChartView
 from dx.types.charts.wordcloud import DEXWordcloudChartView

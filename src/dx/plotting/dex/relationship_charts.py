@@ -39,10 +39,59 @@ def sample_dendrogram(df, **kwargs) -> Optional[DEXDendrogramChartView]:
     return handle_view(df, chart_mode="dendrogram", **kwargs)
 
 
-def dendrogram(df, **kwargs) -> Optional[DEXDendrogramChartView]:
-    # TODO: define user-facing arguments and add documentation
-    return sample_dendrogram(df, **kwargs)
 
+def dendrogram(
+    df,
+    selected_dimensions: Union[List[str], str],
+    hierarchy_type: options.DEXHierarchyType = "dendrogram",
+    network_label: options.DEXNetworkLabelType = "none",
+    return_view: bool = False,
+    **kwargs,
+) -> Optional[DEXDendrogramChartView]:
+    """
+    Generates a DEX Dendrogram Diagram from the given DataFrame.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The DataFrame to plot.
+    metric1: str
+        The column for the size of the partitions
+    selected_dimensions: Union[List[str], str]
+        The columns(s) to use for the nesting.
+    hierarchy_type: DEXHierarchyType
+        The hierarchy type to use:
+            - `"treemap"`
+            - `"sunburst"`
+            - `"partition"` (default)
+            - `"dendrogram"`
+    network_label: DEXNetworkLabelType
+        Whether to show no labels (none), labels of equal size (static) or labels scaled to value (scaled)
+    return_view: bool
+        Whether to return a `DEXView` object instead of render.
+    **kwargs
+        Additional keyword arguments to pass to the view metadata.
+    """
+    raise_for_missing_columns(x, df.columns)
+
+    if isinstance(selected_dimensions, str):
+        selected_dimensions = [selected_dimensions]
+    raise_for_missing_columns(selected_dimensions, df.columns)
+
+    chart_settings = {
+        "metric1": metric1,
+        "selected_dimensions": selected_dimensions,
+        "network_label": network_label,
+        "hierarchy_type": hierarchy_type,
+    }
+    logger.debug(f"{chart_settings=}")
+    return handle_view(
+        df,
+        chart_mode="hierarchy",
+        chart=chart_settings,
+        return_view=return_view,
+        **kwargs,
+    )
 
 def sample_force_directed_network(df, **kwargs) -> Optional[DEXForceDirectedNetworkChartView]:
     return handle_view(df, chart_mode="network", chart={"network_type": "force"}, **kwargs)
