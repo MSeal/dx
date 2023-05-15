@@ -184,13 +184,10 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     Any additional formatting that needs to happen to the index,
     the columns, or the data itself should be done here.
     """
-    display_df = df.copy()
-
-    display_df = normalize_index(display_df)
-    display_df = normalize_columns(display_df)
-    display_df = deconflict_index_and_column_names(display_df)
-
-    return display_df
+    df = normalize_index(df)
+    df = normalize_columns(df)
+    df = deconflict_index_and_column_names(df)
+    return df
 
 
 def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
@@ -275,7 +272,6 @@ def clean_column_values(s: pd.Series) -> pd.Series:
     """
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
-    s = date_time.handle_date_series(s)
     s = date_time.handle_datetime_series(s)
 
     s = numeric.handle_decimal_series(s)
