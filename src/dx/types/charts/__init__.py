@@ -10,7 +10,6 @@ from dx.types.charts.bignumber import DEXBigNumberChartView
 from dx.types.charts.candlestick import DEXCandlestickChartView
 from dx.types.charts.choropleth import DEXChoroplethChartView
 from dx.types.charts.connected_scatter import DEXConnectedScatterChartView
-from dx.types.charts.correlation_matrix import DEXCorrelationMatrixChartView
 from dx.types.charts.cumulative import DEXCumulativeChartView
 from dx.types.charts.dataprism import DEXDataPrismChartView
 from dx.types.charts.dendrogram import DEXDendrogramChartView
@@ -32,7 +31,7 @@ from dx.types.charts.partition import DEXPartitionChartView
 from dx.types.charts.pie import DEXPieChartView
 from dx.types.charts.sankey import DEXSankeyChartView
 from dx.types.charts.scatter import DEXScatterChartView
-from dx.types.charts.scatterplot_matrix import DEXScatterPlotMatrixChartView
+from dx.types.charts.scatterplot_matrix import DEXMatrixChartView
 from dx.types.charts.stacked_area import DEXStackedAreaChartView
 from dx.types.charts.stacked_percent import DEXStackedPercentChartView
 from dx.types.charts.summary import DEXSummaryChartView
@@ -56,12 +55,11 @@ comparison_charts = Annotated[
     Union[
         DEXBarChartView,
         DEXConnectedScatterChartView,
-        DEXCorrelationMatrixChartView,
+        DEXMatrixChartView,
         DEXDivergingBarChartView,
         DEXGenericDotPlotChartView,
         DEXParallelCoordinatesChartView,
         DEXScatterChartView,
-        DEXScatterPlotMatrixChartView,
     ],
     Field(discriminator="chart_mode"),
 ]

@@ -9,16 +9,31 @@ from dx.types.dex_metadata import DEXView
 
 class DEXDotPlotConfig(DEXChartBase):
     bar_projection: Literal["horizontal"] = Field(alias="barProjection", default="horizontal")
+    column_line: bool = Field(alias="columnLine", default=False)
 
 
 class DEXRadarPlotConfig(DEXChartBase):
     bar_projection: Literal["radial"] = Field(alias="barProjection", default="radial")
+    column_line: bool = Field(alias="columnLine", default=False)
+
+
+class DEXColumnLineConfig(DEXRadarPlotConfig):
+    column_line: bool = Field(alias="columnLine", default=True)
+
+
+DEXRadialPlotConfig = Annotated[
+    Union[
+        DEXRadarPlotConfig,
+        DEXColumnLineConfig,
+    ],
+    Field(discriminator="column_line"),
+]
 
 
 DEXGenericDotPlotConfigs = Annotated[
     Union[
         DEXDotPlotConfig,
-        DEXRadarPlotConfig,
+        DEXRadialPlotConfig,
     ],
     Field(discriminator="bar_projection"),
 ]
@@ -35,3 +50,7 @@ class DEXDotPlotChartView(DEXGenericDotPlotChartView):
 
 class DEXRadarPlotChartView(DEXGenericDotPlotChartView):
     chart: DEXRadarPlotConfig = Field(default_factory=DEXRadarPlotConfig)
+
+
+class DEXColumnLineChartView(DEXGenericDotPlotChartView):
+    chart: DEXColumnLineConfig = Field(default_factory=DEXColumnLineConfig)

@@ -74,8 +74,9 @@ class TestComparisonCharts:
             sample_random_dataframe,
             return_view=True,
         )
-        assert isinstance(view, charts.correlation_matrix.DEXCorrelationMatrixChartView)
-        assert view.chart_mode == "correlation_matrix"
+        assert isinstance(view, charts.scatterplot_matrix.DEXMatrixChartView)
+        assert view.chart_mode == "splom"
+        assert view.chart.splom_mode == "basic-matrix"
 
     def test_diverging_bar(self, sample_random_dataframe: pd.DataFrame):
         view = dex.comparison_charts.diverging_bar(
@@ -116,8 +117,9 @@ class TestComparisonCharts:
             sample_random_dataframe,
             return_view=True,
         )
-        assert isinstance(view, charts.scatterplot_matrix.DEXScatterPlotMatrixChartView)
+        assert isinstance(view, charts.scatterplot_matrix.DEXMatrixChartView)
         assert view.chart_mode == "splom"
+        assert view.chart.splom_mode == "none"
 
 
 class TestFunnelCharts:

@@ -45,6 +45,7 @@ class DEXChartBase(DEXBaseModel):
     candle_low: Optional[str] = Field(alias="candleLow")
     candle_open: Optional[str] = Field(alias="candleOpen")
     candlestick_mode: Optional[bool] = Field(alias="candlestickMode")
+    column_line: Optional[bool] = Field(alias="columnLine")
     combination_mode: Optional[options.DEXCombinationMode] = Field(alias="combinationMode")
     confo_rules: List[DEXConditionalFormatRule] = Field(alias="confoRules", default_factory=list)
     csp_order: Optional[str] = Field(alias="cspOrder")
