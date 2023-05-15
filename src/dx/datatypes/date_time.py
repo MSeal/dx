@@ -171,14 +171,17 @@ def handle_time_delta_series(s: pd.Series) -> pd.Series:
 
 
 def handle_datetime_series(s: pd.Series) -> pd.Series:
-    utc = None
-    if str(s.dtype).startswith("datetime64[ns, "):
-        # convert all values to tz-aware and cast tz-naive values to UTC
-        # if any tz information is passed at all
-        utc = True
-
     types = (datetime.date, datetime.datetime, np.datetime64)
-    if any(isinstance(v, types) for v in s.dropna().head().values):
-        logger.debug(f"series `{s.name}` has datetime values; converting with pd.to_datetime()")
-        s = pd.to_datetime(s, utc=utc)
+
+    sample_rows = s.dropna().head()
+    # in the event we don't have a `datetime64[ns]` dtype (i.e. `object` dtype), we need to check if
+    # any of the values have tzinfo property anyway. this might happen as a result of different
+    # datetime structures being used in the same series
+    has_tzinfo = sample_rows.apply(lambda x: hasattr(x, "tzinfo"))
+    if any(isinstance(v, types) for v in sample_rows.values):
+        logger.debug(
+            f"series `{s.name}` has datetime values; converting with pd.to_datetime()",
+            utc=has_tzinfo.any(),
+        )
+        s = pd.to_datetime(s, utc=has_tzinfo.any())
     return s
