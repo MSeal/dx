@@ -78,15 +78,18 @@ def handle_format(
     logger.debug(f"*** handling {settings.DISPLAY_MODE} format for {type(obj)=} ***")
     if not isinstance(obj, pd.DataFrame):
         obj = to_dataframe(obj)
-    obj = check_for_duplicate_columns(obj)
-    logger.debug(f"{obj.shape=}")
 
-    default_index_used = is_default_index(obj.index)
+    # ensure we aren't mutating the original dataframe
+    df = obj.copy()
+    df = check_for_duplicate_columns(df)
+    logger.debug(f"{df.shape=}")
+
+    default_index_used = is_default_index(df.index)
 
     if not settings.ENABLE_DATALINK:
-        obj = normalize_index_and_columns(obj)
+        df = normalize_index_and_columns(df)
         payload, metadata = format_output(
-            obj,
+            df,
             default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
             extra_metadata=extra_metadata,
@@ -95,7 +98,7 @@ def handle_format(
 
     try:
         payload, metadata = datalink_processing(
-            obj,
+            df,
             default_index_used,
             ipython_shell=ipython,
             with_ipython_display=with_ipython_display,
@@ -104,8 +107,9 @@ def handle_format(
     except Exception as e:
         logger.debug(f"Error in datalink_processing: {e}")
         # fall back to default processing
+        df = normalize_index_and_columns(df)
         payload, metadata = format_output(
-            obj,
+            df,
             default_index_used=default_index_used,
             with_ipython_display=with_ipython_display,
             extra_metadata=extra_metadata,
