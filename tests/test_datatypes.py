@@ -190,7 +190,8 @@ class TestDatatypeHandling:
     def test_datetime_series_left_alone(self):
         series = date_time.generate_datetime_series(5)
         series = clean_column_values(series)
-        assert series.dtype == "datetime64[ns]"
+        # may have tzinfo, which will be `datetime64[ns, tz]`
+        assert str(series.dtype).startswith("datetime64[ns"), f"{series.dtype=}"
         assert isinstance(
             series.values[0], (datetime, np.datetime64)
         ), f"cleaned series value is {type(series.values[0])}"
@@ -205,6 +206,18 @@ class TestDatatypeHandling:
         # this is the most important part to check;
         # if this fails, build_table_schema() will fail
         assert hasattr(series.dtype.tz, "zone")
+
+    def test_datetime_obj_series_converted(self):
+        # create an object-dtypes series of mixed-tz datetime.datetime objects
+        tz_naive_series = date_time.generate_datetime_series(5)
+        tz_series = date_time.generate_datetimetz_series(5)
+        series = tz_naive_series.append(tz_series)
+        assert series.dtype == "object"
+        series = clean_column_values(series)
+        assert str(series.dtype).startswith("datetime64[ns")
+        assert isinstance(
+            series.values[0], (datetime, np.datetime64)
+        ), f"cleaned series value is {type(series.values[0])}"
 
     def test_date_series_converted(self):
         # datetime.date values are converted to pd.Timestamp
