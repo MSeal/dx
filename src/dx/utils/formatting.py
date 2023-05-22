@@ -224,7 +224,16 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             df.index = pd.Index(stringify_index(df.index), name=index_name)
 
     # also ensure we clean for any unrenderable types
-    df.index = clean_series_values(pd.Series(df.index))
+    if not is_multiindex:
+        clean_index = clean_series_values(pd.Series(df.index))
+        df.index = pd.Index(clean_index)
+    else:
+        clean_levels = []
+        for level in df.index.levels:
+            clean_level = clean_series_values(pd.Series(level))
+            clean_levels.append(clean_level)
+        df.index.set_levels(clean_levels, level=index_name, inplace=True)
+
     return df
 
 
