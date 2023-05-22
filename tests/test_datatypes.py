@@ -382,22 +382,22 @@ class TestDatatypeHandling:
             df.index = df[dtype].copy()
         df = normalize_index_and_columns(df)
 
+        try:
+            build_table_schema(df, index=False)
+        except Exception as e:
+            assert False, f"{dtype} failed pandas build_table_schema(): {e}"
+
+        try:
+            json_clean(df.reset_index().to_dict("records"))
+        except Exception as e:
+            assert False, f"{dtype} failed jupyter_client json_clean(): {e}"
+
+        try:
+            get_db_connection().register("test", df)
+        except Exception as e:
+            assert False, f"{dtype} failed duckdb register(): {e}"
+
         with settings_context(display_mode="simple"):
-            try:
-                build_table_schema(df, index=False)
-            except Exception as e:
-                assert False, f"{dtype} failed pandas build_table_schema(): {e}"
-
-            try:
-                json_clean(df.reset_index().to_dict("records"))
-            except Exception as e:
-                assert False, f"{dtype} failed jupyter_client json_clean(): {e}"
-
-            try:
-                get_db_connection().register("test", df)
-            except Exception as e:
-                assert False, f"{dtype} failed duckdb register(): {e}"
-
             try:
                 handle_format(df)
             except Exception as e:
