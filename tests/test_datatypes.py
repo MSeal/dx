@@ -10,6 +10,7 @@ import duckdb
 import numpy as np
 import pandas as pd
 import pytest
+from jupyter_client.jsonutil import json_clean
 from pandas.io.json import build_table_schema
 from pandas.util import hash_pandas_object
 
@@ -20,8 +21,10 @@ from dx.datatypes.main import (
     quick_random_dataframe,
     random_dataframe,
 )
-from dx.utils.formatting import clean_series_values
-from dx.utils.tracking import generate_df_hash
+from dx.formatters.main import handle_format
+from dx.settings import settings_context
+from dx.utils.formatting import clean_series_values, normalize_index_and_columns
+from dx.utils.tracking import generate_df_hash, get_db_connection
 
 
 @pytest.mark.xfail(reason="only for dev")
@@ -360,3 +363,42 @@ class TestDatatypeHandling:
         assert isinstance(
             series.values[0], str
         ), f"cleaned series value is {type(series.values[0])}"
+
+    @pytest.mark.parametrize("in_index", [True, False])
+    @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
+    def test_index_and_columns(self, in_index: bool, dtype: str):
+        """Test that we can handle data types in the index and columns.
+
+        This mainly runs our currently-supported data types through the four major steps of the
+        `compatibility.py` module (build_table_schema, json_clean, duckdb.register, and
+        dx.handle_format) to ensure `normalize_index_and_columns` is working as expected.
+        """
+        num_rows = 5
+        params = {dt: False for dt in SORTED_DX_DATATYPES}
+        params[dtype] = True
+
+        df = random_dataframe(num_rows, **params)
+        if in_index:
+            df.index = df[dtype].copy()
+        df = normalize_index_and_columns(df)
+
+        with settings_context(display_mode="simple"):
+            try:
+                build_table_schema(df, index=False)
+            except Exception as e:
+                assert False, f"{dtype} failed pandas build_table_schema(): {e}"
+
+            try:
+                json_clean(df.reset_index().to_dict("records"))
+            except Exception as e:
+                assert False, f"{dtype} failed jupyter_client json_clean(): {e}"
+
+            try:
+                get_db_connection().register("test", df)
+            except Exception as e:
+                assert False, f"{dtype} failed duckdb register(): {e}"
+
+            try:
+                handle_format(df)
+            except Exception as e:
+                assert False, f"{dtype} failed dx handle_format(): {e}"
