@@ -222,6 +222,9 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             df.index = pd.MultiIndex.from_tuples(stringify_index(df.index), names=index_name)
         else:
             df.index = pd.Index(stringify_index(df.index), name=index_name)
+
+    # also ensure we clean for any unrenderable types
+    df.index = clean_series_values(df.index)
     return df
 
 
@@ -239,18 +242,7 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.debug("-- cleaning columns before display --")
     for column in df.columns:
-        standard_dtypes = ["float", "int", "bool"]
-        dtype_str = str(df[column].dtype)
-        if dtype_str in standard_dtypes:
-            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
-            continue
-        if dtype_str.startswith("datetime") and not dtype_str.startswith("datetime64[ns, "):
-            # skip datetime columns that are not tz-aware datetime64[ns, <tz>]
-            # because we need to handle some minor adjustments for tz information before build_table_schema()
-            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
-            continue
-        logger.debug(f"--> cleaning `{column=}` with dtype `{df[column].dtype}`")
-        df[column] = clean_column_values(df[column])
+        df[column] = clean_series_values(df[column])
     return df
 
 
@@ -265,11 +257,26 @@ def stringify_index(index: pd.Index):
     return tuple(map(str, index))
 
 
-def clean_column_values(s: pd.Series) -> pd.Series:
+def clean_series_values(s: pd.Series) -> pd.Series:
     """
-    Cleaning/conversion for values in a series to prevent
-    build_table_schema() or frontend rendering errors.
+    Cleaning/conversion for values in a series to prevent build_table_schema(), display(), or
+    frontend rendering errors.
     """
+    dtype_str = str(s.dtype)
+
+    if dtype_str in {"float", "int", "bool"}:
+        # skip standard dtypes
+        logger.debug(f"skipping `{s.name}` since it has dtype `{dtype_str}`")
+        return s
+
+    if dtype_str.startswith("datetime") and not dtype_str.startswith("datetime64[ns, "):
+        # skip datetime series that are not tz-aware datetime64[ns, <tz>]
+        # because we need to handle some minor adjustments for tz information before build_table_schema()
+        logger.debug(f"skipping `{s.name}` since it has dtype `{dtype_str}`")
+        return s
+
+    logger.debug(f"--> cleaning `{s.name}` with dtype `{dtype_str}`")
+
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
     s = date_time.handle_datetime_series(s)
