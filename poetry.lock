@@ -3175,14 +3175,14 @@ mkdocstrings = ">=0.20"
 
 [[package]]
 name = "modin"
-version = "0.19.0"
+version = "0.22.1"
 description = "Modin: Make your pandas code run faster by changing one line of code."
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "modin-0.19.0-py3-none-any.whl", hash = "sha256:d9f35c2874665e6c1a4eb7ba57ffc0b8a545fa12c4c1350b6d94c3af6ebb4d9a"},
-    {file = "modin-0.19.0.tar.gz", hash = "sha256:c13858a31a040652b4fefcf4b600fc3073e7fbef870f071c5e48bb5e147b3503"},
+    {file = "modin-0.22.1-py3-none-any.whl", hash = "sha256:bd6c01ab3714a6c8bb3ae73c34e22264db20f2f8751f4caeef3731573d518501"},
+    {file = "modin-0.22.1.tar.gz", hash = "sha256:ca7cc6dfd41cf5b405aef9281f136b65a42aa1f2ee41f660f0fdcf30cad2e20a"},
 ]
 
 [package.dependencies]
@@ -6362,4 +6362,4 @@ docs = ["mkdocs", "mkdocs-material", "mkdocs-jupyter", "mkdocstrings", "mkdocstr
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "566099a41ad7a0513564966e1e2d2e7e40c4aa1ffac3301a6fe854af37f01035"
+content-hash = "926c341ffb8d6e6c500ec564bf86fb0180a6fd3fc1e682912bfc1bb5638d0ed7"
