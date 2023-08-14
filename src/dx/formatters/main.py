@@ -212,18 +212,14 @@ def format_output(
         **dataframe_info,
     )
 
+    payload = {settings.MEDIA_TYPE: payload}
     # add additional payload for LLM consumption; if any parsing/summarizing errors occur, we
     # shouldn't block displaying the bundle
-    llm_payload = ""
     try:
-        llm_payload = summarize_dataframe(df)
+        payload["text/llm+plain"] = summarize_dataframe(df)
     except Exception as e:
         logger.debug(f"Error in summarize_dataframe: {e}")
 
-    payload = {
-        settings.MEDIA_TYPE: payload,
-        "text/llm+plain": llm_payload,
-    }
     metadata = {settings.MEDIA_TYPE: metadata}
 
     # this needs to happen so we can update by display_id as needed
