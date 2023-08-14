@@ -9,6 +9,7 @@ from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
+from repr_llm.pandas import summarize_dataframe
 
 from dx.sampling import get_column_string_lengths, get_df_dimensions, sample_if_too_big
 from dx.settings import get_settings
@@ -211,7 +212,18 @@ def format_output(
         **dataframe_info,
     )
 
-    payload = {settings.MEDIA_TYPE: payload}
+    # add additional payload for LLM consumption; if any parsing/summarizing errors occur, we
+    # shouldn't block displaying the bundle
+    llm_payload = ""
+    try:
+        llm_payload = summarize_dataframe(df)
+    except Exception as e:
+        logger.debug(f"Error in summarize_dataframe: {e}")
+
+    payload = {
+        settings.MEDIA_TYPE: payload,
+        "text/llm+plain": llm_payload,
+    }
     metadata = {settings.MEDIA_TYPE: metadata}
 
     # this needs to happen so we can update by display_id as needed
