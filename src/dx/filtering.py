@@ -3,7 +3,6 @@ from typing import Optional
 import pandas as pd
 import structlog
 from IPython.display import update_display
-from IPython.terminal.interactiveshell import InteractiveShell
 
 from dx.sampling import get_df_dimensions
 from dx.settings import get_settings, settings_context
@@ -58,7 +57,6 @@ def resample_from_db(
     filters: Optional[list] = None,
     cell_id: Optional[str] = None,
     assign_subset: bool = True,
-    ipython_shell: Optional[InteractiveShell] = None,
 ) -> pd.DataFrame:
     """
     Filters the dataframe in the cell with the given display_id.
@@ -108,10 +106,11 @@ def resample_from_db(
     return new_df
 
 
-def handle_resample(
-    msg: DEXResampleMessage,
-    ipython_shell: Optional[InteractiveShell] = None,
-) -> pd.DataFrame:
+def handle_resample(msg: DEXResampleMessage) -> pd.DataFrame:
+    """Converts incoming resample message to SQL query and executes it on the database,
+    then stores the result in the parent dataframe's metadata cache to use in the
+    follow-on update_display_data call.
+    """
     raw_filters = msg.filters
     sample_size = msg.limit
 
@@ -130,12 +129,10 @@ def handle_resample(
             "sql_filter"
         ] = f"SELECT * FROM {{table_name}} WHERE {sql_filter_str} LIMIT {sample_size}"
 
-        # TODO: move this into metadata?
-        # used to give a pandas query string to the user
-        # pandas_filter_str = dex_filters.to_pandas_query()
-
+    logger.debug("resampling from db...", **update_params)
     resampled_df = resample_from_db(**update_params)
 
+    logger.debug("storing sample to history", display_id=msg.display_id, filters=raw_filters)
     metadata = store_sample_to_history(
         resampled_df,
         display_id=msg.display_id,

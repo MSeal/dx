@@ -14,8 +14,8 @@ def resampler(comm, open_msg):
 
     @comm.on_msg
     def _recv(msg):
-        # Is separate function to make testing easier.
         handle_resample_comm(msg)
+        comm.send({"status": "success", "source": "resampler"})
 
     comm.send({"status": "connected", "source": "resampler"})
 
@@ -25,6 +25,6 @@ def handle_resample_comm(msg):
     if not data:
         return
 
-    if "display_id" in data and "filters" in data:
-        msg = DEXResampleMessage.parse_obj(data)
-        handle_resample(msg)
+    logger.debug(f"handling resample {msg=}")
+    msg = DEXResampleMessage.parse_obj(data)
+    handle_resample(msg)
