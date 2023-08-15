@@ -13,3 +13,5 @@
 --8<-- "./docs/_charts/violin.md:ref"
 
 --8<-- "./docs/_charts/wordcloud.md:ref"
+
+--8<-- "./docs/_charts/dataprism.md:ref"

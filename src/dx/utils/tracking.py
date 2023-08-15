@@ -198,11 +198,6 @@ def get_df_variable_name(
         logger.debug(f"{named_df_vars_with_same_data=}")
         return named_df_vars_with_same_data[0]
 
-    if matching_df_vars:
-        # dataframe rendered without variable assignment
-        logger.debug(f"no matching dataframe variables found: {matching_df_vars=}")
-        return matching_df_vars[-1]
-
     # no dataframe variables found, assign a new one for internal referencing
     logger.debug("no variables found matching this dataframe")
     df_uuid = f"unk_dataframe_{uuid.uuid4()}".replace("-", "")

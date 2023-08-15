@@ -49,11 +49,13 @@ def to_dataframe(obj) -> pd.DataFrame:
                 # class method
                 conversion_method = getattr(obj, converter)
                 df = conversion_method()
+                break
             elif callable(converter):
                 # function
                 df = converter(obj)
-        else:
-            df = pd.DataFrame(obj)
+                break
+    else:
+        df = pd.DataFrame(obj)
 
     return df
 
@@ -182,13 +184,10 @@ def normalize_index_and_columns(df: pd.DataFrame) -> pd.DataFrame:
     Any additional formatting that needs to happen to the index,
     the columns, or the data itself should be done here.
     """
-    display_df = df.copy()
-
-    display_df = normalize_index(display_df)
-    display_df = normalize_columns(display_df)
-    display_df = deconflict_index_and_column_names(display_df)
-
-    return display_df
+    df = normalize_index(df)
+    df = normalize_columns(df)
+    df = deconflict_index_and_column_names(df)
+    return df
 
 
 def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
@@ -223,6 +222,18 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
             df.index = pd.MultiIndex.from_tuples(stringify_index(df.index), names=index_name)
         else:
             df.index = pd.Index(stringify_index(df.index), name=index_name)
+
+    # also ensure we clean for any unrenderable types - casting to pd.Series because various Index
+    # types don't have `.head()` methods
+    if not is_multiindex:
+        df.index = clean_series_values(pd.Series(df.index))
+    else:
+        clean_levels = []
+        for level in df.index.levels:
+            clean_level = clean_series_values(pd.Series(level))
+            clean_levels.append(clean_level)
+        df.index.set_levels(clean_levels, level=index_name, inplace=True)
+
     return df
 
 
@@ -240,18 +251,7 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     logger.debug("-- cleaning columns before display --")
     for column in df.columns:
-        standard_dtypes = ["float", "int", "bool"]
-        dtype_str = str(df[column].dtype)
-        if dtype_str in standard_dtypes:
-            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
-            continue
-        if dtype_str.startswith("datetime") and not dtype_str.startswith("datetime64[ns, "):
-            # skip datetime columns that are not tz-aware datetime64[ns, <tz>]
-            # because we need to handle some minor adjustments for tz information before build_table_schema()
-            logger.debug(f"skipping `{column=}` since it has dtype `{df[column].dtype}`")
-            continue
-        logger.debug(f"--> cleaning `{column=}` with dtype `{df[column].dtype}`")
-        df[column] = clean_column_values(df[column])
+        df[column] = clean_series_values(df[column])
     return df
 
 
@@ -266,14 +266,28 @@ def stringify_index(index: pd.Index):
     return tuple(map(str, index))
 
 
-def clean_column_values(s: pd.Series) -> pd.Series:
+def clean_series_values(s: pd.Series) -> pd.Series:
     """
-    Cleaning/conversion for values in a series to prevent
-    build_table_schema() or frontend rendering errors.
+    Cleaning/conversion for values in a series to prevent build_table_schema(), display(), or
+    frontend rendering errors.
     """
+    dtype_str = str(s.dtype)
+
+    if dtype_str in {"float", "int", "bool"}:
+        # skip standard dtypes
+        logger.debug(f"skipping `{s.name}` since it has dtype `{dtype_str}`")
+        return s
+
+    if dtype_str.startswith("datetime") and not dtype_str.startswith("datetime64[ns, "):
+        # skip datetime series that are not tz-aware datetime64[ns, <tz>]
+        # because we need to handle some minor adjustments for tz information before build_table_schema()
+        logger.debug(f"skipping `{s.name}` since it has dtype `{dtype_str}`")
+        return s
+
+    logger.debug(f"--> cleaning `{s.name}` with dtype `{dtype_str}`")
+
     s = date_time.handle_time_period_series(s)
     s = date_time.handle_time_delta_series(s)
-    s = date_time.handle_date_series(s)
     s = date_time.handle_datetime_series(s)
 
     s = numeric.handle_decimal_series(s)

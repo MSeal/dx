@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Wordcloud](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.wordcloud)
+## [Wordcloud](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic_charts.wordcloud)
 ### Simple
 === "dx"
 
@@ -56,5 +56,5 @@
 
 <!-- --8<-- [start:ref] -->
 ## [Wordcloud](../../../plotting/basic_charts/#wordcloud)
-::: src.dx.plotting.dex.basic.wordcloud
+::: src.dx.plotting.dex.basic_charts.wordcloud
 <!-- --8<-- [end:ref] -->

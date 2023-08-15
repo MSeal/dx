@@ -1,7 +1,6 @@
 from typing import List, Literal, Optional, Union
 
 from pydantic import Field, validator
-from typing_extensions import Annotated
 
 from dx.types.charts import options
 from dx.types.dex_metadata import DEXBaseModel, DEXConditionalFormatRule
@@ -112,6 +111,7 @@ class DEXChartBase(DEXBaseModel):
     sparkchart: Optional[str] = Field(alias="sparkchart")
     split_lines_by: Optional[str] = Field(alias="splitLinesBy")
     splom_mode: Optional[str] = Field(alias="splomMode")
+    suggestion_fields: Optional[List[str]] = Field(alias="suggestionFields")
     summary_bins: Optional[int] = Field(alias="summaryBins")
     summary_type: Optional[options.DEXSummaryType] = Field(alias="summaryType")
     survey_data_type: Optional[options.DEXSurveyDataType] = Field(alias="surveyDataType")
@@ -139,36 +139,3 @@ class DEXChartBase(DEXBaseModel):
         if v is None:
             return v
         return str(v).upper()
-
-
-def chart_view_ref():
-    # avoiding circular import and ForwardRef issues
-    from dx.types.charts.bar import DEXBarChartView
-    from dx.types.charts.line import DEXLineChartView
-    from dx.types.charts.parcoords import DEXParcoordsChartView
-    from dx.types.charts.pie import DEXPieChartView
-    from dx.types.charts.scatter import DEXScatterChartView
-    from dx.types.charts.tilemap import DEXTilemapChartView
-    from dx.types.charts.violin import DEXViolinChartView
-    from dx.types.charts.wordcloud import DEXWordcloudChartView
-
-    DEXChartViews = Union[
-        # basic
-        DEXBarChartView,
-        DEXLineChartView,
-        DEXPieChartView,
-        DEXScatterChartView,
-        DEXTilemapChartView,
-        DEXViolinChartView,
-        DEXWordcloudChartView,
-        # comparison
-        DEXParcoordsChartView,
-        # time series
-        # relationship
-        # part to whole
-        # funnel
-        # summary
-        # map
-    ]
-
-    return Annotated[DEXChartViews, Field(discriminator="chart_mode")]

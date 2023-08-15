@@ -55,15 +55,3 @@ def handle_assignment_comm(msg: dict, ipython_shell: Optional[InteractiveShell] 
             variable_name = incrementing_label(variable_name, ipython.user_ns)
         logger.debug(f"assigning {len(sampled_df)}-row dataframe to `{variable_name}` in {ipython}")
         ipython.user_ns[variable_name] = sampled_df
-
-
-def register_assignment_comm(ipython_shell: InteractiveShell) -> None:
-    """
-    Registers the comm target function with the IPython kernel.
-    """
-    from dx.settings import get_settings
-
-    if get_settings().ENABLE_ASSIGNMENT:
-        ipython_shell.kernel.comm_manager.register_target(
-            "datalink_assignment", dataframe_assignment
-        )

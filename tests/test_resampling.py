@@ -98,10 +98,7 @@ class TestResample:
                 filters=filters,
             )
             try:
-                handle_resample(
-                    resample_msg,
-                    ipython_shell=get_ipython,
-                )
+                handle_resample(resample_msg)
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
 
@@ -141,10 +138,7 @@ class TestResample:
                 filters=filters,
             )
             try:
-                handle_resample(
-                    resample_msg,
-                    ipython_shell=get_ipython,
-                )
+                handle_resample(resample_msg)
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
 
@@ -192,7 +186,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                 )
             except Exception as e:
                 assert False, f"Resample failed with error: {e}"
@@ -250,7 +243,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                     cell_id=cell1,
                 )
             except Exception as e:
@@ -325,7 +317,6 @@ class TestResample:
                     display_id=metadata[settings.MEDIA_TYPE]["display_id"],
                     sql_filter=sql_filter,
                     filters=filters,
-                    ipython_shell=get_ipython,
                     cell_id=cell1,
                 )
             except Exception as e:

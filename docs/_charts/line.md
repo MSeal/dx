@@ -1,5 +1,5 @@
 <!-- --8<-- [start:usage] -->
-## [Line](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic.line)
+## [Line](../../reference/charts/basic_charts/#src.dx.plotting.dex.basic_charts.line)
 
 ### Simple
 === "dx"
@@ -63,5 +63,5 @@ You may need to use a larger dataset to see the changes here. For these examples
 
 <!-- --8<-- [start:ref] -->
 ## [Line](../../../plotting/basic_charts/#line)
-::: src.dx.plotting.dex.basic.line
+::: src.dx.plotting.dex.basic_charts.line
 <!-- --8<-- [end:ref] -->
