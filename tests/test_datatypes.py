@@ -10,6 +10,7 @@ import duckdb
 import numpy as np
 import pandas as pd
 import pytest
+from jupyter_client.jsonutil import json_clean
 from pandas.io.json import build_table_schema
 from pandas.util import hash_pandas_object
 
@@ -20,8 +21,10 @@ from dx.datatypes.main import (
     quick_random_dataframe,
     random_dataframe,
 )
-from dx.utils.formatting import clean_column_values
-from dx.utils.tracking import generate_df_hash
+from dx.formatters.main import handle_format
+from dx.settings import settings_context
+from dx.utils.formatting import clean_series_values, normalize_index_and_columns
+from dx.utils.tracking import generate_df_hash, get_db_connection
 
 
 @pytest.mark.xfail(reason="only for dev")
@@ -65,7 +68,7 @@ def test_generate_df_hash(dtype: str):
     params[dtype] = True
     df = random_dataframe(**params)
     for col in df.columns:
-        df[col] = clean_column_values(df[col])
+        df[col] = clean_series_values(df[col])
     try:
         hash_str = generate_df_hash(df)
     except Exception as e:
@@ -104,7 +107,7 @@ def test_store_in_db(dtype: str, sample_db_connection: duckdb.DuckDBPyConnection
     df = random_dataframe(**params)
 
     for col in df.columns:
-        df[col] = clean_column_values(df[col])
+        df[col] = clean_series_values(df[col])
 
     try:
         sample_db_connection.register(f"{dtype}_test", df)
@@ -149,7 +152,7 @@ class TestDataFrameGeneration:
 class TestDatatypeHandling:
     def test_integer_series_left_alone(self):
         series = numeric.generate_integer_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "int64"
         assert isinstance(
             series.values[0], (int, np.int64)
@@ -157,7 +160,7 @@ class TestDatatypeHandling:
 
     def test_float_series_left_alone(self):
         series = numeric.generate_float_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "float64"
         assert isinstance(
             series.values[0], (float, np.float64)
@@ -165,7 +168,7 @@ class TestDatatypeHandling:
 
     def test_boolean_series_left_alone(self):
         series = misc.generate_boolean_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "bool"
         assert isinstance(
             series.values[0], (bool, np.bool_)
@@ -173,7 +176,7 @@ class TestDatatypeHandling:
 
     def test_dtype_series_converted(self):
         series = misc.generate_dtype_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -181,7 +184,7 @@ class TestDatatypeHandling:
 
     def test_decimal_series_converted(self):
         series = numeric.generate_decimal_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "float64"
         assert isinstance(
             series.values[0], (float, np.float64)
@@ -189,15 +192,16 @@ class TestDatatypeHandling:
 
     def test_datetime_series_left_alone(self):
         series = date_time.generate_datetime_series(5)
-        series = clean_column_values(series)
-        assert series.dtype == "datetime64[ns]"
+        series = clean_series_values(series)
+        # may have tzinfo, which will be `datetime64[ns, tz]`
+        assert str(series.dtype).startswith("datetime64[ns"), f"{series.dtype=}"
         assert isinstance(
             series.values[0], (datetime, np.datetime64)
         ), f"cleaned series value is {type(series.values[0])}"
 
     def test_datetimetz_series_converted(self):
         series = date_time.generate_datetimetz_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert str(series.dtype).startswith("datetime64[ns, ")
         assert isinstance(
             series.values[0], (datetime, np.datetime64)
@@ -206,10 +210,22 @@ class TestDatatypeHandling:
         # if this fails, build_table_schema() will fail
         assert hasattr(series.dtype.tz, "zone")
 
+    def test_datetime_obj_series_converted(self):
+        # create an object-dtypes series of mixed-tz datetime.datetime objects
+        tz_naive_series = date_time.generate_datetime_series(5)
+        tz_series = date_time.generate_datetimetz_series(5)
+        series = tz_naive_series.append(tz_series)
+        assert series.dtype == "object"
+        series = clean_series_values(series)
+        assert str(series.dtype).startswith("datetime64[ns")
+        assert isinstance(
+            series.values[0], (datetime, np.datetime64)
+        ), f"cleaned series value is {type(series.values[0])}"
+
     def test_date_series_converted(self):
         # datetime.date values are converted to pd.Timestamp
         series = date_time.generate_date_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "datetime64[ns]"
         assert isinstance(
             series.values[0], (datetime, np.datetime64)
@@ -218,7 +234,7 @@ class TestDatatypeHandling:
     def test_time_series_converted(self):
         # datetime.time values are converted to strings
         series = date_time.generate_time_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -227,7 +243,7 @@ class TestDatatypeHandling:
     def test_timedelta_series_converted(self):
         # time delta values are converted to floats (total seconds)
         series = date_time.generate_time_delta_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "float64"
         assert isinstance(
             series.values[0], (float, np.float64)
@@ -235,7 +251,7 @@ class TestDatatypeHandling:
 
     def test_time_period_series_converted(self):
         series = date_time.generate_time_period_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -243,7 +259,7 @@ class TestDatatypeHandling:
 
     def test_time_interval_series_converted(self):
         series = date_time.generate_time_interval_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -251,7 +267,7 @@ class TestDatatypeHandling:
 
     def test_text_series_left_alone(self):
         series = text.generate_text_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -259,7 +275,7 @@ class TestDatatypeHandling:
 
     def test_keyword_series_left_alone(self):
         series = text.generate_keyword_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -268,7 +284,7 @@ class TestDatatypeHandling:
     def test_dict_series_converted(self):
         # dictionary values are JSON-stringifed
         series = misc.generate_dict_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -277,7 +293,7 @@ class TestDatatypeHandling:
     def test_list_series_converted(self):
         # sequence values are cast as strings
         series = misc.generate_list_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -286,7 +302,7 @@ class TestDatatypeHandling:
     def test_nested_tabular_series_converted(self):
         # lists of dictionaries are JSON-stringified
         series = main.generate_nested_tabular_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -295,7 +311,7 @@ class TestDatatypeHandling:
     def test_latlon_point_series_converted(self):
         # latlon point values are converted to GeoJSON strings
         series = geometry.generate_latlon_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -305,7 +321,7 @@ class TestDatatypeHandling:
         # shapely.geometry values are converted to GeoJSON strings
         # by handle_geometry_series()
         series = geometry.generate_filled_geojson_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -315,7 +331,7 @@ class TestDatatypeHandling:
         # shapely.geometry exterior values are converted to GeoJSON strings
         # by handle_geometry_series()
         series = geometry.generate_exterior_bounds_geojson_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -324,7 +340,7 @@ class TestDatatypeHandling:
     def test_bytes_series_converted(self):
         # bytes values are converted to strings
         series = misc.generate_bytes_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -333,7 +349,7 @@ class TestDatatypeHandling:
     def test_ipv4_address_series_converted(self):
         # IPv4Address values are converted to strings
         series = misc.generate_ipv4_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
@@ -342,8 +358,47 @@ class TestDatatypeHandling:
     def test_ipv6_address_series_converted(self):
         # IPv6Address values are converted to strings
         series = misc.generate_ipv6_series(5)
-        series = clean_column_values(series)
+        series = clean_series_values(series)
         assert series.dtype == "object"
         assert isinstance(
             series.values[0], str
         ), f"cleaned series value is {type(series.values[0])}"
+
+    @pytest.mark.parametrize("in_index", [True, False])
+    @pytest.mark.parametrize("dtype", SORTED_DX_DATATYPES)
+    def test_index_and_columns(self, in_index: bool, dtype: str):
+        """Test that we can handle data types in the index and columns.
+
+        This mainly runs our currently-supported data types through the four major steps of the
+        `compatibility.py` module (build_table_schema, json_clean, duckdb.register, and
+        dx.handle_format) to ensure `normalize_index_and_columns` is working as expected.
+        """
+        num_rows = 5
+        params = {dt: False for dt in SORTED_DX_DATATYPES}
+        params[dtype] = True
+
+        df = random_dataframe(num_rows, **params)
+        if in_index:
+            df.index = df[dtype].copy()
+        df = normalize_index_and_columns(df)
+
+        try:
+            build_table_schema(df, index=False)
+        except Exception as e:
+            assert False, f"{dtype} failed pandas build_table_schema(): {e}"
+
+        try:
+            json_clean(df.reset_index().to_dict("records"))
+        except Exception as e:
+            assert False, f"{dtype} failed jupyter_client json_clean(): {e}"
+
+        try:
+            get_db_connection().register("test", df)
+        except Exception as e:
+            assert False, f"{dtype} failed duckdb register(): {e}"
+
+        with settings_context(display_mode="simple"):
+            try:
+                handle_format(df)
+            except Exception as e:
+                assert False, f"{dtype} failed dx handle_format(): {e}"

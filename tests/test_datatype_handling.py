@@ -1,7 +1,7 @@
 import pytest
 
 from dx.datatypes.main import SORTED_DX_DATATYPES, random_dataframe
-from dx.utils.formatting import clean_column_values
+from dx.utils.formatting import clean_series_values
 
 
 @pytest.mark.benchmark
@@ -15,7 +15,7 @@ def test_benchmark_column_cleaning(
     params[dtype] = True
     df = random_dataframe(num_rows, **params)
     for col in df.columns:
-        benchmark(clean_column_values, df[col])
+        benchmark(clean_series_values, df[col])
 
     # do something else here?
     assert 1 == 1
