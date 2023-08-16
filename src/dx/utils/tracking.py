@@ -186,7 +186,10 @@ def get_df_variable_name(
         # ...and for any non-pandas DataFrame objects, we need to convert them so
         # equality checks pass and we properly detect the matching variable
         other_df = to_dataframe(v)
-        if df.equals(other_df):
+        # ......also, in the event we have NaNs/NAs, we can't correctly compare values from one
+        # dataframe to another, so we need to compare the string representations of the values to
+        # avoid making things more complicated than they already are
+        if df.astype(str).equals(other_df.astype(str)):
             logger.debug(f"`{k}` matches this dataframe")
             matching_df_vars.append(k)
     logger.debug(f"dataframe variables with same data: {matching_df_vars}")
