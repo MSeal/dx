@@ -12,7 +12,12 @@ from IPython.core.interactiveshell import InteractiveShell
 from pandas.util import hash_pandas_object
 
 from dx.settings import get_settings
-from dx.utils.formatting import generate_metadata, is_default_index, normalize_index_and_columns
+from dx.utils.formatting import (
+    generate_metadata,
+    is_default_index,
+    normalize_index_and_columns,
+    to_dataframe,
+)
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -178,7 +183,10 @@ def get_df_variable_name(
         # to avoid having to normalize and hash the other dataframe (v here),
         # but that was too slow, and ultimately we shouldn't be checking raw data vs cleaned data
         # so <df>.equals(<other_df>) should be the most performant
-        if df.equals(v):
+        # ...and for any non-pandas DataFrame objects, we need to convert them so
+        # equality checks pass and we properly detect the matching variable
+        other_df = to_dataframe(v)
+        if df.equals(other_df):
             logger.debug(f"`{k}` matches this dataframe")
             matching_df_vars.append(k)
     logger.debug(f"dataframe variables with same data: {matching_df_vars}")

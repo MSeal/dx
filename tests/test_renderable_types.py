@@ -81,6 +81,7 @@ class TestRenderableTypes:
 
         df = to_dataframe(obj)
         assert isinstance(df, pd.DataFrame)
+        get_ipython.user_ns["test_df"] = df
 
         # check structure after converting to dataframe
         # to make sure we didn't lose any rows/columns/etc
@@ -100,5 +101,6 @@ class TestRenderableTypes:
                 if datalink_enabled:
                     display_id = metadata[settings.MEDIA_TYPE]["display_id"]
                     assert display_id in DXDF_CACHE
+                    assert metadata[settings.MEDIA_TYPE]["datalink"]["variable_name"] == "test_df"
         except Exception as e:
             assert False, f"{e}"
