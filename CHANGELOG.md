@@ -3,6 +3,13 @@ All notable changes will be documented here.
 ---
 ## Unreleased
 
+### Updated
+- `structlog` to 23.2.0
+
+
+## `1.3.0`-`1.4.0`
+- Bug fixes and performance improvements that should have gone in here
+
 ### Changed
 - `STRINGIFY_INDEX_VALUES` is `False` by default (index `.name` will still be a string, but values will keep their original type)
 - Added comms listener for renaming (SQL cell) dataframes.
