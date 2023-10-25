@@ -1,3 +1,0 @@
-# Faceting
-
-Coming soon!
