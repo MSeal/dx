@@ -17,17 +17,6 @@ docs_dir: docs
 
 nav:
   - Home: index.md
-  - "Using with DEX":
-      - "Overview": plotting/overview.md
-      - "Basic Charts": plotting/basic_charts.md
-      - "Comparison Charts": plotting/comparison_charts.md
-      - "Time Series Charts": plotting/time_series_charts.md
-      - "Relationship Charts": plotting/relationship_charts.md
-      - "Part-to-whole Charts": plotting/part_to_whole_charts.md
-      - "Funnel Charts": plotting/funnel_charts.md
-      - "Summary Charts": plotting/summary_charts.md
-      - "Maps": plotting/maps.md
-      - "Dashboards": plotting/dashboards.md
   - Reference:
       - "Generating Data":
           - "Overview": reference/datatypes/overview.md
@@ -39,17 +28,6 @@ nav:
               - "Geospatial/Geometry": reference/datatypes/geometry.md
               - "Misc": reference/datatypes/misc.md
           - "Checking Compatibility": reference/datatypes/compatibility.md
-      - "Charts":
-          - "Basic Charts": reference/charts/basic_charts.md
-          - "Comparison Charts": reference/charts/comparison_charts.md
-          - "Time Series Charts": reference/charts/time_series_charts.md
-          - "Relationship Charts": reference/charts/relationship_charts.md
-          - "Part-to-whole Charts": reference/charts/part_to_whole_charts.md
-          - "Funnel Charts": reference/charts/funnel_charts.md
-          - "Summary Charts": reference/charts/summary_charts.md
-          - "Maps": reference/charts/maps.md
-          - "Dashboards": reference/charts/dashboards.md
-
 
 # Material theme config
 theme:
@@ -111,7 +89,15 @@ markdown_extensions:
       anchor_linenums: true
   # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#options
   - pymdownx.snippets:
-      base_path: ['.', 'docs', 'docs/screenshots', 'docs/_charts', 'docs/plotting', 'docs/reference']
+      base_path:
+        [
+          ".",
+          "docs",
+          "docs/screenshots",
+          "docs/_charts",
+          "docs/plotting",
+          "docs/reference",
+        ]
       check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
