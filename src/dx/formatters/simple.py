@@ -3,10 +3,11 @@ from typing import Optional
 
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
-from pydantic import BaseSettings, Field
+from pydantic import Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER, DXDisplayFormatter
 from dx.settings import get_settings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 settings = get_settings()
 
@@ -16,17 +17,16 @@ class DataResourceSettings(BaseSettings):
     DATARESOURCE_DISPLAY_MAX_ROWS: int = 50_000
     DATARESOURCE_DISPLAY_MAX_COLUMNS: int = 50
     DATARESOURCE_MAX_STRING_LENGTH: int = 250
-    DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, allow_mutation=False)
-    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
+    DATARESOURCE_HTML_TABLE_SCHEMA: bool = Field(True, frozen=True)
+    DATARESOURCE_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", frozen=True)
 
     DATARESOURCE_FLATTEN_INDEX_VALUES: bool = False
     DATARESOURCE_FLATTEN_COLUMN_VALUES: bool = True
     DATARESOURCE_STRINGIFY_INDEX_VALUES: bool = False
     DATARESOURCE_STRINGIFY_COLUMN_VALUES: bool = True
-
-    class Config:
-        validate_assignment = True  # we need this to enforce `allow_mutation`
-        json_encoders = {type: lambda t: str(t)}
+    # TODO[pydantic]: The following keys were removed: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = SettingsConfigDict(validate_assignment=True, json_encoders={type: lambda t: str(t)})
 
 
 @lru_cache

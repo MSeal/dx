@@ -7,7 +7,8 @@ import pandas as pd
 import structlog
 from IPython.core.interactiveshell import InteractiveShell
 from pandas import set_option as pandas_set_option
-from pydantic import BaseSettings, validator
+from pydantic import validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from dx.dependencies import get_default_renderable_types
 from dx.types.main import DXDisplayMode, DXSamplingMethod
@@ -61,6 +62,8 @@ class Settings(BaseSettings):
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("RENDERABLE_TYPES", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
@@ -82,6 +85,8 @@ class Settings(BaseSettings):
 
         return valid_vals
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("DISPLAY_MAX_COLUMNS", pre=True, always=True)
     def validate_display_max_columns(cls, val):
         if val < 0:
@@ -91,6 +96,8 @@ class Settings(BaseSettings):
         pd.set_option("display.max_columns", val)
         return val
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("DISPLAY_MAX_ROWS", pre=True, always=True)
     def validate_display_max_rows(cls, val):
         if val < 0:
@@ -98,11 +105,15 @@ class Settings(BaseSettings):
         pd.set_option("display.max_rows", val)
         return val
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("HTML_TABLE_SCHEMA", pre=True, always=True)
     def validate_html_table_schema(cls, val):
         pd.set_option("html.table_schema", val)
         return val
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("MAX_STRING_LENGTH", pre=True, always=True)
     def validate_max_string_length(cls, val):
         if val < 0:
@@ -116,9 +127,7 @@ class Settings(BaseSettings):
             **get_default_renderable_types(),
         }
 
-    class Config:
-        validate_assignment = True
-        use_enum_values = True
+    model_config = SettingsConfigDict(validate_assignment=True, use_enum_values=True)
 
 
 @lru_cache

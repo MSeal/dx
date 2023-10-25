@@ -6,10 +6,11 @@ import pandas as pd
 import structlog
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
-from pydantic import BaseSettings, Field
+from pydantic import Field
 
 from dx.formatters.main import DEFAULT_IPYTHON_DISPLAY_FORMATTER
 from dx.settings import get_settings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -22,12 +23,11 @@ class PandasSettings(BaseSettings):
     PANDAS_DISPLAY_MAX_ROWS: int = 60
     PANDAS_DISPLAY_MAX_COLUMNS: int = 20
     PANDAS_MAX_STRING_LENGTH: int = 50
-    PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, allow_mutation=False)
-    PANDAS_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", allow_mutation=False)
-
-    class Config:
-        validate_assignment = True  # we need this to enforce `allow_mutation`
-        json_encoders = {type: lambda t: str(t)}
+    PANDAS_HTML_TABLE_SCHEMA: bool = Field(False, frozen=True)
+    PANDAS_MEDIA_TYPE: str = Field("application/vnd.dataresource+json", frozen=True)
+    # TODO[pydantic]: The following keys were removed: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = SettingsConfigDict(validate_assignment=True, json_encoders={type: lambda t: str(t)})
 
 
 @lru_cache
