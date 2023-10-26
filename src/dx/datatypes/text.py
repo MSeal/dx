@@ -5,21 +5,7 @@ import numpy as np
 import pandas as pd
 import structlog
 
-try:
-    from faker import Faker
-
-    fake = Faker()
-    FAKER_INSTALLED = True
-except ImportError:
-    FAKER_INSTALLED = False
-
-
 logger = structlog.get_logger(__name__)
-
-__all__ = [
-    "generate_text_series",
-    "generate_keyword_series",
-]
 
 
 def generate_text_series(num_rows: int) -> pd.Series:
@@ -31,11 +17,15 @@ def generate_text_series(num_rows: int) -> pd.Series:
     num_rows: int
         Number of rows to generate
     """
-    if not FAKER_INSTALLED:
+    try:
+        from faker import Faker
+
+    except ImportError:
         logger.warning("faker is not installed, skipping text_column")
         return np.nan
 
-    return pd.Series([fake.text() for _ in range(num_rows)])
+    faker_instance = Faker()
+    return pd.Series([faker_instance.text() for _ in range(num_rows)])
 
 
 def generate_keyword_series(num_rows: int, num_letters: int = 2) -> pd.Series:
