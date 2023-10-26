@@ -1,8 +1,5 @@
 import structlog
 
-from dx.filtering import handle_resample
-from dx.types.filters import DEXResampleMessage
-
 logger = structlog.get_logger(__name__)
 
 
@@ -20,7 +17,10 @@ def resampler(comm, open_msg):
     comm.send({"status": "connected", "source": "resampler"})
 
 
-def handle_resample_comm(msg):
+def handle_resample_comm(msg: dict) -> None:
+    from dx.filtering import handle_resample
+    from dx.types.filters import DEXResampleMessage
+
     data = msg.get("content", {}).get("data", {})
     if not data:
         return
