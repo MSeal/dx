@@ -74,9 +74,6 @@ class Settings(BaseSettings):
     NUM_PAST_SAMPLES_TRACKED: int = 3
     DB_LOCATION: str = ":memory:"
 
-    GENERATE_DEX_METADATA: bool = False
-    ALLOW_NOTEABLE_ATTRS: bool = True
-
     @validator("RENDERABLE_TYPES", pre=True, always=True)
     def validate_renderables(cls, vals):
         """Allow passing comma-separated strings or actual types."""
