@@ -53,7 +53,7 @@ mkdocstrings-python = { version = ">=0.7.1,<0.10.0", optional = true }
 
 [tool.poetry.extras]
 # everything needed for a Noteable kernel
-noteable = [
+noteable-kernel = [
     "duckdb-engine",
     "geopandas",
     "polars",
