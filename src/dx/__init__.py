@@ -1,4 +1,4 @@
-from dx.comms import handle_assignment_comm, handle_resample_comm
+from dx.comms import handle_resample_comm
 from dx.datatypes import *
 from dx.dx import display, show_docs
 from dx.formatters import *
