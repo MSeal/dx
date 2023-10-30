@@ -14,6 +14,9 @@ def to_dataframe(obj) -> pd.DataFrame:
     """
     Converts an object to a pandas dataframe.
     """
+    if isinstance(obj, pd.DataFrame):
+        return obj
+
     logger.debug(f"converting {type(obj)} to pd.DataFrame")
 
     # handling for groupby operations returning pd.Series
@@ -258,7 +261,7 @@ def clean_series_values(s: pd.Series) -> pd.Series:
     """
     dtype_str = str(s.dtype)
 
-    if dtype_str in {"float", "int", "bool"}:
+    if dtype_str in {"float64", "int64", "bool"}:
         # skip standard dtypes
         logger.debug(f"skipping `{s.name}` since it has dtype `{dtype_str}`")
         return s

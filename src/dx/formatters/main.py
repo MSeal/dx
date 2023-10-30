@@ -74,8 +74,7 @@ def handle_format(
     ipython = ipython_shell or get_ipython()
 
     logger.debug(f"*** handling {settings.DISPLAY_MODE} format for {type(obj)=} ***")
-    if not isinstance(obj, pd.DataFrame):
-        obj = to_dataframe(obj)
+    obj = to_dataframe(obj)
 
     # ensure we aren't mutating the original dataframe
     df = obj.copy()
