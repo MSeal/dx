@@ -9,8 +9,8 @@ from IPython.core.formatters import DisplayFormatter
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display as ipydisplay
 from pandas.io.json import build_table_schema
-from repr_llm.pandas import summarize_dataframe
 
+from dx.formatters.summarizing import make_df_summary
 from dx.sampling import get_column_string_lengths, get_df_dimensions, sample_if_too_big
 from dx.settings import get_settings
 from dx.types.main import DXDisplayMode
@@ -216,7 +216,7 @@ def format_output(
     # add additional payload for LLM consumption; if any parsing/summarizing errors occur, we
     # shouldn't block displaying the bundle
     try:
-        payload["text/llm+plain"] = summarize_dataframe(df)
+        payload["text/llm+plain"] = make_df_summary(df)
     except Exception as e:
         logger.debug(f"Error in summarize_dataframe: {e}")
 
