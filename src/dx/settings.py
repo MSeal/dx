@@ -224,7 +224,7 @@ def set_option(
 @contextmanager
 def settings_context(ipython_shell: Optional[InteractiveShell] = None, **option_kwargs):
     settings = get_settings()
-    orig_settings = settings.dict()
+    orig_settings = settings.model_dump()
     option_kwargs = {str(k).upper(): v for k, v in option_kwargs.items()}
 
     # handle DISPLAY_MODE updates first since it can overwrite other settings

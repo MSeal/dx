@@ -322,7 +322,7 @@ def generate_metadata(
         # these are set whenever store_sample_to_history() is called after a filter action from the frontend
         sample_history = existing_metadata.get("datalink", {}).get("sample_history", [])
         # we shouldn't have a mix of pydantic FilterTypes and dicts here, but just in case
-        filters = [f.dict() if not isinstance(f, dict) else f for f in parent_dxdf.filters]
+        filters = [f.model_dump() if not isinstance(f, dict) else f for f in parent_dxdf.filters]
 
     # TODO: wrap this up into the DXDataFrame init properties with some refactoring
     user_variable_name = variable_name
