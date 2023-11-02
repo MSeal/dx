@@ -8,11 +8,12 @@ class DataFrameSummarizer:
     summarizing_func: Optional[Callable] = None
 
     def __init__(self, summarizing_func: Optional[Callable] = None):
-        self.summarizing_func = summarizing_func
+        if summarizing_func is None:
+            self._try_to_load_repr_llm()
+        else:
+            self.summarizing_func = summarizing_func
 
-        self._load_repr_llm()
-
-    def _load_repr_llm(self) -> None:
+    def _try_to_load_repr_llm(self) -> None:
         """Load repr_llm's summarize_dataframe into the summarizing_func if it's available."""
         try:
             from repr_llm.pandas import summarize_dataframe
