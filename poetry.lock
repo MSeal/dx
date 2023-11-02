@@ -4845,4 +4845,4 @@ noteable-kernel = ["dask", "duckdb-engine", "geopandas", "modin", "polars", "rep
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b9a0fb98fcb7feec19ad3cc4a741bd0fee113286db109f4b057ff561a73ccd84"
+content-hash = "aa16fc56ebc2e59a5c0239477d780cec1042d86b2f8803c270ab69c04c97bd64"
