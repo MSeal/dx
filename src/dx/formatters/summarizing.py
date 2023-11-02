@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Callable
 
 import pandas as pd
@@ -37,6 +36,11 @@ class DataFrameSummarizer:
             return df.describe().to_string()
 
         return self.summarizing_func(df)
+
+
+def get_summarizing_function() -> Callable | None:
+    """Get the function to use for summarizing dataframes."""
+    return DataFrameSummarizer.instance().summarizing_func
 
 
 def set_summarizing_function(func: Callable) -> None:
