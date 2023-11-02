@@ -31,7 +31,7 @@ def store_sample_to_history(df: pd.DataFrame, display_id: str, filters: list) ->
 
     sample_time = pd.Timestamp("now").strftime(settings.DATETIME_STRING_FORMAT)
     # convert from FilterTypes to dicts
-    dex_filters = [dex_filter.dict() for dex_filter in filters]
+    dex_filters = [dex_filter.model_dump() for dex_filter in filters]
     sample = {
         "sampling_time": sample_time,
         "filters": dex_filters,
