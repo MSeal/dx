@@ -1,13 +1,13 @@
-from typing import Callable
+from typing import Callable, Optional
 
 import pandas as pd
 
 
 class DataFrameSummarizer:
     _instance: "DataFrameSummarizer" = None
-    summarizing_func: Callable | None = None
+    summarizing_func: Optional[Callable] = None
 
-    def __init__(self, summarizing_func: Callable | None = None):
+    def __init__(self, summarizing_func: Optional[Callable] = None):
         self.summarizing_func = summarizing_func
 
         self._load_repr_llm()
@@ -38,7 +38,7 @@ class DataFrameSummarizer:
         return self.summarizing_func(df)
 
 
-def get_summarizing_function() -> Callable | None:
+def get_summarizing_function() -> Optional[Callable]:
     """Get the function to use for summarizing dataframes."""
     return DataFrameSummarizer.instance().summarizing_func
 
