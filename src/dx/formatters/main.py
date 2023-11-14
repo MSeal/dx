@@ -23,13 +23,6 @@ from dx.utils.formatting import (
 )
 from dx.utils.tracking import DXDF_CACHE, SUBSET_HASH_TO_PARENT_DATA, DXDataFrame, get_db_connection
 
-try:
-    from repr_llm.pandas import summarize_dataframe
-
-    REPR_LLM_INSTALLED = True
-except ImportError:
-    REPR_LLM_INSTALLED = False
-
 logger = structlog.get_logger(__name__)
 db_connection = get_db_connection()
 settings = get_settings()
@@ -217,7 +210,7 @@ def format_output(
     try:
         payload["text/llm+plain"] = make_df_summary(df)
     except Exception as e:
-        logger.debug(f"Error in summarize_dataframe: {e}")
+        logger.debug(f"Error making dataframe summary: {e}")
 
     metadata = {settings.MEDIA_TYPE: metadata}
 
