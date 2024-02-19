@@ -20,7 +20,7 @@ jobs:
       - name: Setup nox
         uses: daisylb/setup-nox@v2.1.0
       - name: Setup poetry
-        uses: Gr1N/setup-poetry@v8
+        uses: Gr1N/setup-poetry@v9
         with:
           poetry-version: "1.5.1"
       - name: Install dependencies
@@ -41,7 +41,7 @@ jobs:
       - name: Setup nox
         uses: daisylb/setup-nox@v2.1.0
       - name: Setup poetry
-        uses: Gr1N/setup-poetry@v8
+        uses: Gr1N/setup-poetry@v9
         with:
           poetry-version: "1.4.1"
       - name: Install dependencies
